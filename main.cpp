@@ -140,40 +140,41 @@ int main()
          {9, "Si"},
          };
 
-    std::string fileName{"rea.elts.txt.wo_MgCaFeS.all" }; // wo_MgCaFeS
-    // std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
+//    std::string fileName{"rea.elts.txt.wo_MgCaFeS.all" }; // wo_MgCaFeS
+     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
 
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        // { "bereza_1", {9.3, std::nullopt } },
-        // { "bereza_2", {12.1, std::nullopt } },
-        // { "bereza_3", {14.1, std::nullopt } },
-        // { "bereza_4", {16.3, std::nullopt } },
-        // { "bereza_5", {18.1, std::nullopt } },
-        // { "bereza_6", {19.5, std::nullopt } },
-        // { "bereza_7", {21.8, 5.3 } },
-        // { "bereza_8", {23.7, 5.4 } },
-        // { "bereza_9", {25.6, 5.2 } },
-        // { "bereza_10", {28.4, 5.2 } },
-        // { "bereza_11", {30.7, 5.0 } },
+//        { "3835", { 7.8, 4.2 } },
+//        { "3834", { 9.6, 5.5 } },
+//        { "3836", { 11.2, 6.2 } },
+//        { "3837", { 11.8, 3.9 } },
+//        { "3838", { 15.1, 7.9 } },
+//        { "3839", { 18.2, 4.9 } },
+//        { "3840", { 20.7, 6.7 } },
+//        { "3841", { 27.6, 8.0 } },
+//        { "3842", { 28.3, 7.8 } },
+//        { "3843", { 30.4, 8.2 } },
+//        { "3844", { 32.9, 8.1 } },
+         { "bereza_1_", {9.3, std::nullopt } },
+         { "bereza_2_", {12.1, std::nullopt } },
+         { "bereza_3_", {14.1, std::nullopt } },
+         { "bereza_4_", {16.3, std::nullopt } },
+         { "bereza_5_", {18.1, std::nullopt } },
+         { "bereza_6_", {19.5, std::nullopt } },
+         { "bereza_7_", {21.8, 5.3 } },
+         { "bereza_8_", {23.7, 5.4 } },
+         { "bereza_9_", {25.6, 5.2 } },
+         { "bereza_10_", {28.4, 5.2 } },
+         { "bereza_11_", {30.7, 5.0 } },
     };
 
     try
     {
 
         // std::regex p{"_povtor_\\d+\\."};
-        std::regex m{"\\d+_\\d+\\."};
+//        std::regex m{"\\d+_\\d+\\."};
+        std::regex m{"\\d+_\\d\\."};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -200,14 +201,14 @@ int main()
             TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), points.l.at(i).c_str());
             l.SetTextAngle(90);
             l.SetTextAlign(12);
-            l.SetTextSize(0.125);
+            l.SetTextSize(0.04);
             labels.push_back(l);
         }
 
         FitFunction_2 fObj(fitResultsByValue);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
 
-        f.get()->SetParameter(9, 0.0);
+//        f.get()->FixParameter(5, 100.0);
         f.get()->SetNpx(static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
@@ -225,7 +226,7 @@ int main()
         c.get()->Close();
 
         std::regex s{"sum"};
-        // std::regex s{"\\d+_\\d+\\."};
+//         std::regex s{"\\d+_\\d+\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
         std::regex p{"_povtor_\\d+\\."};
@@ -307,7 +308,7 @@ void calcConv(const std::map<std::string, Data1> &data,
         TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), points.l.at(i).c_str());
         l.SetTextAngle(90);
         l.SetTextAlign(12);
-        l.SetTextSize(0.125);
+        l.SetTextSize(0.04);
         labels.push_back(l);
     }
 
