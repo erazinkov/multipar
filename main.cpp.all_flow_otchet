@@ -12,11 +12,6 @@
 #include <TVirtualFitter.h>
 #include <TLatex.h>
 #include <numeric>
-#include <TH2.h>
-#include <TLine.h>
-#include <TMarker.h>
-
-#include <bits/stdc++.h>
 
 #include <regex>
 
@@ -135,37 +130,6 @@ void calcConv(const std::map<std::string, Data1> &data,
 
 int main()
 {
-    std::map<std::string, ChemResult> chemBlind
-    {
-        { "barz_blind_309_310", {16.6, 1.6 } },
-        { "barz_blind_311_312", {10.5, 1.9 } },
-        { "barz_blind_313_314", {21.9, 1.6 } },
-        { "barz_blind_315_316", {6.8, 1.4 } },
-        { "barz_blind_317_318", {17.8, 2.3 } },
-        { "barz_blind_319_320", {7.4, 2.1 } },
-
-        { "coal_blind_N12_1", {8.6, 2.2 } },
-        { "coal_blind_N12_2", {13.6, 2.1 } },
-        { "coal_blind_N12_3", {7.5, 2.2 } },
-        { "coal_blind_N12_4", {11.8, 1.8 } },
-        { "coal_blind_N12_5", {11.5, 2.1 } },
-        { "coal_blind_N12_6", {8.6, 2.4 } },
-
-        { "bereza_blind_601_602", {11.7, 3.0 } },
-        { "bereza_blind_603_604", {13.5, 2.8 } },
-        { "bereza_blind_605_606", {17.9, 2.8 } },
-        { "bereza_blind_607_608", {16.9, 5.2 } },
-        { "bereza_blind_609_610", {12.3, 2.8 } },
-        { "bereza_blind_611_612", {12.1, 4.1 } },
-        { "bereza_blind_613_614", {4.6, 4.2 } },
-
-        { "bereza_blind_625_626", {9.4, 2.8 } },
-        { "bereza_blind_627_628", {9.7, 7.5 } },
-        { "bereza_blind_629_630", {9.1, 7.1 } },
-
-        { "bereza_blind_701_702", {9.1, 6.0 } },
-        { "bereza_blind_703_704", {8.7, 4.4 } },
-    };
     //wo_MgCaFeS
     const std::map<int, std::string> columnElement
         {
@@ -175,53 +139,35 @@ int main()
          {7, "O"},
          {9, "Si"},
          };
-//    //wo_MgS
-//    const std::map<int, std::string> columnElement
-//        {
-//         {1,  "Al"},
-//         {3,  "C"},
-//         {5,  "Ca"},
-//         {7,  "Fe"},
-//         {9,  "N"},
-//         {11, "O"},
-//         {13, "Si"},
-//         };
-//    std::string fileName{"rea.elts.txt.12.wo_MgS" }; // wo_MgCaFeS 12
-//    std::string fileName{"rea.elts.txt.12.wo_MgCaFeS.all" }; // wo_MgCaFeS 12
-//     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
 
-//    std::string fileName{"rea.elts.txt.12_w_bereza_wo_MgCaFeS.all"}; // wo_MgCaFeS 12+bereza
-    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
-//    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-
+//    std::string fileName{"rea.elts.txt.wo_MgCaFeS.all" }; // wo_MgCaFeS
+     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
 
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        { "bereza_1_", {9.3, std::nullopt } },
-//        { "bereza_2_", {12.1, std::nullopt } },
-        { "bereza_3_", {14.1, std::nullopt } },
-        { "bereza_4_", {16.3, std::nullopt } },
-        { "bereza_5_", {18.1, std::nullopt } },
-        { "bereza_6_", {19.5, std::nullopt } },
-        { "bereza_7_", {21.8, 5.3 } },
-        { "bereza_8_", {23.7, 5.4 } },
-//        { "bereza_9_", {25.6, 5.2 } },
-//        { "bereza_10_", {28.4, 5.2 } },
-//        { "bereza_11_", {30.7, 5.0 } },
+//        { "3835", { 7.8, 4.2 } },
+//        { "3834", { 9.6, 5.5 } },
+//        { "3836", { 11.2, 6.2 } },
+//        { "3837", { 11.8, 3.9 } },
+//        { "3838", { 15.1, 7.9 } },
+//        { "3839", { 18.2, 4.9 } },
+//        { "3840", { 20.7, 6.7 } },
+//        { "3841", { 27.6, 8.0 } },
+//        { "3842", { 28.3, 7.8 } },
+//        { "3843", { 30.4, 8.2 } },
+//        { "3844", { 32.9, 8.1 } },
+         { "bereza_1_", {9.3, std::nullopt } },
+         { "bereza_2_", {12.1, std::nullopt } },
+         { "bereza_3_", {14.1, std::nullopt } },
+         { "bereza_4_", {16.3, std::nullopt } },
+         { "bereza_5_", {18.1, std::nullopt } },
+         { "bereza_6_", {19.5, std::nullopt } },
+         { "bereza_7_", {21.8, 5.3 } },
+         { "bereza_8_", {23.7, 5.4 } },
+         { "bereza_9_", {25.6, 5.2 } },
+         { "bereza_10_", {28.4, 5.2 } },
+         { "bereza_11_", {30.7, 5.0 } },
     };
-
-    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
@@ -252,25 +198,18 @@ int main()
 
         for (size_t i{0}; i < points.x.size(); ++i)
         {
-            auto pos{points.l.at(i).find_last_of("_")};
-            auto text{points.l.at(i)};
-            if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-            {
-                text = text.substr(0, pos);
-            }
-            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
+            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), points.l.at(i).c_str());
             l.SetTextAngle(90);
             l.SetTextAlign(12);
-            l.SetTextSize(0.02);
+            l.SetTextSize(0.04);
             labels.push_back(l);
         }
 
         FitFunction_2 fObj(fitResultsByValue);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
 
-        f.get()->SetParLimits(1, -5.0, 0.0);
-        f.get()->SetParLimits(5, 50.0, 150.0);
-        f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
+//        f.get()->FixParameter(5, 100.0);
+        f.get()->SetNpx(static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
 
@@ -290,15 +229,9 @@ int main()
 //         std::regex s{"\\d+_\\d+\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
-//        std::regex p{"_povtor_\\d+\\."};
-//        auto data1P{getFitResults(fileName, columnElement, chem, p)};
-//        calcRep(data1P, f);
-
-//        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chem, s)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
+        std::regex p{"_povtor_\\d+\\."};
+        auto data1P{getFitResults(fileName, columnElement, chem, p)};
+        calcRep(data1P, f);
     }
     catch (const my_error& err)
     {
@@ -358,121 +291,34 @@ void calcConv(const std::map<std::string, Data1> &data,
     std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
     gr.get()->SetMarkerSize(1.5);
     gr.get()->SetMarkerStyle(21);
+    std::stringstream ss;
+    ss.str("");ss.clear();
+    ss << (value == Data1::Value::A ? "Ad" : "Wr")
+       << " avg = "
+       << avg << "%"
+       << ", stdAbs = "
+       << stdAbs << "%"
+       << ";AGP-K, %;Chem, %";
+    gr.get()->SetTitle(ss.str().c_str());
 
     std::vector<TLatex> labels;
 
     for (size_t i{0}; i < points.x.size(); ++i)
     {
-        auto pos{points.l.at(i).find_last_of("_")};
-        auto text{points.l.at(i)};
-        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-        {
-            text = text.substr(0, pos);
-        }
-        TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
+        TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), points.l.at(i).c_str());
         l.SetTextAngle(90);
         l.SetTextAlign(12);
-        l.SetTextSize(0.02);
+        l.SetTextSize(0.04);
         labels.push_back(l);
     }
 
-    std::stringstream ss;
-    ss.str("");ss.clear();
-    ss << (value == Data1::Value::A ? "Ad" : "Wr")
-       << ": avg = "
-       << avg << "%"
-       << ", stdAbs = "
-       << stdAbs << "%"
-       << ";AGP-K, %;Chem, %";
-
-    std::unique_ptr<TH2D> h2dConv{new TH2D("h2dConv",
-                                           ss.str().c_str(),
-                                           static_cast<int>(points.y.size()),
-                                           0.75 * (*std::min_element(points.y.begin(), points.y.end())),
-                                           1.25 * (*std::max_element(points.y.begin(), points.y.end())),
-                                           static_cast<int>(points.y.size()),
-                                           0.75 * (*std::min_element(points.y.begin(), points.y.end())),
-                                           1.25 * (*std::max_element(points.y.begin(), points.y.end())))};
-    h2dConv->SetStats(0);
-    std::unique_ptr<TLine> lConv{new TLine(0.75 * (*std::min_element(points.y.begin(), points.y.end())),
-                                           0.75 * (*std::min_element(points.y.begin(), points.y.end())),
-                                           1.25 * (*std::max_element(points.y.begin(), points.y.end())),
-                                           1.25 * (*std::max_element(points.y.begin(), points.y.end())))};
     const std::string psName{"output_conv.ps"};
     std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
     c.get()->Print((psName + '[').c_str());
-    h2dConv.get()->Draw();
-    gr.get()->Draw("P");
-
-    auto useSub{true};
-    if (useSub)
-    {
-        std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("coal_blind", kRed), Points() },
-            { std::make_pair("barz_blind", kBlue), Points() },
-            { std::make_pair("bereza_blind", kGreen), Points() },
-            { std::make_pair("other", kBlack), Points() },
-        };
-
-//        Points otherPoints;
-
-        for (size_t i{0}; i < points.x.size(); ++i)
-        {
-            auto isOther{false};
-            for (auto &item : subPoints)
-            {
-                if (points.l.at(i).find(item.first.first) != std::string::npos)
-                {
-                    TMarker m{points.x.at(i), points.y.at(i), 21};
-                    m.SetMarkerSize(1.5);
-                    m.SetMarkerColor(item.first.second);
-                    m.DrawClone("SAME");
-                    item.second.l.push_back(points.l.at(i));
-                    item.second.x.push_back(points.x.at(i));
-                    item.second.y.push_back(points.y.at(i));
-                    item.second.xErr.push_back(0.1);
-                    item.second.yErr.push_back(0.5);
-
-                    isOther = true;
-                }
-            }
-//            if (!isOther)
-//            {
-                subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
-                subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
-                subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
-                subPoints.at({"other", kBlack}).xErr.push_back(0.1);
-                subPoints.at({"other", kBlack}).yErr.push_back(0.5);
-//            }
-        }
-        std::stringstream ss;
-        ss.str("");ss.clear();
-        ss << (value == Data1::Value::A ? "Ad" : "Wr");
-        ss << ": stdAbs=" << std::setprecision(3);
-        auto stdAbs1 = [](Points points){
-            std::vector<double> d2;
-            for (size_t i{0}; i < points.x.size(); ++i)
-            {
-                d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
-            }
-            return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / static_cast<double>(d2.size()));
-        };
-//        auto avg1 = [](Points points){
-//            return std::accumulate(points.x.begin(), points.x.end(), 0.0) / points.x.size();
-//        };
-        for (auto item : subPoints)
-        {
-            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
-        }
-
-        ss << ";AGP-K, %;Chem, %";
-        h2dConv.get()->SetTitle(ss.str().c_str());
-    }
-
-    lConv.get()->Draw("SAME");
+    gr.get()->Draw("AP");
     for (const auto &item : labels)
     {
-//        item.DrawClone("SAME");
+        item.DrawClone("SAME");
     }
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
