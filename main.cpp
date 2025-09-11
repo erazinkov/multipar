@@ -221,7 +221,7 @@ int main()
 //        { "bereza_11_", {30.7, 5.0 } },
     };
 
-    chem.insert(chemBlind.begin(), chemBlind.end());
+//    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
@@ -278,9 +278,52 @@ int main()
         std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
         c.get()->Print((psName + '[').c_str());
         gr.get()->Draw("APL");
+
+        auto useSub{true};
+        if (useSub)
+        {
+            std::map<std::pair<std::string, Color_t>, Points> subPoints{
+                { std::make_pair("coal_blind", kRed), Points() },
+                { std::make_pair("barz_blind", kBlue), Points() },
+                { std::make_pair("bereza_blind", kGreen), Points() },
+                { std::make_pair("other", kBlack), Points() },
+            };
+
+
+            for (size_t i{0}; i < points.x.size(); ++i)
+            {
+                auto isOther{false};
+                for (auto &item : subPoints)
+                {
+                    if (points.l.at(i).find(item.first.first) != std::string::npos)
+                    {
+                        TMarker m{points.x.at(i), points.y.at(i), 21};
+                        m.SetMarkerSize(1.5);
+                        m.SetMarkerColor(item.first.second);
+                        m.DrawClone("SAME");
+                        item.second.l.push_back(points.l.at(i));
+                        item.second.x.push_back(points.x.at(i));
+                        item.second.y.push_back(points.y.at(i));
+                        item.second.xErr.push_back(0.1);
+                        item.second.yErr.push_back(0.5);
+
+                        isOther = true;
+                    }
+                }
+                if (!isOther)
+                {
+                    subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
+                    subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
+                    subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
+                    subPoints.at({"other", kBlack}).xErr.push_back(0.1);
+                    subPoints.at({"other", kBlack}).yErr.push_back(0.5);
+                }
+            }
+        }
+
         for (const auto &item : labels)
         {
-            item.DrawClone("SAME");
+//            item.DrawClone("SAME");
         }
         c.get()->Print(psName.c_str());
         c.get()->Print((psName + ']').c_str());
@@ -296,7 +339,7 @@ int main()
 
 //        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chem, s)};
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
 //        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
 //        calcConv(dataBlindSum, f, value);
     }
@@ -411,10 +454,9 @@ void calcConv(const std::map<std::string, Data1> &data,
             { std::make_pair("coal_blind", kRed), Points() },
             { std::make_pair("barz_blind", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
-            { std::make_pair("other", kBlack), Points() },
+            { std::make_pair("other", kMagenta), Points() },
         };
 
-//        Points otherPoints;
 
         for (size_t i{0}; i < points.x.size(); ++i)
         {
@@ -436,14 +478,14 @@ void calcConv(const std::map<std::string, Data1> &data,
                     isOther = true;
                 }
             }
-//            if (!isOther)
-//            {
-                subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
-                subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
-                subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
-                subPoints.at({"other", kBlack}).xErr.push_back(0.1);
-                subPoints.at({"other", kBlack}).yErr.push_back(0.5);
-//            }
+            if (!isOther)
+            {
+                subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
+                subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
+                subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
+                subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
+                subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
+            }
         }
         std::stringstream ss;
         ss.str("");ss.clear();
