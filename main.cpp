@@ -480,11 +480,11 @@ int main()
     };
     std::map<std::string, ChemResult> chemBlind
     {
-        { "tochka_1_t", {3.18, 33.48} },
+        { "tochka_5_t", {3.18, 33.48} },
         { "tochka_2_t", {1.43, 19.25} },
         { "tochka_3_t", {1.75, 23.89} },
         { "tochka_4_t", {2.23, 27.53} },
-        { "tochka_5_t", {1.27, 19.80} },
+        { "tochka_1_t", {1.27, 19.80} },
         { "tochka_6_t", {1.35, 19.47} },
         { "tochka_7_t", {1.46, 19.03} },
         { "tochka_8_t", {1.46, 19.31} },
@@ -536,20 +536,21 @@ int main()
     // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSN"};
     // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSNAl"};
 //    const auto fileName{"rea.elts.txt_bereza_wo_MgCaFeSNAl"};
-    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
+//    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
+    const auto fileName{"rea.elts.txt.stavropol_t"};
     std::cout << fileName << std::endl;
 
-    chem.insert(chemBlind.begin(), chemBlind.end());
+//    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"\\d+_t\\."};
+        std::regex m{"\\d+_(s|t)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -585,12 +586,12 @@ int main()
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
-        f.get()->SetParameter(0, 100.0);
-        f.get()->SetParameter(1, 1.0);
-        f.get()->SetParameter(2, 1.0);
-        f.get()->SetParameter(3, 0.5);
-        f.get()->SetParameter(4, -1.0);
-        f.get()->SetParameter(5, 1.0);
+//        f.get()->SetParameter(0, 100.0);
+//        f.get()->SetParameter(1, 1.0);
+//        f.get()->SetParameter(2, 1.0);
+//        f.get()->SetParameter(3, 0.5);
+//        f.get()->SetParameter(4, -1.0);
+//        f.get()->SetParameter(5, 1.0);
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
@@ -651,14 +652,15 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        std::regex s{"sum"};
-//         std::regex s{"\\d+_\\d+\\."};
+//        std::regex s{"sum"};
+        std::regex s{"\\d+_s"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-//        calcConv(data1Sum, f, value);
+        calcConv(data1Sum, f, value);
 
-        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+//        std::regex t{"\\d+_t"};
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
