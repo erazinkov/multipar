@@ -92,8 +92,12 @@ public:
         int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
         double val{0.0};
         auto A{
-           (par[0] - par[1] * _d.at(idx).at(0) - par[5] * (par[2] * _d.at(idx).at(1) + par[4]))
-                   / (1.0 - par[5] * par[3])
+           (par[1] + par[0] * _d.at(idx).at(0))
+                    / (100.0 - par[2] *
+                    (par[3] * _d.at(idx).at(1)
+                    - par[4] * _d.at(idx).at(2)
+                    + par[5])
+                    )
         };
 
         if (idx < _aNumber)
@@ -102,9 +106,25 @@ public:
         }
         else
         {
-            val = par[2] * _d.at(idx).at(1) - par[3] * A + par[4];
+            val = par[3] * _d.at(idx).at(1)
+                    - par[4] * _d.at(idx).at(2)
+                    + par[5];
         }
         return val;
+//        auto A{
+//           (par[0] - par[1] * _d.at(idx).at(0) - par[5] * (par[2] * _d.at(idx).at(1) + par[4]))
+//                   / (1.0 - par[5] * par[3])
+//        };
+
+//        if (idx < _aNumber)
+//        {
+//            val = A;
+//        }
+//        else
+//        {
+//            val = par[2] * _d.at(idx).at(1) - par[3] * A + par[4];
+//        }
+//        return val;
    }
 private:
     const std::map<int, std::vector<double>> _d;
@@ -265,12 +285,12 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value);
                 mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value);
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value);
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value);
                 xx++;
             }
         }
-
     }
 }
 
@@ -301,17 +321,30 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                auto C{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
-                auto O{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+                auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+                auto O{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
+                auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
 
                 auto res{0.0};
-
                 auto a{
-                    (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
+                    (p1 + p0 * C)
+                            / (100.0 - p2 *
+                            (p3 * O
+                            - p4 * Si
+                            + p5)
+                            )
                 };
                 auto w{
-                    p2 * O - p3 * a + p4
+                    p3 * O
+                    - p4 * Si
+                    + p5
                 };
+//                auto a{
+//                    (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
+//                };
+//                auto w{
+//                    p2 * O - p3 * a + p4
+//                };
 
                 switch (value) {
                 case Data1::Value::A:
@@ -392,8 +425,8 @@ void calcConv(const std::map<std::string, Data1> &data,
     if (useSub)
     {
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("coal_blind", kRed), Points() },
-            { std::make_pair("barz_blind", kBlue), Points() },
+            { std::make_pair("_s", kRed), Points() },
+            { std::make_pair("_t", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
             { std::make_pair("other", kMagenta), Points() },
         };
@@ -416,7 +449,7 @@ void calcConv(const std::map<std::string, Data1> &data,
                     item.second.xErr.push_back(0.1);
                     item.second.yErr.push_back(0.5);
 
-                    isOther = true;
+//                    isOther = true;
                 }
             }
             if (!isOther)
@@ -480,11 +513,11 @@ int main()
     };
     std::map<std::string, ChemResult> chemBlind
     {
-        { "tochka_5_t", {3.18, 33.48} },
+        { "tochka_1_t", {3.18, 33.48} },
         { "tochka_2_t", {1.43, 19.25} },
         { "tochka_3_t", {1.75, 23.89} },
         { "tochka_4_t", {2.23, 27.53} },
-        { "tochka_1_t", {1.27, 19.80} },
+        { "tochka_5_t", {1.27, 19.80} },
         { "tochka_6_t", {1.35, 19.47} },
         { "tochka_7_t", {1.46, 19.03} },
         { "tochka_8_t", {1.46, 19.31} },
@@ -495,12 +528,12 @@ int main()
 
     const std::map<int, std::string> columnElement
     {
-        {1, "Al"},
-        {3, "C"},
-        {5, "Ca"},
-        {7, "Fe"},
-        {9, "O"},
-        {11, "Si"},
+        {1, "Al"}, //0
+        {3, "C"},  //1
+        {5, "Ca"}, //2
+        {7, "Fe"}, //3
+        {9, "O"},  //4
+        {11, "Si"},//5
     };
 
 //    const std::map<std::string, size_t> elementColumn
@@ -586,12 +619,19 @@ int main()
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
-//        f.get()->SetParameter(0, 100.0);
-//        f.get()->SetParameter(1, 1.0);
-//        f.get()->SetParameter(2, 1.0);
-//        f.get()->SetParameter(3, 0.5);
-//        f.get()->SetParameter(4, -1.0);
-//        f.get()->SetParameter(5, 1.0);
+        f.get()->SetParameter(0, 1.0);
+        f.get()->SetParameter(1, 0.0);
+        f.get()->SetParameter(2, 1.0);
+        f.get()->SetParameter(3, 1.0);
+        f.get()->SetParameter(4, 2.0);
+        f.get()->SetParameter(5, 0.0);
+
+//        f.get()->SetParLimits(0, 0.0, DBL_MAX);
+
+//        f.get()->SetParLimits(2, 0.0, DBL_MAX);
+//        f.get()->SetParLimits(3, 0.0, DBL_MAX);
+//        f.get()->SetParLimits(4, 0.0, DBL_MAX);
+
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
@@ -605,8 +645,8 @@ int main()
         if (useSub)
         {
             std::map<std::pair<std::string, Color_t>, Points> subPoints{
-                { std::make_pair("coal_blind", kRed), Points() },
-                { std::make_pair("barz_blind", kBlue), Points() },
+                { std::make_pair("_s", kRed), Points() },
+                { std::make_pair("_t", kBlue), Points() },
                 { std::make_pair("bereza_blind", kGreen), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
@@ -645,7 +685,7 @@ int main()
 
         for (const auto &item : labels)
         {
-//            item.DrawClone("SAME");
+            item.DrawClone("SAME");
         }
 
         c.get()->Print(psName.c_str());
@@ -655,12 +695,12 @@ int main()
 //        std::regex s{"sum"};
         std::regex s{"\\d+_s"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-        calcConv(data1Sum, f, value);
+//        calcConv(data1Sum, f, value);
 
-//        std::regex t{"\\d+_t"};
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
+        std::regex t{"\\d+_t"};
+        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
