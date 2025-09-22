@@ -137,44 +137,36 @@ int main()
 {
     std::map<std::string, ChemResult> chemBlind
     {
-        { "barz_blind_309_310", {16.6, 1.6 } },
-        { "barz_blind_311_312", {10.5, 1.9 } },
-        { "barz_blind_313_314", {21.9, 1.6 } },
-        { "barz_blind_315_316", {6.8, 1.4 } },
-        { "barz_blind_317_318", {17.8, 2.3 } },
-        { "barz_blind_319_320", {7.4, 2.1 } },
+        { "tochka_5_t", {3.18, std::nullopt} },
+        { "tochka_2_t", {1.43, std::nullopt} },
+        { "tochka_3_t", {1.75, std::nullopt} },
+        { "tochka_4_t", {2.23, std::nullopt} },
+        { "tochka_1_t", {1.27, std::nullopt} },
+        { "tochka_6_t", {1.35, std::nullopt} },
+        { "tochka_7_t", {1.46, std::nullopt} },
+        { "tochka_8_t", {1.46, std::nullopt} },
+        { "tochka_9_t", {1.01, std::nullopt} },
 
-        { "coal_blind_N12_1", {8.6, 2.2 } },
-        { "coal_blind_N12_2", {13.6, 2.1 } },
-        { "coal_blind_N12_3", {7.5, 2.2 } },
-        { "coal_blind_N12_4", {11.8, 1.8 } },
-        { "coal_blind_N12_5", {11.5, 2.1 } },
-        { "coal_blind_N12_6", {8.6, 2.4 } },
-
-        { "bereza_blind_601_602", {11.7, 3.0 } },
-        { "bereza_blind_603_604", {13.5, 2.8 } },
-        { "bereza_blind_605_606", {17.9, 2.8 } },
-        { "bereza_blind_607_608", {16.9, 5.2 } },
-        { "bereza_blind_609_610", {12.3, 2.8 } },
-        { "bereza_blind_611_612", {12.1, 4.1 } },
-        { "bereza_blind_613_614", {4.6, 4.2 } },
-
-        { "bereza_blind_625_626", {9.4, 2.8 } },
-        { "bereza_blind_627_628", {9.7, 7.5 } },
-        { "bereza_blind_629_630", {9.1, 7.1 } },
-
-        { "bereza_blind_701_702", {9.1, 6.0 } },
-        { "bereza_blind_703_704", {8.7, 4.4 } },
     };
-    //wo_MgCaFeS
+    //
     const std::map<int, std::string> columnElement
-        {
-         {1, "Al"},
-         {3, "C"},
-         {5, "N"},
-         {7, "O"},
-         {9, "Si"},
-         };
+    {
+        {1, "Al"},
+        {3, "C"},
+        {5, "Ca"},
+        {7, "Fe"},
+        {9, "O"},
+        {11, "Si"},
+    };
+//    //wo_MgCaFeS
+//    const std::map<int, std::string> columnElement
+//        {
+//         {1, "Al"},
+//         {3, "C"},
+//         {5, "N"},
+//         {7, "O"},
+//         {9, "Si"},
+//         };
 //    //wo_MgS
 //    const std::map<int, std::string> columnElement
 //        {
@@ -186,49 +178,51 @@ int main()
 //         {11, "O"},
 //         {13, "Si"},
 //         };
+//    //all
+//    const std::map<int, std::string> columnElement
+//    {
+//        {1,  "Al"},
+//        {3,  "C"},
+//        {5,  "Ca"},
+//        {7,  "Fe"},
+//        {9,  "Mg"},
+//        {11, "N"},
+//        {13, "O"},
+//        {15, "S"},
+//        {17, "Si"},
+//    };
 //    std::string fileName{"rea.elts.txt.12.wo_MgS" }; // wo_MgCaFeS 12
 //    std::string fileName{"rea.elts.txt.12.wo_MgCaFeS.all" }; // wo_MgCaFeS 12
 //     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
 
 //    std::string fileName{"rea.elts.txt.12_w_bereza_wo_MgCaFeS.all"}; // wo_MgCaFeS 12+bereza
-    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 
+    std::string fileName{"rea.elts.txt.stavropol_t"};
 
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        { "bereza_1_", {9.3, std::nullopt } },
-//        { "bereza_2_", {12.1, std::nullopt } },
-        { "bereza_3_", {14.1, std::nullopt } },
-        { "bereza_4_", {16.3, std::nullopt } },
-        { "bereza_5_", {18.1, std::nullopt } },
-        { "bereza_6_", {19.5, std::nullopt } },
-        { "bereza_7_", {21.8, 5.3 } },
-        { "bereza_8_", {23.7, 5.4 } },
-//        { "bereza_9_", {25.6, 5.2 } },
-//        { "bereza_10_", {28.4, 5.2 } },
-//        { "bereza_11_", {30.7, 5.0 } },
+        { "tochka_1_s", {4.74, std::nullopt} },
+        { "tochka_2_s", {4.66, std::nullopt} },
+        { "tochka_3_s", {4.99, std::nullopt} },
+        { "tochka_4_s", {5.14, std::nullopt} },
+        { "tochka_5_s", {4.74, std::nullopt} },
+        { "tochka_6_s", {4.45, std::nullopt} },
+        { "tochka_7_s", {4.78, std::nullopt} },
+        { "tochka_8_s", {4.80, std::nullopt} },
+        { "tochka_9_s", {3.83, std::nullopt} },
     };
 
-//    chem.insert(chemBlind.begin(), chemBlind.end());
+    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
 
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
-        std::regex m{"\\d+_\\d\\."};
+        std::regex m{"\\d+_(s|t)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -268,8 +262,8 @@ int main()
         FitFunction_2 fObj(fitResultsByValue);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
 
-        f.get()->SetParLimits(1, -5.0, 0.0);
-        f.get()->SetParLimits(5, 50.0, 150.0);
+//        f.get()->SetParLimits(1, -5.0, 0.0);
+//        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
@@ -283,8 +277,8 @@ int main()
         if (useSub)
         {
             std::map<std::pair<std::string, Color_t>, Points> subPoints{
-                { std::make_pair("coal_blind", kRed), Points() },
-                { std::make_pair("barz_blind", kBlue), Points() },
+                { std::make_pair("_s", kRed), Points() },
+                { std::make_pair("_t", kBlue), Points() },
                 { std::make_pair("bereza_blind", kGreen), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
@@ -329,19 +323,19 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        std::regex s{"sum"};
+        std::regex s{"\\d+_s"};
 //         std::regex s{"\\d+_\\d+\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-        calcConv(data1Sum, f, value);
+//        calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
 //        auto data1P{getFitResults(fileName, columnElement, chem, p)};
 //        calcRep(data1P, f);
 
 //        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
+        std::regex t{"\\d+_t"};
+        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+        calcConv(dataBlindSum, f, value);
     }
     catch (const my_error& err)
     {
@@ -451,8 +445,8 @@ void calcConv(const std::map<std::string, Data1> &data,
     if (useSub)
     {
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("coal_blind", kRed), Points() },
-            { std::make_pair("barz_blind", kBlue), Points() },
+            { std::make_pair("_s", kRed), Points() },
+            { std::make_pair("_t", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
             { std::make_pair("other", kMagenta), Points() },
         };
@@ -478,14 +472,14 @@ void calcConv(const std::map<std::string, Data1> &data,
                     isOther = true;
                 }
             }
-            if (!isOther)
-            {
+//            if (!isOther)
+//            {
                 subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
                 subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
                 subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
                 subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
                 subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
-            }
+//            }
         }
         std::stringstream ss;
         ss.str("");ss.clear();
@@ -514,7 +508,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     lConv.get()->Draw("SAME");
     for (const auto &item : labels)
     {
-//        item.DrawClone("SAME");
+        item.DrawClone("SAME");
     }
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
