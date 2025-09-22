@@ -478,135 +478,55 @@ int main()
         { "tochka_8_s", {4.80, std::nullopt} },
         { "tochka_9_s", {3.83, std::nullopt} },
     };
-
     std::map<std::string, ChemResult> chemBlind
     {
-        { "barz_blind_309_310", {16.6, 1.6 } },
-        { "barz_blind_311_312", {10.5, 1.9 } },
-        { "barz_blind_313_314", {21.9, 1.6 } },
-        { "barz_blind_315_316", {6.8, 1.4 } },
-        { "barz_blind_317_318", {17.8, 2.3 } },
-        { "barz_blind_319_320", {7.4, 2.1 } },
+        { "tochka_1_t", {3.18, 33.48} },
+        { "tochka_2_t", {1.43, 19.25} },
+        { "tochka_3_t", {1.75, 23.89} },
+        { "tochka_4_t", {2.23, 27.53} },
+        { "tochka_5_t", {1.27, 19.80} },
+        { "tochka_6_t", {1.35, 19.47} },
+        { "tochka_7_t", {1.46, 19.03} },
+        { "tochka_8_t", {1.46, 19.31} },
+        { "tochka_9_t", {1.01, 16.30} },
 
-        { "coal_blind_N12_1", {8.6, 2.2 } },
-        { "coal_blind_N12_2", {13.6, 2.1 } },
-        { "coal_blind_N12_3", {7.5, 2.2 } },
-        { "coal_blind_N12_4", {11.8, 1.8 } },
-        { "coal_blind_N12_5", {11.5, 2.1 } },
-        { "coal_blind_N12_6", {8.6, 2.4 } },
-
-        { "bereza_blind_601_602", {11.7, 3.0 } },
-        { "bereza_blind_603_604", {13.5, 2.8 } },
-        { "bereza_blind_605_606", {17.9, 2.8 } },
-        { "bereza_blind_607_608", {16.9, 5.2 } },
-        { "bereza_blind_609_610", {12.3, 2.8 } },
-        { "bereza_blind_611_612", {12.1, 4.1 } },
-        { "bereza_blind_613_614", {4.6, 4.2 } },
-
-        { "bereza_blind_625_626", {9.4, 2.8 } },
-        { "bereza_blind_627_628", {9.7, 7.5 } },
-        { "bereza_blind_629_630", {9.1, 7.1 } },
-
-        { "bereza_blind_701_702", {9.1, 6.0 } },
-        { "bereza_blind_703_704", {8.7, 4.4 } },
-    };
-    std::map<std::string, ChemResult> chem1
-    {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        { "bereza_1_", {9.3, std::nullopt } },
-//        { "bereza_2_", {12.1, std::nullopt } },
-        { "bereza_3_", {14.1, std::nullopt } },
-        { "bereza_4_", {16.3, std::nullopt } },
-        { "bereza_5_", {18.1, std::nullopt } },
-        { "bereza_6_", {19.5, std::nullopt } },
-        { "bereza_7_", {21.8, 5.3 } },
-        { "bereza_8_", {23.7, 5.4 } },
-//        { "bereza_9_", {25.6, 5.2 } },
-//        { "bereza_10_", {28.4, 5.2 } },
-//        { "bereza_11_", {30.7, 5.0 } },
     };
 
-    const std::map<std::string, Data> chemRep
-        {
-            // { "3834_povtor_1.", {9.6, 5.5},},
-            // { "3834_povtor_2.", {9.6, 5.5},},
-            // { "3834_povtor_3.", {9.6, 5.5},},
-            // { "3834_povtor_4.", {9.6, 5.5},},
-            // { "3834_povtor_5.", {9.6, 5.5},},
-            // { "3834_povtor_6.", {9.6, 5.5},},
-            // { "3834_povtor_7.", {9.6, 5.5},},
-            // { "3834_povtor_8.", {9.6, 5.5},},
-            // { "3834_povtor_9.", {9.6, 5.5},},
-            // { "3834_povtor_10.", {9.6, 5.5},},
-            // { "3834_povtor_11.", {9.6, 5.5},},
-            // { "3834_povtor_12.", {9.6, 5.5},},
-        // { "3838_povtor_1.", {15.1, 7.9},},
-        // { "3838_povtor_2.", {15.1, 7.9},},
-        // { "3838_povtor_3.", {15.1, 7.9},},
-        // { "3838_povtor_4.", {15.1, 7.9},},
-        // { "3838_povtor_5.", {15.1, 7.9},},
-        // { "3838_povtor_6.", {15.1, 7.9},},
-        // { "3838_povtor_7.", {15.1, 7.9},},
-        // { "3838_povtor_8.", {15.1, 7.9},},
-        // { "3838_povtor_9.", {15.1, 7.9},},
-        // { "3838_povtor_10.", {15.1, 7.9},},
-        // { "3838_povtor_11.", {15.1, 7.9},},
-        // { "3838_povtor_12.", {15.1, 7.9},},
-        { "bereza_5_povtor_1.", {18.1, 0.0} },
-        { "bereza_5_povtor_2.", {18.1, 0.0} },
-        { "bereza_5_povtor_3.", {18.1, 0.0} },
-        { "bereza_5_povtor_4.", {18.1, 0.0} },
-        { "bereza_5_povtor_5.", {18.1, 0.0} },
-        { "bereza_5_povtor_6.", {18.1, 0.0} },
-        { "bereza_5_povtor_7.", {18.1, 0.0} },
-        { "bereza_5_povtor_8.", {18.1, 0.0} },
-        { "bereza_5_povtor_9.", {18.1, 0.0} },
-        { "bereza_5_povtor_10.", {18.1, 0.0} },
-        { "bereza_5_povtor_11.", {18.1, 0.0} },
-        { "bereza_5_povtor_12.", {18.1, 0.0} },
-         };
 
     const std::map<int, std::string> columnElement
     {
-        {1, "C"},
-        {3, "O"},
-        {5, "Si"},
+        {1, "Al"},
+        {3, "C"},
+        {5, "Ca"},
+        {7, "Fe"},
+        {9, "O"},
+        {11, "Si"},
     };
 
-    const std::map<std::string, size_t> elementColumn
-    {
-        // all
-        // {"C", 3},
-        // {"O", 13},
-        //wo Mg
-        // {"C", 3},
-        // {"O", 11},
-        //wo MgCa
-        // {"C", 3},
-        // {"O", 9},
-        //wo MgCaFe
-        // {"C", 3},
-        // {"O", 7},
-        //wo MgCaFeS
-        // {"C", 3},
-        // {"O", 7},
-        //wo MgCaFeSN
-        // {"C", 3},
-        // {"O", 5},
-        //wo MgCaFeSNAl
-        {"C", 1},
-        {"O", 3},
-    };
+//    const std::map<std::string, size_t> elementColumn
+//    {
+//        // all
+//        // {"C", 3},
+//        // {"O", 13},
+//        //wo Mg
+//        // {"C", 3},
+//        // {"O", 11},
+//        //wo MgCa
+//        // {"C", 3},
+//        // {"O", 9},
+//        //wo MgCaFe
+//        // {"C", 3},
+//        // {"O", 7},
+//        //wo MgCaFeS
+//        // {"C", 3},
+//        // {"O", 7},
+//        //wo MgCaFeSN
+//        // {"C", 3},
+//        // {"O", 5},
+//        //wo MgCaFeSNAl
+//        {"C", 1},
+//        {"O", 3},
+//    };
 
     // const auto fileName{"rea.elts.txt_shahta12_all"};
     // const auto fileName{"rea.elts.txt_shahta12_wo_Mg"};
@@ -619,12 +539,13 @@ int main()
     const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
     std::cout << fileName << std::endl;
 
-    chem1.insert(chemBlind.begin(), chemBlind.end());
+    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
-        std::regex m{"\\d+_\\d\\."};
-        auto data1{getFitResults(fileName, columnElement, chem1, m)};
+//        std::regex m{"\\d+_\\d\\."};
+        std::regex m{"\\d+_t\\."};
+        auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
@@ -732,7 +653,7 @@ int main()
 
         std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
-        auto data1Sum{getFitResults(fileName, columnElement, chem1, s)};
+        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
 //        calcConv(data1Sum, f, value);
 
         auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
