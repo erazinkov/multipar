@@ -466,31 +466,19 @@ void calcConv(const std::map<std::string, Data1> &data,
 int main()
 {
     // TVirtualFitter::SetDefaultFitter("Minuit");
-    const std::map<std::string, Data> chem
+    std::map<std::string, ChemResult> chem
     {
-         { "3835", {7.8, 4.2}},
-         { "3834", {9.6, 5.5},},
-         { "3836", {11.2, 6.2} },
-         { "3837", {11.8, 3.9} },
-         { "3838", {15.1, 7.9} },
-         { "3839", {18.2, 4.9} },
-         { "3840", {20.7, 6.7} },
-         { "3841", {27.6, 8.0} },
-         { "3842", {28.3, 7.8} },
-         { "3843", {30.4, 8.2} },
-         { "3844", {32.9, 8.1} },
-//         { "bereza_1_sum", {9.3, std::nullopt} },
-//         { "bereza_2_sum", {12.1, std::nullopt} },
-//         { "bereza_3_sum", {14.1, std::nullopt} },
-//         { "bereza_4_sum", {16.3, std::nullopt} },
-//         { "bereza_5_sum", {18.1, std::nullopt} },
-//         { "bereza_6_sum", {19.5, std::nullopt} },
-//         { "bereza_7_sum", {21.8, 5.3} },
-//         { "bereza_8_sum", {23.7, 5.4} },
-//         { "bereza_9_sum", {25.6, 5.2} },
-//         { "bereza_10_sum", {28.4, 5.2} },
-//         { "bereza_11_sum", {30.7, 5.0} },
+        { "tochka_1_s", {4.74, std::nullopt} },
+        { "tochka_2_s", {4.66, std::nullopt} },
+        { "tochka_3_s", {4.99, std::nullopt} },
+        { "tochka_4_s", {5.14, std::nullopt} },
+        { "tochka_5_s", {4.74, std::nullopt} },
+        { "tochka_6_s", {4.45, std::nullopt} },
+        { "tochka_7_s", {4.78, std::nullopt} },
+        { "tochka_8_s", {4.80, std::nullopt} },
+        { "tochka_9_s", {3.83, std::nullopt} },
     };
+
     std::map<std::string, ChemResult> chemBlind
     {
         { "barz_blind_309_310", {16.6, 1.6 } },
