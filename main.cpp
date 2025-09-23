@@ -118,16 +118,6 @@ private:
     const int _aNumber;
 };
 
-struct Data {
-    enum class Value {
-        A,
-        W
-    };
-    std::optional<double> a;
-    std::optional<double> w;
-};
-
-
 struct Points {
     std::vector<std::string> l;
     std::vector<double> x;
@@ -140,113 +130,313 @@ std::map<std::string, Data1> getFitResults(const std::string &fileName,
                                            const std::map<int, std::string> &columnElement,
                                            const std::map<std::string, ChemResult> &chem,
                                            const std::regex &pattern);
-
 std::vector<std::string> splitLineToStrs(const std::string &line);
-std::map<std::string, std::vector<std::string>> getStrMapByChem(const std::string &fileName,
-                                                                 const size_t column,
-                                                                 std::map<std::string, Data> chem);
 void addPointsByValue(const std::map<std::string, Data1> &data,
                         Points &points,
                         const Data1::Value value);
-//void addPointsByValue(const std::map<std::string, Data> &chem,
-//                      Points &points,
-//                      const Data::Value value);
 double strToDouble(std::string str);
+void addMmnByValue(const std::map<std::string, Data1> &data,
+                        std::map<int, std::vector<double>> &mmn,
+                        const Data1::Value value);
+void calcConv(const std::map<std::string, Data1> &data,
+              const std::unique_ptr<TF1> &f,
+              const Data1::Value value);
 
-void calcConv(const std::shared_ptr<TF1> &f,
-              const std::map<std::string, Data> &chem,
-              const std::map<std::string, std::vector<std::string>> &vC,
-              const std::map<std::string, std::vector<std::string>> &vO)
+int main()
 {
-    auto p0{f.get()->GetParameter(0)};
-    auto p1{f.get()->GetParameter(1)};
-    auto p2{f.get()->GetParameter(2)};
-    auto p3{f.get()->GetParameter(3)};
-    auto p4{f.get()->GetParameter(4)};
-    auto p5{f.get()->GetParameter(5)};
-
-    auto sumA2{0.0};
-    auto sumA{0.0};
-    auto sumW2{0.0};
-    auto sumW{0.0};
-    for (const auto &item : chem)
+    // TVirtualFitter::SetDefaultFitter("Minuit");
+    std::map<std::string, ChemResult> chem
     {
-        if (item.second.a.has_value())
+//        { "tochka_1_s", {4.74, std::nullopt} },
+//        { "tochka_2_s", {4.66, std::nullopt} },
+//        { "tochka_3_s", {4.99, std::nullopt} },
+//        { "tochka_4_s", {5.14, std::nullopt} },
+//        { "tochka_5_s", {4.74, std::nullopt} },
+//        { "tochka_6_s", {4.45, std::nullopt} },
+//        { "tochka_7_s", {4.78, std::nullopt} },
+//        { "tochka_8_s", {4.80, std::nullopt} },
+//        { "tochka_9_s", {3.83, std::nullopt} },
+
+        { "tochka_1_s", {4.74, 6.29} },
+        { "tochka_2_s", {4.66, 6.22} },
+        { "tochka_3_s", {4.99, 6.25} },
+        { "tochka_4_s", {5.14, 6.16} },
+        { "tochka_5_s", {4.74, 7.01} },
+        { "tochka_6_s", {4.45, 6.49} },
+        { "tochka_7_s", {4.78, 6.26} },
+        { "tochka_8_s", {4.80, 6.31} },
+        { "tochka_9_s", {3.83, 6.25} },
+    };
+    std::map<std::string, ChemResult> chemBlind
+    {
+        { "tochka_5_t", {3.18, 33.48} },
+        { "tochka_2_t", {1.43, 19.25} },
+        { "tochka_3_t", {1.75, 23.89} },
+        { "tochka_4_t", {2.23, 27.53} },
+        { "tochka_1_t", {1.27, 19.80} },
+        { "tochka_6_t", {1.35, 19.47} },
+        { "tochka_7_t", {1.46, 19.03} },
+        { "tochka_8_t", {1.46, 19.31} },
+        { "tochka_9_t", {1.01, 16.30} },
+
+    };
+
+
+    const std::map<int, std::string> columnElement
+    {
+        {1, "Al"}, //0
+        {3, "C"},  //1
+        {5, "Ca"}, //2
+        {7, "Fe"}, //3
+        {9, "O"},  //4
+        {11, "Si"},//5
+    };
+
+    const auto fileName{"rea.elts.txt.stavropol_t"};
+    std::cout << fileName << std::endl;
+
+//    chem.insert(chemBlind.begin(), chemBlind.end());
+
+    try
+    {
+//        std::regex m{"\\d+_\\d\\."};
+        std::regex m{"\\d+_(s|t)"};
+        auto data1{getFitResults(fileName, columnElement, chem, m)};
+
+        Points points;
+
+        auto value{Data1::Value::W};
+
+        addPointsByValue(data1, points, Data1::Value::A);
+        auto aNumber{points.x.size()};
+        addPointsByValue(data1, points, Data1::Value::W);
+//        auto wNumber{points.x.size() - aNumber};
+        std::map<int, std::vector<double>> mmn;
+//        size_t idx{ static_cast<size_t>(std::round(points.x.front())) };
+        addMmnByValue(data1, mmn, Data1::Value::A);
+        addMmnByValue(data1, mmn, Data1::Value::W);
+        std::cout << points.x.size() << " " << mmn.size() << std::endl;
+
+        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
+        gr.get()->SetMarkerSize(1.5);
+        gr.get()->SetMarkerStyle(21);
+        gr.get()->SetTitle(";N_{probe};[...A, ...W]");
+
+        std::vector<TLatex> labels;
+
+        for (size_t i{0}; i < points.x.size(); ++i)
         {
-            auto C{strToDouble(vC.at(item.first).front())};
-            auto O{strToDouble(vO.at(item.first).front())};
-            auto a{
-                (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
-            };
-            auto w{
-                p2 * O - p3 * a + p4
-            };
-            sumA2 += (item.second.a.value() - a) * (item.second.a.value() - a);
-            sumA += a;
-            if (item.second.w.has_value())
+            auto pos{points.l.at(i).find_last_of("_")};
+            auto text{points.l.at(i)};
+            if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
             {
-                sumW2 += (item.second.w.value() - w) * (item.second.w.value() - w);
-                sumW += w;
+                text = text.substr(0, pos);
+            }
+            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
+            l.SetTextAngle(90);
+            l.SetTextAlign(12);
+            l.SetTextSize(0.02);
+            labels.push_back(l);
+        }
+
+        FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
+        f.get()->SetParameter(0, 1.0);
+        f.get()->SetParameter(1, 0.0);
+        f.get()->SetParameter(2, 1.0);
+        f.get()->SetParameter(3, 1.0);
+        f.get()->SetParameter(4, 2.0);
+        f.get()->SetParameter(5, 0.0);
+
+        f.get()->SetParLimits(0, 0.0, 10.0);
+
+//        f.get()->SetParLimits(2, 0.0, 10.0);
+        f.get()->SetParLimits(3, 0.3, 2.0);
+        f.get()->SetParLimits(4, 0.0, 20.0);
+
+        f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
+
+        gr.get()->Fit(f.get(), "R");
+
+        const std::string psName{"output.ps"};
+        std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+        c.get()->Print((psName + '[').c_str());
+        gr.get()->Draw("APL");
+
+        auto useSub{true};
+        if (useSub)
+        {
+            std::map<std::pair<std::string, Color_t>, Points> subPoints{
+                { std::make_pair("_s", kRed), Points() },
+                { std::make_pair("_t", kBlue), Points() },
+                { std::make_pair("bereza_blind", kGreen), Points() },
+                { std::make_pair("other", kBlack), Points() },
+            };
+
+
+            for (size_t i{0}; i < points.x.size(); ++i)
+            {
+                auto isOther{false};
+                for (auto &item : subPoints)
+                {
+                    if (points.l.at(i).find(item.first.first) != std::string::npos)
+                    {
+                        TMarker m{points.x.at(i), points.y.at(i), 21};
+                        m.SetMarkerSize(1.5);
+                        m.SetMarkerColor(item.first.second);
+                        m.DrawClone("SAME");
+                        item.second.l.push_back(points.l.at(i));
+                        item.second.x.push_back(points.x.at(i));
+                        item.second.y.push_back(points.y.at(i));
+                        item.second.xErr.push_back(0.1);
+                        item.second.yErr.push_back(0.5);
+
+                        isOther = true;
+                    }
+                }
+                if (!isOther)
+                {
+                    subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
+                    subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
+                    subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
+                    subPoints.at({"other", kBlack}).xErr.push_back(0.1);
+                    subPoints.at({"other", kBlack}).yErr.push_back(0.5);
+                }
             }
         }
+
+        for (const auto &item : labels)
+        {
+            item.DrawClone("SAME");
+        }
+
+        c.get()->Print(psName.c_str());
+        c.get()->Print((psName + ']').c_str());
+        c.get()->Close();
+
+//        std::regex s{"sum"};
+        std::regex s{"\\d+_s"};
+        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
+        calcConv(data1Sum, f, value);
+
+        std::regex t{"\\d+_t"};
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
+
     }
-    auto stdAabs{std::sqrt(sumA2 / chem.size())};
-    auto stdWabs{std::sqrt(sumW2 / chem.size())};
-    std::cout << "convergence" << std::endl;
-    std::cout << "avgA = " << sumA / chem.size() << std::endl;
-    std::cout << "stdAabs = " << stdAabs << std::endl;
-    std::cout << "avgW = " << sumW / chem.size() << std::endl;
-    std::cout << "stdWabs = " << stdWabs << std::endl;
+    catch (const my_error& err)
+    {
+        std::cout << "Error: " << err.what() << std::endl;
+    }
+    catch (const std::exception& err)
+    {
+        std::cout << "Error: " << err.what() << std::endl;
+    }
+    return 0;
 }
 
 
-void calcRep(const std::shared_ptr<TF1> &f,
-             const std::map<std::string, Data> &chem,
-             const std::map<std::string, std::vector<std::string>> &vC,
-             const std::map<std::string, std::vector<std::string>> &vO)
-{
-    auto p0{f.get()->GetParameter(0)};
-    auto p1{f.get()->GetParameter(1)};
-    auto p2{f.get()->GetParameter(2)};
-    auto p3{f.get()->GetParameter(3)};
-    auto p4{f.get()->GetParameter(4)};
-    auto p5{f.get()->GetParameter(5)};
 
-    std::vector<double> A;
-    std::vector<double> W;
-    for (const auto &item : chem)
+double strToDouble(std::string str)
+{
+    double d;
+    std::stringstream ss(str);
+    ss >> d;
+    if (ss.fail())
     {
-        if (item.second.a.has_value())
+        throw my_error("Can\'t convert: " + str);
+    }
+    return d;
+}
+
+std::map<std::string, Data1> getFitResults(const std::string &fileName,
+                   const std::map<int, std::string> &columnElement,
+                   const std::map<std::string, ChemResult> &chem,
+                   const std::regex &pattern)
+{
+    std::ifstream ifs(fileName);
+    if (!ifs.is_open())
+    {
+        throw my_error("Can't open file \"" + fileName + "\"");
+    }
+    std::string line;
+
+    std::map<std::string, Data1> data;
+
+    while (getline(ifs, line))
+    {
+        auto strs{splitLineToStrs(line)};
+        try
         {
-            // std::cout << item.first << " " << vC.at(item.first).front() << std::endl;
-            auto C{strToDouble(vC.at(item.first).front())};
-            auto O{strToDouble(vO.at(item.first).front())};
-            auto a{
-                (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
-            };
-            auto w{
-                p2 * O - p3 * a + p4
-            };
-            A.push_back(a);
-            if (item.second.w.has_value())
+            auto it = std::find_if(chem.begin(), chem.end(), [&strs, &pattern] (std::pair<std::string, ChemResult> chemItem){
+                return strs.at(0).find(chemItem.first) != std::string::npos && std::regex_search(strs.at(0), pattern);
+            });
+
+            if (it != chem.end())
             {
-                W.push_back(w);
+                std::cout << strs.at(0) << std::endl;
+                std::vector<FitResult> fR;
+                for (const auto &item : columnElement)
+                {
+                    fR.push_back({ item.second, strToDouble(strs.at(static_cast<unsigned int>(item.first))),
+                                   strToDouble(strs.at(static_cast<unsigned int>(item.first + 1))) });
+                }
+                data[(*it).first].chem.a = it->second.a;
+                data[(*it).first].chem.w = it->second.w;
+                data[(*it).first].fr.push_back(fR);
             }
+        }  catch (...) {
+            std::cout << "Error adding e to data";
         }
     }
+    ifs.close();
+    return data;
+}
 
-    auto avgA{std::accumulate(A.begin(), A.end(), 0.0)};
-    avgA /= A.size();
-    auto avgW{std::accumulate(W.begin(), W.end(), 0.0)};
-    avgW /= W.size();
+void addPointsByValue(const std::map<std::string, Data1> &data,
+                        Points &points,
+                        const Data1::Value value)
+{
+    int xx{static_cast<int>(points.x.size())};
+    for (auto it{data.begin()}; it != data.end(); ++it)
+    {
+        for (size_t i{0}; i < it->second.fr.size(); ++i)
+        {
+            std::string label{it->first + "_" + i};
+            std::optional<double> v;
+            switch (value) {
+            case Data1::Value::A:
+                v = (*it).second.chem.a;
+                break;
+            case Data1::Value::W:
+                v = (*it).second.chem.w;
+                break;
+            }
+            if (v.has_value())
+            {
+                points.l.push_back(label);
+                points.x.push_back(xx++);
+                points.xErr.push_back(0.01);
+                points.y.push_back(v.value());
+                points.yErr.push_back(0.5);
+            }
+        }
 
-    auto stdAabs{TMath::RMS(A.begin(), A.end())};
-    auto stdWabs{TMath::RMS(W.begin(), W.end())};
-    std::cout << "repeatability" << std::endl;
-    std::cout << "avgA = " << avgA << std::endl;
-    std::cout << "stdAabs = " << stdAabs << std::endl;
-    std::cout << "avgW = " << avgW << std::endl;
-    std::cout << "stdWabs = " << stdWabs << std::endl;
+    }
+}
+
+std::vector<std::string>splitLineToStrs(const std::string &line)
+{
+    std::stringstream ss(line);
+    std::string str;
+    std::vector<std::string> strs;
+    while (ss >> str)
+    {
+        strs.push_back(str);
+    }
+    return strs;
+
 }
 
 void addMmnByValue(const std::map<std::string, Data1> &data,
@@ -322,13 +512,6 @@ void calcConv(const std::map<std::string, Data1> &data,
                     (p1 + p0 * C)
                     / (100.0 - p2 * w) * 100.0
                 };
-
-//                auto a{
-//                    (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
-//                };
-//                auto w{
-//                    p2 * O - p3 * a + p4
-//                };
 
                 switch (value) {
                 case Data1::Value::A:
@@ -479,390 +662,61 @@ void calcConv(const std::map<std::string, Data1> &data,
     c.get()->Close();
 }
 
+struct Data { // TODO need this for calcRep
+    enum class Value {
+        A,
+        W
+    };
+    std::optional<double> a;
+    std::optional<double> w;
+};
 
-int main()
+
+void calcRep(const std::shared_ptr<TF1> &f,
+             const std::map<std::string, Data> &chem,
+             const std::map<std::string, std::vector<std::string>> &vC,
+             const std::map<std::string, std::vector<std::string>> &vO) // TODO make to work with Data1
 {
-    // TVirtualFitter::SetDefaultFitter("Minuit");
-    std::map<std::string, ChemResult> chem
+    auto p0{f.get()->GetParameter(0)};
+    auto p1{f.get()->GetParameter(1)};
+    auto p2{f.get()->GetParameter(2)};
+    auto p3{f.get()->GetParameter(3)};
+    auto p4{f.get()->GetParameter(4)};
+    auto p5{f.get()->GetParameter(5)};
+
+    std::vector<double> A;
+    std::vector<double> W;
+    for (const auto &item : chem)
     {
-//        { "tochka_1_s", {4.74, std::nullopt} },
-//        { "tochka_2_s", {4.66, std::nullopt} },
-//        { "tochka_3_s", {4.99, std::nullopt} },
-//        { "tochka_4_s", {5.14, std::nullopt} },
-//        { "tochka_5_s", {4.74, std::nullopt} },
-//        { "tochka_6_s", {4.45, std::nullopt} },
-//        { "tochka_7_s", {4.78, std::nullopt} },
-//        { "tochka_8_s", {4.80, std::nullopt} },
-//        { "tochka_9_s", {3.83, std::nullopt} },
-
-        { "tochka_1_s", {4.74, 6.29} },
-        { "tochka_2_s", {4.66, 6.22} },
-        { "tochka_3_s", {4.99, 6.25} },
-        { "tochka_4_s", {5.14, 6.16} },
-        { "tochka_5_s", {4.74, 7.01} },
-        { "tochka_6_s", {4.45, 6.49} },
-        { "tochka_7_s", {4.78, 6.26} },
-        { "tochka_8_s", {4.80, 6.31} },
-        { "tochka_9_s", {3.83, 6.25} },
-    };
-    std::map<std::string, ChemResult> chemBlind
-    {
-        { "tochka_5_t", {3.18, 33.48} },
-        { "tochka_2_t", {1.43, 19.25} },
-        { "tochka_3_t", {1.75, 23.89} },
-        { "tochka_4_t", {2.23, 27.53} },
-        { "tochka_1_t", {1.27, 19.80} },
-        { "tochka_6_t", {1.35, 19.47} },
-        { "tochka_7_t", {1.46, 19.03} },
-        { "tochka_8_t", {1.46, 19.31} },
-        { "tochka_9_t", {1.01, 16.30} },
-
-    };
-
-
-    const std::map<int, std::string> columnElement
-    {
-        {1, "Al"}, //0
-        {3, "C"},  //1
-        {5, "Ca"}, //2
-        {7, "Fe"}, //3
-        {9, "O"},  //4
-        {11, "Si"},//5
-    };
-
-    const auto fileName{"rea.elts.txt.stavropol_t"};
-    std::cout << fileName << std::endl;
-
-//    chem.insert(chemBlind.begin(), chemBlind.end());
-
-    try
-    {
-//        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"\\d+_(s|t)"};
-        auto data1{getFitResults(fileName, columnElement, chem, m)};
-
-        Points points;
-
-        auto value{Data1::Value::A};
-
-        addPointsByValue(data1, points, Data1::Value::A);
-        auto aNumber{points.x.size()};
-        addPointsByValue(data1, points, Data1::Value::W);
-//        auto wNumber{points.x.size() - aNumber};
-        std::map<int, std::vector<double>> mmn;
-//        size_t idx{ static_cast<size_t>(std::round(points.x.front())) };
-        addMmnByValue(data1, mmn, Data1::Value::A);
-        addMmnByValue(data1, mmn, Data1::Value::W);
-        std::cout << points.x.size() << " " << mmn.size() << std::endl;
-
-        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
-        gr.get()->SetMarkerSize(1.5);
-        gr.get()->SetMarkerStyle(21);
-        gr.get()->SetTitle(";N_{probe};[...A, ...W]");
-
-        std::vector<TLatex> labels;
-
-        for (size_t i{0}; i < points.x.size(); ++i)
+        if (item.second.a.has_value())
         {
-            auto pos{points.l.at(i).find_last_of("_")};
-            auto text{points.l.at(i)};
-            if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-            {
-                text = text.substr(0, pos);
-            }
-            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
-            l.SetTextAngle(90);
-            l.SetTextAlign(12);
-            l.SetTextSize(0.02);
-            labels.push_back(l);
-        }
-
-        FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
-        f.get()->SetParameter(0, 1.0);
-        f.get()->SetParameter(1, 0.0);
-        f.get()->SetParameter(2, 1.0);
-        f.get()->SetParameter(3, 1.0);
-        f.get()->SetParameter(4, 2.0);
-        f.get()->SetParameter(5, 0.0);
-
-        f.get()->SetParLimits(0, 0.0, 10.0);
-
-        f.get()->SetParLimits(2, 0.0, 10.0);
-        f.get()->SetParLimits(3, 0.0, 10.0);
-        f.get()->SetParLimits(4, 0.0, 10.0);
-
-        f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
-
-        gr.get()->Fit(f.get(), "R");
-
-        const std::string psName{"output.ps"};
-        std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
-        c.get()->Print((psName + '[').c_str());
-        gr.get()->Draw("APL");
-
-        auto useSub{true};
-        if (useSub)
-        {
-            std::map<std::pair<std::string, Color_t>, Points> subPoints{
-                { std::make_pair("_s", kRed), Points() },
-                { std::make_pair("_t", kBlue), Points() },
-                { std::make_pair("bereza_blind", kGreen), Points() },
-                { std::make_pair("other", kBlack), Points() },
+            // std::cout << item.first << " " << vC.at(item.first).front() << std::endl;
+            auto C{strToDouble(vC.at(item.first).front())};
+            auto O{strToDouble(vO.at(item.first).front())};
+            auto a{
+                (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
             };
-
-
-            for (size_t i{0}; i < points.x.size(); ++i)
+            auto w{
+                p2 * O - p3 * a + p4
+            };
+            A.push_back(a);
+            if (item.second.w.has_value())
             {
-                auto isOther{false};
-                for (auto &item : subPoints)
-                {
-                    if (points.l.at(i).find(item.first.first) != std::string::npos)
-                    {
-                        TMarker m{points.x.at(i), points.y.at(i), 21};
-                        m.SetMarkerSize(1.5);
-                        m.SetMarkerColor(item.first.second);
-                        m.DrawClone("SAME");
-                        item.second.l.push_back(points.l.at(i));
-                        item.second.x.push_back(points.x.at(i));
-                        item.second.y.push_back(points.y.at(i));
-                        item.second.xErr.push_back(0.1);
-                        item.second.yErr.push_back(0.5);
-
-                        isOther = true;
-                    }
-                }
-                if (!isOther)
-                {
-                    subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
-                    subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
-                    subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
-                    subPoints.at({"other", kBlack}).xErr.push_back(0.1);
-                    subPoints.at({"other", kBlack}).yErr.push_back(0.5);
-                }
-            }
-        }
-
-        for (const auto &item : labels)
-        {
-            item.DrawClone("SAME");
-        }
-
-        c.get()->Print(psName.c_str());
-        c.get()->Print((psName + ']').c_str());
-        c.get()->Close();
-
-//        std::regex s{"sum"};
-        std::regex s{"\\d+_s"};
-        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-        calcConv(data1Sum, f, value);
-
-        std::regex t{"\\d+_t"};
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
-
-    }
-    catch (const my_error& err)
-    {
-        std::cout << "Error: " << err.what() << std::endl;
-    }
-    catch (const std::exception& err)
-    {
-        std::cout << "Error: " << err.what() << std::endl;
-    }
-    return 0;
-}
-
-
-
-double strToDouble(std::string str)
-{
-    double d;
-    std::stringstream ss(str);
-    ss >> d;
-    if (ss.fail())
-    {
-        throw my_error("Can\'t convert: " + str);
-    }
-    return d;
-}
-
-std::map<std::string, Data1> getFitResults(const std::string &fileName,
-                   const std::map<int, std::string> &columnElement,
-                   const std::map<std::string, ChemResult> &chem,
-                   const std::regex &pattern)
-{
-    std::ifstream ifs(fileName);
-    if (!ifs.is_open())
-    {
-        throw my_error("Can't open file \"" + fileName + "\"");
-    }
-    std::string line;
-
-    std::map<std::string, Data1> data;
-
-    while (getline(ifs, line))
-    {
-        auto strs{splitLineToStrs(line)};
-        try
-        {
-            auto it = std::find_if(chem.begin(), chem.end(), [&strs, &pattern] (std::pair<std::string, ChemResult> chemItem){
-                return strs.at(0).find(chemItem.first) != std::string::npos && std::regex_search(strs.at(0), pattern);
-            });
-
-            if (it != chem.end())
-            {
-                std::cout << strs.at(0) << std::endl;
-                std::vector<FitResult> fR;
-                for (const auto &item : columnElement)
-                {
-                    fR.push_back({ item.second, strToDouble(strs.at(static_cast<unsigned int>(item.first))),
-                                   strToDouble(strs.at(static_cast<unsigned int>(item.first + 1))) });
-                }
-                data[(*it).first].chem.a = it->second.a;
-                data[(*it).first].chem.w = it->second.w;
-                data[(*it).first].fr.push_back(fR);
-            }
-        }  catch (...) {
-            std::cout << "Error adding e to data";
-        }
-    }
-    ifs.close();
-    return data;
-}
-
-std::map<int, std::vector<FitResult>> getFitResultsByValue(const std::map<std::string, Data1> &data,
-                                                           const Data1::Value value)
-{
-    std::map<int, std::vector<FitResult>> fitResultsByValue;
-    int xx{0};
-    for (auto it{data.begin()}; it != data.end(); ++it)
-    {
-        for (size_t i{0}; i < it->second.fr.size(); ++i)
-        {
-            std::string label{it->first + "_" + i};
-            std::optional<double> v;
-            switch (value) {
-            case Data1::Value::A:
-                v = (*it).second.chem.a;
-                break;
-            case Data1::Value::W:
-                v = (*it).second.chem.w;
-                break;
-            }
-            if (v.has_value())
-            {
-                fitResultsByValue[xx++].assign(it->second.fr.at(i).begin(), it->second.fr.at(i).end());
+                W.push_back(w);
             }
         }
     }
-    return fitResultsByValue;
-}
 
-void addPointsByValue(const std::map<std::string, Data1> &data,
-                        Points &points,
-                        const Data1::Value value)
-{
-    int xx{static_cast<int>(points.x.size())};
-    for (auto it{data.begin()}; it != data.end(); ++it)
-    {
-        for (size_t i{0}; i < it->second.fr.size(); ++i)
-        {
-            std::string label{it->first + "_" + i};
-            std::optional<double> v;
-            switch (value) {
-            case Data1::Value::A:
-                v = (*it).second.chem.a;
-                break;
-            case Data1::Value::W:
-                v = (*it).second.chem.w;
-                break;
-            }
-            if (v.has_value())
-            {
-                points.l.push_back(label);
-                points.x.push_back(xx++);
-                points.xErr.push_back(0.01);
-                points.y.push_back(v.value());
-                points.yErr.push_back(0.5);
-            }
-        }
+    auto avgA{std::accumulate(A.begin(), A.end(), 0.0)};
+    avgA /= A.size();
+    auto avgW{std::accumulate(W.begin(), W.end(), 0.0)};
+    avgW /= W.size();
 
-    }
-}
-
-//void addPointsByValue(const std::map<std::string, Data> &chem,
-//                        Points &points,
-//                        const Data::Value value)
-//{
-
-//    int xx{static_cast<int>(points.x.size())};
-//    for (auto it{chem.begin()}; it != chem.end(); ++it)
-//    {
-//        std::optional<double> v;
-//        switch (value) {
-//            case Data::Value::A:
-//                v = (*it).second.a;
-//            break;
-//            case Data::Value::W:
-//                v = (*it).second.w;
-//            break;
-//        }
-//        if (v.has_value())
-//        {
-//            points.l.push_back((*it).first);
-//            points.x.push_back(xx++);
-//            points.xErr.push_back(0.01);
-//            points.y.push_back(v.value());
-//            points.yErr.push_back(0.5);
-//        }
-//    }
-
-//}
-
-
-std::vector<std::string>splitLineToStrs(const std::string &line)
-{
-    std::stringstream ss(line);
-    std::string str;
-    std::vector<std::string> strs;
-    while (ss >> str)
-    {
-        strs.push_back(str);
-    }
-    return strs;
-
-}
-
-std::map<std::string, std::vector<std::string>> getStrMapByChem(const std::string &fileName,
-                                                                const size_t column,
-                                                                std::map<std::string, Data> chem)
-{
-    std::ifstream ifs(fileName);
-    if (!ifs.is_open())
-    {
-        throw my_error("Can't open file \"" + fileName + "\"");
-    }
-    std::map<std::string, std::vector<std::string>> map;
-    std::string line;
-
-    while (getline(ifs, line))
-    {
-        auto strs{splitLineToStrs(line)};
-        try
-        {
-            auto it = std::find_if(chem.begin(), chem.end(), [&strs] (std::pair<std::string, Data> chemItem){
-                    return strs.at(0).find(chemItem.first) != std::string::npos;
-            });
-
-            if (it != chem.end())
-            {
-                map[(*it).first].push_back(strs.at(column));
-            }
-        }  catch (...) {
-            std::cout << "Incorrect column " << column;
-        }
-    }
-    return map;
+    auto stdAabs{TMath::RMS(A.begin(), A.end())};
+    auto stdWabs{TMath::RMS(W.begin(), W.end())};
+    std::cout << "repeatability" << std::endl;
+    std::cout << "avgA = " << avgA << std::endl;
+    std::cout << "stdAabs = " << stdAabs << std::endl;
+    std::cout << "avgW = " << avgW << std::endl;
+    std::cout << "stdWabs = " << stdWabs << std::endl;
 }
