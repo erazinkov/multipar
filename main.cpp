@@ -91,13 +91,16 @@ public:
         double arg{x[0]};
         int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
         double val{0.0};
+
+        auto W{
+            par[3] * _d.at(idx).at(1)
+            - par[4] * _d.at(idx).at(2)
+            + par[5]
+        };
+
         auto A{
            (par[1] + par[0] * _d.at(idx).at(0))
-                    / (100.0 - par[2] *
-                    (par[3] * _d.at(idx).at(1)
-                    - par[4] * _d.at(idx).at(2)
-                    + par[5])
-                    )
+            / (100.0 - par[2] * W) * 100.0
         };
 
         if (idx < _aNumber)
@@ -106,25 +109,9 @@ public:
         }
         else
         {
-            val = par[3] * _d.at(idx).at(1)
-                    - par[4] * _d.at(idx).at(2)
-                    + par[5];
+            val = W;
         }
         return val;
-//        auto A{
-//           (par[0] - par[1] * _d.at(idx).at(0) - par[5] * (par[2] * _d.at(idx).at(1) + par[4]))
-//                   / (1.0 - par[5] * par[3])
-//        };
-
-//        if (idx < _aNumber)
-//        {
-//            val = A;
-//        }
-//        else
-//        {
-//            val = par[2] * _d.at(idx).at(1) - par[3] * A + par[4];
-//        }
-//        return val;
    }
 private:
     const std::map<int, std::vector<double>> _d;
@@ -326,19 +313,16 @@ void calcConv(const std::map<std::string, Data1> &data,
                 auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
 
                 auto res{0.0};
-                auto a{
-                    (p1 + p0 * C)
-                            / (100.0 - p2 *
-                            (p3 * O
-                            - p4 * Si
-                            + p5)
-                            )
-                };
                 auto w{
                     p3 * O
                     - p4 * Si
                     + p5
                 };
+                auto a{
+                    (p1 + p0 * C)
+                    / (100.0 - p2 * w) * 100.0
+                };
+
 //                auto a{
 //                    (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
 //                };
@@ -488,7 +472,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     lConv.get()->Draw("SAME");
     for (const auto &item : labels)
     {
-//        item.DrawClone("SAME");
+        item.DrawClone("SAME");
     }
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
@@ -501,23 +485,33 @@ int main()
     // TVirtualFitter::SetDefaultFitter("Minuit");
     std::map<std::string, ChemResult> chem
     {
-        { "tochka_1_s", {4.74, std::nullopt} },
-        { "tochka_2_s", {4.66, std::nullopt} },
-        { "tochka_3_s", {4.99, std::nullopt} },
-        { "tochka_4_s", {5.14, std::nullopt} },
-        { "tochka_5_s", {4.74, std::nullopt} },
-        { "tochka_6_s", {4.45, std::nullopt} },
-        { "tochka_7_s", {4.78, std::nullopt} },
-        { "tochka_8_s", {4.80, std::nullopt} },
-        { "tochka_9_s", {3.83, std::nullopt} },
+//        { "tochka_1_s", {4.74, std::nullopt} },
+//        { "tochka_2_s", {4.66, std::nullopt} },
+//        { "tochka_3_s", {4.99, std::nullopt} },
+//        { "tochka_4_s", {5.14, std::nullopt} },
+//        { "tochka_5_s", {4.74, std::nullopt} },
+//        { "tochka_6_s", {4.45, std::nullopt} },
+//        { "tochka_7_s", {4.78, std::nullopt} },
+//        { "tochka_8_s", {4.80, std::nullopt} },
+//        { "tochka_9_s", {3.83, std::nullopt} },
+
+        { "tochka_1_s", {4.74, 6.29} },
+        { "tochka_2_s", {4.66, 6.22} },
+        { "tochka_3_s", {4.99, 6.25} },
+        { "tochka_4_s", {5.14, 6.16} },
+        { "tochka_5_s", {4.74, 7.01} },
+        { "tochka_6_s", {4.45, 6.49} },
+        { "tochka_7_s", {4.78, 6.26} },
+        { "tochka_8_s", {4.80, 6.31} },
+        { "tochka_9_s", {3.83, 6.25} },
     };
     std::map<std::string, ChemResult> chemBlind
     {
-        { "tochka_1_t", {3.18, 33.48} },
+        { "tochka_5_t", {3.18, 33.48} },
         { "tochka_2_t", {1.43, 19.25} },
         { "tochka_3_t", {1.75, 23.89} },
         { "tochka_4_t", {2.23, 27.53} },
-        { "tochka_5_t", {1.27, 19.80} },
+        { "tochka_1_t", {1.27, 19.80} },
         { "tochka_6_t", {1.35, 19.47} },
         { "tochka_7_t", {1.46, 19.03} },
         { "tochka_8_t", {1.46, 19.31} },
@@ -536,40 +530,6 @@ int main()
         {11, "Si"},//5
     };
 
-//    const std::map<std::string, size_t> elementColumn
-//    {
-//        // all
-//        // {"C", 3},
-//        // {"O", 13},
-//        //wo Mg
-//        // {"C", 3},
-//        // {"O", 11},
-//        //wo MgCa
-//        // {"C", 3},
-//        // {"O", 9},
-//        //wo MgCaFe
-//        // {"C", 3},
-//        // {"O", 7},
-//        //wo MgCaFeS
-//        // {"C", 3},
-//        // {"O", 7},
-//        //wo MgCaFeSN
-//        // {"C", 3},
-//        // {"O", 5},
-//        //wo MgCaFeSNAl
-//        {"C", 1},
-//        {"O", 3},
-//    };
-
-    // const auto fileName{"rea.elts.txt_shahta12_all"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_Mg"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_MgCa"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFe"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeS"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSN"};
-    // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSNAl"};
-//    const auto fileName{"rea.elts.txt_bereza_wo_MgCaFeSNAl"};
-//    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
     const auto fileName{"rea.elts.txt.stavropol_t"};
     std::cout << fileName << std::endl;
 
@@ -626,11 +586,11 @@ int main()
         f.get()->SetParameter(4, 2.0);
         f.get()->SetParameter(5, 0.0);
 
-//        f.get()->SetParLimits(0, 0.0, DBL_MAX);
+        f.get()->SetParLimits(0, 0.0, 10.0);
 
-//        f.get()->SetParLimits(2, 0.0, DBL_MAX);
-//        f.get()->SetParLimits(3, 0.0, DBL_MAX);
-//        f.get()->SetParLimits(4, 0.0, DBL_MAX);
+        f.get()->SetParLimits(2, 0.0, 10.0);
+        f.get()->SetParLimits(3, 0.0, 10.0);
+        f.get()->SetParLimits(4, 0.0, 10.0);
 
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
@@ -695,12 +655,12 @@ int main()
 //        std::regex s{"sum"};
         std::regex s{"\\d+_s"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-//        calcConv(data1Sum, f, value);
+        calcConv(data1Sum, f, value);
 
         std::regex t{"\\d+_t"};
-        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
