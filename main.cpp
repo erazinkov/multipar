@@ -186,6 +186,19 @@ int main()
 //         {11, "O"},
 //         {13, "Si"},
 //         };
+//    //all
+//    const std::map<int, std::string> columnElement
+//    {
+//        {1,  "Al"},
+//        {3,  "C"},
+//        {5,  "Ca"},
+//        {7,  "Fe"},
+//        {9,  "Mg"},
+//        {11, "N"},
+//        {13, "O"},
+//        {15, "S"},
+//        {17, "Si"},
+//    };
 //    std::string fileName{"rea.elts.txt.12.wo_MgS" }; // wo_MgCaFeS 12
 //    std::string fileName{"rea.elts.txt.12.wo_MgCaFeS.all" }; // wo_MgCaFeS 12
 //     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
@@ -193,7 +206,7 @@ int main()
 //    std::string fileName{"rea.elts.txt.12_w_bereza_wo_MgCaFeS.all"}; // wo_MgCaFeS 12+bereza
     std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 
     std::map<std::string, ChemResult> chem
     {
@@ -269,7 +282,7 @@ int main()
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
 
         f.get()->SetParLimits(1, -5.0, 0.0);
-        f.get()->SetParLimits(5, 50.0, 150.0);
+        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
@@ -332,16 +345,16 @@ int main()
         std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-        calcConv(data1Sum, f, value);
+//        calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
 //        auto data1P{getFitResults(fileName, columnElement, chem, p)};
 //        calcRep(data1P, f);
 
 //        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
+        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
+        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+        calcConv(dataBlindSum, f, value);
     }
     catch (const my_error& err)
     {
@@ -478,14 +491,14 @@ void calcConv(const std::map<std::string, Data1> &data,
                     isOther = true;
                 }
             }
-            if (!isOther)
-            {
+//            if (!isOther)
+//            {
                 subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
                 subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
                 subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
                 subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
                 subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
-            }
+//            }
         }
         std::stringstream ss;
         ss.str("");ss.clear();
