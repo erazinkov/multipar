@@ -166,15 +166,26 @@ int main()
         { "bereza_blind_701_702", {9.1, 6.0 } },
         { "bereza_blind_703_704", {8.7, 4.4 } },
     };
-    //wo_MgCaFeS
-    const std::map<int, std::string> columnElement
+    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
         {
          {1, "Al"},
          {3, "C"},
-         {5, "N"},
-         {7, "O"},
-         {9, "Si"},
+         {5, "Ca"},
+         {7, "Fe"},
+         {9, "N"},
+         {11, "O"},
+         {13, "S"},
+         {15, "Si"},
          };
+//    //wo_MgCaFeS
+//    const std::map<int, std::string> columnElement
+//        {
+//         {1, "Al"},
+//         {3, "C"},
+//         {5, "N"},
+//         {7, "O"},
+//         {9, "Si"},
+//         };
 //    //wo_MgS
 //    const std::map<int, std::string> columnElement
 //        {
@@ -204,10 +215,11 @@ int main()
 //     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
 
 //    std::string fileName{"rea.elts.txt.12_w_bereza_wo_MgCaFeS.all"}; // wo_MgCaFeS 12+bereza
-    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
-    auto test{1};
+    std::string fileName{"rea.elts.txt.raspad"};
+
     std::map<std::string, ChemResult> chem
     {
         { "3835", { 7.8, 4.2 } },
@@ -232,6 +244,21 @@ int main()
 //        { "bereza_9_", {25.6, 5.2 } },
 //        { "bereza_10_", {28.4, 5.2 } },
 //        { "bereza_11_", {30.7, 5.0 } },
+        { "raspad_1_", {15.9, 7.6 } },
+        { "raspad_2_", {17.4, 7.3 } },
+        { "raspad_3_", {17.9, 7.2 } },
+        { "raspad_4_", {18.3, 8.0 } },
+        { "raspad_5_", {19.1, 8.7 } },
+        { "raspad_6_", {19.6, 7.5 } },
+        { "raspad_7_", {20.2, 8.7 } },
+        { "raspad_8_", {21.3, 9.1 } },
+        { "raspad_9_", {21.9, 10.3 } },
+        { "raspad_10_", {22.3, 9.6 } },
+        { "raspad_11_", {22.6, 8.6 } },
+        { "raspad_12_", {23.4, 8.7 } },
+        { "raspad_13_", {24.1, 8.2 } },
+        { "raspad_14_", {28.2, 7.7 } },
+        { "raspad_15_", {32.5, 7.5 } },
     };
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -241,12 +268,13 @@ int main()
 
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
-        std::regex m{"\\d+_\\d\\."};
+//        std::regex m{"\\d+_\\d\\."};
+        std::regex m{"\\d+_(1|2|3)\\."};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, value);
 
@@ -342,19 +370,20 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        std::regex s{"sum"};
+//        std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
+        std::regex s{"\\d+_(1|2|3)\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-//        calcConv(data1Sum, f, value);
+        calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
 //        auto data1P{getFitResults(fileName, columnElement, chem, p)};
 //        calcRep(data1P, f);
 
 //        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 
-        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
     }
     catch (const my_error& err)
     {
