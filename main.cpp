@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <vector>
@@ -546,6 +546,21 @@ int main()
 //        { "bereza_9_", {25.6, 5.2 } },
 //        { "bereza_10_", {28.4, 5.2 } },
 //        { "bereza_11_", {30.7, 5.0 } },
+        { "raspad_1_", {15.9, 7.6 } },
+        { "raspad_2_", {17.4, 7.3 } },
+        { "raspad_3_", {17.9, 7.2 } },
+        { "raspad_4_", {18.3, 8.0 } },
+        { "raspad_5_", {19.1, 8.7 } },
+        { "raspad_6_", {19.6, 7.5 } },
+        { "raspad_7_", {20.2, 8.7 } },
+        { "raspad_8_", {21.3, 9.1 } },
+        { "raspad_9_", {21.9, 10.3 } },
+        { "raspad_10_", {22.3, 9.6 } },
+        { "raspad_11_", {22.6, 8.6 } },
+        { "raspad_12_", {23.4, 8.7 } },
+        { "raspad_13_", {24.1, 8.2 } },
+        { "raspad_14_", {28.2, 7.7 } },
+        { "raspad_15_", {32.5, 7.5 } },
     };
 
     const std::map<std::string, Data> chemRep
@@ -588,11 +603,23 @@ int main()
         { "bereza_5_povtor_12.", {18.1, 0.0} },
          };
 
-    const std::map<int, std::string> columnElement
+//    const std::map<int, std::string> columnElement
+//    {
+//        {1, "C"},
+//        {3, "O"},
+//        {5, "Si"},
+//    };
+
+    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
     {
-        {1, "C"},
-        {3, "O"},
-        {5, "Si"},
+//        {1, "Al"},
+        {3, "C"},
+//        {5, "Ca"},
+//        {7, "Fe"},
+//        {9, "N"},
+        {11, "O"},
+//        {13, "S"},
+        {15, "Si"},
     };
 
     const std::map<std::string, size_t> elementColumn
@@ -628,10 +655,11 @@ int main()
     // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSN"};
     // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSNAl"};
 //    const auto fileName{"rea.elts.txt_bereza_wo_MgCaFeSNAl"};
-    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
+//    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
+    const auto fileName{"rea.elts.txt.raspad"};
     std::cout << fileName << std::endl;
 
-    chem1.insert(chemBlind.begin(), chemBlind.end());
+//    chem1.insert(chemBlind.begin(), chemBlind.end());
 
     try
     {
@@ -742,14 +770,14 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        std::regex s{"sum"};
-//         std::regex s{"\\d+_\\d+\\."};
+//        std::regex s{"sum"};
+         std::regex s{"\\d+_\\d+\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem1, s)};
-//        calcConv(data1Sum, f, value);
+        calcConv(data1Sum, f, value);
 
-        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
