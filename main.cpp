@@ -663,7 +663,8 @@ int main()
 
     try
     {
-        std::regex m{"\\d+_\\d\\."};
+//        std::regex m{"\\d+_\\d\\."};
+        std::regex m{"\\d+_(1|2|3)\\."};
         auto data1{getFitResults(fileName, columnElement, chem1, m)};
 
         Points points;
@@ -771,7 +772,8 @@ int main()
         c.get()->Close();
 
 //        std::regex s{"sum"};
-         std::regex s{"\\d+_\\d+\\."};
+//         std::regex s{"\\d+_\\d+\\."};
+         std::regex s{"\\d+_(1|2|3)\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem1, s)};
         calcConv(data1Sum, f, value);
 
