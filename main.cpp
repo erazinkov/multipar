@@ -166,26 +166,26 @@ int main()
         { "bereza_blind_701_702", {9.1, 6.0 } },
         { "bereza_blind_703_704", {8.7, 4.4 } },
     };
-    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
-        {
-         {1, "Al"},
-         {3, "C"},
-         {5, "Ca"},
-         {7, "Fe"},
-         {9, "N"},
-         {11, "O"},
-         {13, "S"},
-         {15, "Si"},
-         };
-//    //wo_MgCaFeS
-//    const std::map<int, std::string> columnElement
+//    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
 //        {
 //         {1, "Al"},
 //         {3, "C"},
-//         {5, "N"},
-//         {7, "O"},
-//         {9, "Si"},
+//         {5, "Ca"},
+//         {7, "Fe"},
+//         {9, "N"},
+//         {11, "O"},
+//         {13, "S"},
+//         {15, "Si"},
 //         };
+    //wo_MgCaFeS
+    const std::map<int, std::string> columnElement
+        {
+         {1, "Al"},
+         {3, "C"},
+         {5, "N"},
+         {7, "O"},
+         {9, "Si"},
+         };
 //    //wo_MgS
 //    const std::map<int, std::string> columnElement
 //        {
@@ -218,7 +218,7 @@ int main()
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
-    std::string fileName{"rea.elts.txt.raspad"};
+    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS"};
 
     std::map<std::string, ChemResult> chem
     {
@@ -269,12 +269,13 @@ int main()
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"\\d+_(1|2|3)\\."};
+        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
+//        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, value);
 
@@ -327,6 +328,7 @@ int main()
                 { std::make_pair("coal_blind", kRed), Points() },
                 { std::make_pair("barz_blind", kBlue), Points() },
                 { std::make_pair("bereza_blind", kGreen), Points() },
+                { std::make_pair("raspad", kOrange), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
 
@@ -373,6 +375,7 @@ int main()
 //        std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
         std::regex s{"\\d+_(1|2|3)\\."};
+//        std::regex s{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
@@ -493,9 +496,14 @@ void calcConv(const std::map<std::string, Data1> &data,
     if (useSub)
     {
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
+//            { std::make_pair("coal_blind", kRed), Points() },
+//            { std::make_pair("barz_blind", kBlue), Points() },
+//            { std::make_pair("bereza_blind", kGreen), Points() },
+//            { std::make_pair("other", kMagenta), Points() },
             { std::make_pair("coal_blind", kRed), Points() },
             { std::make_pair("barz_blind", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
+            { std::make_pair("raspad", kOrange), Points() },
             { std::make_pair("other", kMagenta), Points() },
         };
 
@@ -520,14 +528,14 @@ void calcConv(const std::map<std::string, Data1> &data,
                     isOther = true;
                 }
             }
-//            if (!isOther)
-//            {
+            if (!isOther)
+            {
                 subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
                 subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
                 subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
                 subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
                 subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
-//            }
+            }
         }
         std::stringstream ss;
         ss.str("");ss.clear();
