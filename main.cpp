@@ -218,7 +218,9 @@ int main()
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
-    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS"};
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_w_bach_wo_MgCaFeS"};
+    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
+
 
     std::map<std::string, ChemResult> chem
     {
@@ -259,6 +261,23 @@ int main()
         { "raspad_13_", {24.1, 8.2 } },
         { "raspad_14_", {28.2, 7.7 } },
         { "raspad_15_", {32.5, 7.5 } },
+
+        { "std_coal_proba_1_", {8.2, 5.2} },
+        { "std_coal_proba_2_", {8.0, 5.3 } },
+        { "std_coal_proba_3_", {7.75, 4.8 } },
+        { "std_coal_proba_4_",  {9.0, 5.5} },
+        { "std_coal_proba_5_",  {6.9, 4.9} },
+        { "std_coal_proba_6_",  {7.6, 5.1} },
+        { "std_coal_proba_7_",  {8.6, 6.1} },
+        { "std_coal_proba_8_",  {9.2, 6.5} },
+        { "std_coal_proba_9_",  {7.5, 5.0} },
+        { "std_coal_proba_10_", {6.9, 5.6} },
+        { "std_coal_proba_11_", {7.3, 5.7} },
+        { "std_coal_proba_12_", {7.35, 5.5} },
+        { "std_coal_proba_13_", {7.55, 5.3} },
+        { "std_coal_proba_14_", {7.5, 4.9} },
+        { "std_coal_proba_15_", {8.6, 7.2} },
+        { "std_coal_proba_16_", {10.1, 5.6} },
     };
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -271,6 +290,7 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
+//        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -329,6 +349,7 @@ int main()
                 { std::make_pair("barz_blind", kBlue), Points() },
                 { std::make_pair("bereza_blind", kGreen), Points() },
                 { std::make_pair("raspad", kOrange), Points() },
+                { std::make_pair("std_coal", kCyan), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
 
@@ -504,6 +525,7 @@ void calcConv(const std::map<std::string, Data1> &data,
             { std::make_pair("barz_blind", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
             { std::make_pair("raspad", kOrange), Points() },
+            { std::make_pair("std_coal", kCyan), Points() },
             { std::make_pair("other", kMagenta), Points() },
         };
 
