@@ -264,10 +264,10 @@ int main()
 
         { "std_coal_proba_1_", {8.2, 5.2} },
         { "std_coal_proba_2_", {8.0, 5.3 } },
-        { "std_coal_proba_3_", {7.75, 4.8 } },
+//        { "std_coal_proba_3_", {7.75, 4.8 } },
         { "std_coal_proba_4_",  {9.0, 5.5} },
         { "std_coal_proba_5_",  {6.9, 4.9} },
-        { "std_coal_proba_6_",  {7.6, 5.1} },
+//        { "std_coal_proba_6_",  {7.6, 5.1} },
         { "std_coal_proba_7_",  {8.6, 6.1} },
         { "std_coal_proba_8_",  {9.2, 6.5} },
         { "std_coal_proba_9_",  {7.5, 5.0} },
@@ -295,7 +295,7 @@ int main()
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, value);
 
