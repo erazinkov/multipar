@@ -133,6 +133,8 @@ void calcConv(const std::map<std::string, Data1> &data,
               const std::unique_ptr<TF1> &f,
               const Data1::Value value);
 
+void writePointsToFile(const std::string fileName, const Points &points);
+
 int main()
 {
     std::map<std::string, ChemResult> chemBlind
@@ -221,6 +223,35 @@ int main()
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_w_bach_wo_MgCaFeS"};
     std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
 
+    std::map<std::string, ChemResult> chemBerezaSpb
+    {
+        { "bereza_1_",  {10.4, 1.1 } },
+        { "bereza_2_",  {15.6, 0.9 } },
+        { "bereza_3_",  {12.2, 0.9 } },
+        { "bereza_4_",  {13.6, 0.9 } },
+        { "bereza_5_",  {17.5, 0.8 } },
+//        { "bereza_6_",  {15.5, 0.8 } },
+        { "bereza_7_",  {19.8, 0.8 } },
+        { "bereza_8_",  {24.5, 0.8 } },
+        { "bereza_9_",  {27.0, 0.9 } },
+        { "bereza_10_", {22.3, 0.7 } },
+        { "bereza_11_", {24.2, 0.8 } },
+    };
+
+    std::map<std::string, ChemResult> chemBerezaStroy
+    {
+    { "bereza_1_", {9.3, std::nullopt } },
+//        { "bereza_2_", {12.1, std::nullopt } },
+    { "bereza_3_", {14.1, std::nullopt } },
+    { "bereza_4_", {16.3, std::nullopt } },
+    { "bereza_5_", {18.1, std::nullopt } },
+    { "bereza_6_", {19.5, std::nullopt } },
+    { "bereza_7_", {21.8, 5.3 } },
+    { "bereza_8_", {23.7, 5.4 } },
+//        { "bereza_9_", {25.6, 5.2 } },
+//        { "bereza_10_", {28.4, 5.2 } },
+//        { "bereza_11_", {30.7, 5.0 } },
+    };
 
     std::map<std::string, ChemResult> chem
     {
@@ -235,17 +266,6 @@ int main()
         { "3842", { 28.3, 7.8 } },
         { "3843", { 30.4, 8.2 } },
         { "3844", { 32.9, 8.1 } },
-        { "bereza_1_", {9.3, std::nullopt } },
-//        { "bereza_2_", {12.1, std::nullopt } },
-        { "bereza_3_", {14.1, std::nullopt } },
-        { "bereza_4_", {16.3, std::nullopt } },
-        { "bereza_5_", {18.1, std::nullopt } },
-        { "bereza_6_", {19.5, std::nullopt } },
-        { "bereza_7_", {21.8, 5.3 } },
-        { "bereza_8_", {23.7, 5.4 } },
-//        { "bereza_9_", {25.6, 5.2 } },
-//        { "bereza_10_", {28.4, 5.2 } },
-//        { "bereza_11_", {30.7, 5.0 } },
         { "raspad_1_", {15.9, 7.6 } },
         { "raspad_2_", {17.4, 7.3 } },
         { "raspad_3_", {17.9, 7.2 } },
@@ -280,6 +300,8 @@ int main()
         { "std_coal_proba_16_", {10.1, 5.6} },
     };
 
+    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
+
 //    chem.insert(chemBlind.begin(), chemBlind.end());
 
     try
@@ -295,7 +317,7 @@ int main()
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, value);
 
@@ -387,7 +409,7 @@ int main()
 
         for (const auto &item : labels)
         {
-//            item.DrawClone("SAME");
+            item.DrawClone("SAME");
         }
         c.get()->Print(psName.c_str());
         c.get()->Print((psName + ']').c_str());
@@ -428,7 +450,7 @@ void useSub(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("coal_blind", kRed), Points() },
         { std::make_pair("barz_blind", kBlue), Points() },
-        { std::make_pair("bereza_blind", kGreen), Points() },
+        { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -481,7 +503,10 @@ void useSub(const Points &points,
     };
     for (auto item : subPoints)
     {
-        ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        if (!std::isnan(stdAbs1(item.second)))
+        {
+            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        }
     }
 
     ss << ";AGP-K, %;Chem, %";
@@ -552,7 +577,7 @@ void useSub1(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("coal_blind", kRed), Points() },
         { std::make_pair("barz_blind", kBlue), Points() },
-        { std::make_pair("bereza_blind", kGreen), Points() },
+        { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -580,7 +605,10 @@ void useSub1(const Points &points,
 //            m.SetMarkerColor(item.first.second);
 //            m.DrawClone("SAME");
 //        }
-        ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        if (!std::isnan(stdAbs1(item.second)))
+        {
+            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        }
     }
 
     ss << ";Number;Chem/AGP-K, %";
@@ -591,7 +619,7 @@ void useSub1(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
         { std::make_pair("coal_blind", kRed), Points() },
         { std::make_pair("barz_blind", kBlue), Points() },
-        { std::make_pair("bereza_blind", kGreen), Points() },
+        { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -611,6 +639,9 @@ void useSub1(const Points &points,
     }
 
     addSubPoints(pointsR, subPoints1);
+
+    writePointsToFile("outputR.txt", pointsR);
+    writePointsToFile("outputC.txt", pointsC);
 
     std::unique_ptr<TGraphErrors> grC{new TGraphErrors(static_cast<int>(pointsC.x.size()),
                                                        &pointsC.x[0],
@@ -663,6 +694,17 @@ void useSub1(const Points &points,
     }
 }
 
+void writePointsToFile(const std::string fileName, const Points &points)
+{
+    std::ofstream ofs;
+    ofs.open(fileName, std::ios::out);
+    for (size_t i{0}; i < points.l.size(); ++i)
+    {
+        ofs << points.x.at(i) << " " << points.y.at(i)  << " " << points.l.at(i) << std::endl;
+    }
+    ofs.close();
+}
+
 void calcConv(const std::map<std::string, Data1> &data,
               const std::unique_ptr<TF1> &f,
               const Data1::Value value)
@@ -710,6 +752,8 @@ void calcConv(const std::map<std::string, Data1> &data,
     std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
     gr.get()->SetMarkerSize(1.5);
     gr.get()->SetMarkerStyle(21);
+
+
 
     std::vector<TLatex> labels;
 
@@ -791,6 +835,8 @@ void calcConv(const std::map<std::string, Data1> &data,
         avgPoints.y.push_back(std::accumulate(tmpY.begin(), tmpY.end(), 0.0) / static_cast<double>(tmpY.size()));
         avgPoints.yErr.push_back(std::accumulate(tmpYerr.begin(), tmpYerr.end(), 0.0) / static_cast<double>(tmpYerr.size()));
     }
+
+    writePointsToFile("output.txt", avgPoints);
 
     std::string str;
     useSub(avgPoints, str, value, false);
