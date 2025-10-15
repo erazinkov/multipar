@@ -91,9 +91,9 @@ public:
         double val{0.0};
         for (size_t i{0}; i < nPar; ++i)
         {
-            val += par[i] * _fR.at(idx).at(i).value;
+            val += par[2 * i] * ( _fR.at(idx).at(i).value + par[2 * i + 1] );
         }
-        val += par[nPar];
+        val += par[2 * nPar + 1];
         return val;
     }
 private:
@@ -350,13 +350,21 @@ int main()
         }
 
         FitFunction_2 fObj(fitResultsByValue);
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(2 * columnElement.size() + 1))};
 
-        f.get()->SetParLimits(1, -5.0, 0.0);
-        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
+//        f.get()->SetParLimits(1, -5.0, 0.0);
+//        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
+
+        auto parSum{0.0};
+        for (auto ip{0}; ip < f.get()->GetNpar(); ip += 2)
+        {
+            parSum += f.get()->GetParameter(ip + 1);
+        }
+
+        std::cout << "parSum = " << parSum;
 
         const std::string psName{"output.ps"};
         std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
@@ -725,13 +733,14 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                auto nPar{f.get()->GetNpar()};
+                auto nPar{it->second.fr.at(i).size()};
                 auto res{0.0};
-                for (auto pIdx{0}; pIdx < nPar - 1; ++pIdx)
+                for (size_t pIdx{0}; pIdx < nPar; ++pIdx)
                 {
-                    res += f->GetParameter(pIdx) * it->second.fr.at(i).at(static_cast<unsigned int>(pIdx)).value;
+                    res += f->GetParameter(2 * pIdx) *
+                            ( it->second.fr.at(i).at(static_cast<unsigned int>(pIdx)).value + f->GetParameter(2 * pIdx + 1) );
                 }
-                res += f->GetParameter(nPar - 1);
+                res += f->GetParameter(f.get()->GetNpar() - 1);
                 points.l.push_back(it->first);
                 points.x.push_back(res);
                 points.y.push_back(v.value());
