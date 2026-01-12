@@ -157,15 +157,46 @@ int main()
 //        { "tochka_8_s", {4.80, std::nullopt} },
 //        { "tochka_9_s", {3.83, std::nullopt} },
 
-        { "tochka_1_s", {4.74, 6.29} },
-        { "tochka_2_s", {4.66, 6.22} },
-        { "tochka_3_s", {4.99, 6.25} },
-        { "tochka_4_s", {5.14, 6.16} },
-        { "tochka_5_s", {4.74, 7.01} },
-        { "tochka_6_s", {4.45, 6.49} },
-        { "tochka_7_s", {4.78, 6.26} },
-        { "tochka_8_s", {4.80, 6.31} },
-        { "tochka_9_s", {3.83, 6.25} },
+        // { "tochka_1", {4.74, 6.29} },
+        // { "tochka_2", {4.66, 6.22} },
+        // { "tochka_3", {4.99, 6.25} },
+        // { "tochka_4", {5.14, 6.16} },
+        // { "tochka_5", {4.74, 7.01} },
+        // { "tochka_6", {4.45, 6.49} },
+        // { "tochka_7", {4.78, 6.26} },
+        // { "tochka_8", {4.80, 6.31} },
+        // { "tochka_9", {3.83, 6.25} },
+
+        // { "tochka_1", {4.74, 25.0} },
+        // { "tochka_2", {4.66, 25.0} },
+        // { "tochka_3", {4.99, 25.0} },
+        // { "tochka_4", {5.14, 25.0} },
+        // { "tochka_5", {4.74, 25.0} },
+        // { "tochka_6", {4.45, 25.0} },
+        // { "tochka_7", {4.78, 25.0} },
+        // { "tochka_8", {4.80, 25.0} },
+        // { "tochka_9", {3.83, 25.0} },
+
+
+        { "sector_1_", {4.08, 53.0} },
+        { "sector_2_", {4.23, 57.0} },
+        { "sector_3_", {4.13, 56.0} },
+        { "sector_4_", {4.17, 55.0} },
+        { "sector_5_", {4.64, 54.0} },
+        { "sector_6_", {4.40, 55.0} },
+        { "sector_7_", {4.72, 59.0} },
+        { "sector_8_", {4.33, 58.0} },
+        { "sector_9_", {4.29, 54.0} },
+        { "sector_10_", {4.12, 56.0} },
+
+        { "field_1_", {4.06, 43.0} },
+        { "field_2_", {2.95, 42.0} },
+        { "field_3_", {3.67, 42.0} },
+        { "field_4_", {2.50, 41.0} },
+        { "field_5_", {3.54, 43.0} },
+        { "field_6_", {2.65, 42.0} },
+        { "field_7_", {3.25, 43.0} },
+        { "field_8_", {2.66, 43.0} },
     };
     std::map<std::string, ChemResult> chemBlind
     {
@@ -192,7 +223,7 @@ int main()
         {11, "Si"},//5
     };
 
-    const auto fileName{"rea.elts.txt.stavropol_t"};
+    const auto fileName{"carbon_new_fit_odd.csv"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -200,12 +231,14 @@ int main()
     try
     {
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"\\d+_(s|t)"};
+        // std::regex m{"\\d+_(s|t)"};
+        // std::regex m{"\\d+"};
+        std::regex m{"_\\d+_"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -267,9 +300,9 @@ int main()
         if (useSub)
         {
             std::map<std::pair<std::string, Color_t>, Points> subPoints{
-                { std::make_pair("_s", kRed), Points() },
-                { std::make_pair("_t", kBlue), Points() },
-                { std::make_pair("bereza_blind", kGreen), Points() },
+                { std::make_pair("tochka_", kRed), Points() },
+                { std::make_pair("sector_", kBlue), Points() },
+                { std::make_pair("field_", kGreen), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
 
@@ -314,9 +347,12 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
+
+        const auto fileName_1{"carbon_new_fit_even.csv"};
 //        std::regex s{"sum"};
-        std::regex s{"\\d+_s"};
-        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
+        // std::regex s{"\\d+_s"};
+        std::regex s{"_\\d+_"};
+        auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
         std::regex t{"\\d+_t"};
@@ -530,11 +566,15 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
         }
     }
+
     std::vector<double> d2;
     for (size_t i{0}; i < points.x.size(); ++i)
     {
         d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
     }
+
+
+
     auto stdAbs{std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / d2.size())};
     auto avg{std::accumulate(points.x.begin(), points.x.end(), 0.0) / points.x.size()};
     std::cout << "convergence: " << "avg = " << avg << " stdAbs = " << stdAbs << std::endl;
@@ -544,7 +584,6 @@ void calcConv(const std::map<std::string, Data1> &data,
     gr.get()->SetMarkerStyle(21);
 
     std::vector<TLatex> labels;
-
     for (size_t i{0}; i < points.x.size(); ++i)
     {
         auto pos{points.l.at(i).find_last_of("_")};
@@ -553,12 +592,14 @@ void calcConv(const std::map<std::string, Data1> &data,
         {
             text = text.substr(0, pos);
         }
+        std::cout << i << " " << text << std::endl;
         TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
         l.SetTextAngle(90);
         l.SetTextAlign(12);
         l.SetTextSize(0.02);
         labels.push_back(l);
     }
+
 
     std::stringstream ss;
     ss.str("");ss.clear();
@@ -588,14 +629,16 @@ void calcConv(const std::map<std::string, Data1> &data,
     h2dConv.get()->Draw();
     gr.get()->Draw("P");
 
+
     auto useSub{true};
     if (useSub)
     {
+
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("_s", kRed), Points() },
-            { std::make_pair("_t", kBlue), Points() },
-            { std::make_pair("bereza_blind", kGreen), Points() },
-            { std::make_pair("other", kMagenta), Points() },
+            { std::make_pair("tochka_", kRed), Points() },
+            { std::make_pair("sector_", kBlue), Points() },
+            { std::make_pair("field_", kGreen), Points() },
+            { std::make_pair("other", kBlack), Points() },
         };
 
 
@@ -616,7 +659,7 @@ void calcConv(const std::map<std::string, Data1> &data,
                     item.second.xErr.push_back(0.1);
                     item.second.yErr.push_back(0.5);
 
-//                    isOther = true;
+                   isOther = true;
                 }
             }
             if (!isOther)
