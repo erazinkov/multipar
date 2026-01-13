@@ -200,19 +200,50 @@ int main()
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 
-    std::string fileName{"rea.elts.txt.stavropol_t"};
+    std::string fileName{"carbon_new_fit_odd.csv"};
 
     std::map<std::string, ChemResult> chem
     {
-        { "tochka_1_s", {4.74, std::nullopt} },
-        { "tochka_2_s", {4.66, std::nullopt} },
-        { "tochka_3_s", {4.99, std::nullopt} },
-        { "tochka_4_s", {5.14, std::nullopt} },
-        { "tochka_5_s", {4.74, std::nullopt} },
-        { "tochka_6_s", {4.45, std::nullopt} },
-        { "tochka_7_s", {4.78, std::nullopt} },
-        { "tochka_8_s", {4.80, std::nullopt} },
-        { "tochka_9_s", {3.83, std::nullopt} },
+        // { "tochka_1", {4.74, 6.29} },
+        // { "tochka_2", {4.66, 6.22} },
+        // { "tochka_3", {4.99, 6.25} },
+        // { "tochka_4", {5.14, 6.16} },
+        // { "tochka_5", {4.74, 7.01} },
+        // { "tochka_6", {4.45, 6.49} },
+        // { "tochka_7", {4.78, 6.26} },
+        // { "tochka_8", {4.80, 6.31} },
+        // { "tochka_9", {3.83, 6.25} },
+
+//         { "tochka_1", {4.74, 25.0} },
+//         { "tochka_2", {4.66, 25.0} },
+//         { "tochka_3", {4.99, 25.0} },
+//         { "tochka_4", {5.14, 25.0} },
+//         { "tochka_5", {4.74, 25.0} },
+//         { "tochka_6", {4.45, 25.0} },
+//         { "tochka_7", {4.78, 25.0} },
+//         { "tochka_8", {4.80, 25.0} },
+//         { "tochka_9", {3.83, 25.0} },
+
+
+        { "sector_1_", {4.08, 53.0} },
+        { "sector_2_", {4.23, 57.0} },
+        { "sector_3_", {4.13, 56.0} },
+        { "sector_4_", {4.17, 55.0} },
+        { "sector_5_", {4.64, 54.0} },
+        { "sector_6_", {4.40, 55.0} },
+        { "sector_7_", {4.72, 59.0} },
+        { "sector_8_", {4.33, 58.0} },
+        { "sector_9_", {4.29, 54.0} },
+        { "sector_10_", {4.12, 56.0} },
+
+        { "field_1_", {4.06, 43.0} },
+        { "field_2_", {2.95, 42.0} },
+        { "field_3_", {3.67, 42.0} },
+        { "field_4_", {2.50, 41.0} },
+        { "field_5_", {3.54, 43.0} },
+        { "field_6_", {2.65, 42.0} },
+        { "field_7_", {3.25, 43.0} },
+        { "field_8_", {2.66, 43.0} },
     };
 
     chem.insert(chemBlind.begin(), chemBlind.end());
@@ -222,7 +253,7 @@ int main()
 
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
-        std::regex m{"\\d+_(s|t)"};
+        std::regex m{"_\\d+_"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -277,9 +308,9 @@ int main()
         if (useSub)
         {
             std::map<std::pair<std::string, Color_t>, Points> subPoints{
-                { std::make_pair("_s", kRed), Points() },
-                { std::make_pair("_t", kBlue), Points() },
-                { std::make_pair("bereza_blind", kGreen), Points() },
+                { std::make_pair("tochka_", kRed), Points() },
+                { std::make_pair("sector_", kBlue), Points() },
+                { std::make_pair("field_", kGreen), Points() },
                 { std::make_pair("other", kBlack), Points() },
             };
 
@@ -317,25 +348,27 @@ int main()
 
         for (const auto &item : labels)
         {
-//            item.DrawClone("SAME");
+            item.DrawClone("SAME");
         }
         c.get()->Print(psName.c_str());
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        std::regex s{"\\d+_s"};
+        const std::string fileName1{"carbon_new_fit_even.csv"};
+
+        std::regex s{"_\\d+_"};
 //         std::regex s{"\\d+_\\d+\\."};
-        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
-//        calcConv(data1Sum, f, value);
+        auto data1Sum{getFitResults(fileName1, columnElement, chem, s)};
+        calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
 //        auto data1P{getFitResults(fileName, columnElement, chem, p)};
 //        calcRep(data1P, f);
 
 //        std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-        std::regex t{"\\d+_t"};
-        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+        std::regex t{"_\\d+"};
+//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
     }
     catch (const my_error& err)
     {
@@ -445,9 +478,9 @@ void calcConv(const std::map<std::string, Data1> &data,
     if (useSub)
     {
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("_s", kRed), Points() },
-            { std::make_pair("_t", kBlue), Points() },
-            { std::make_pair("bereza_blind", kGreen), Points() },
+            { std::make_pair("tochka_", kRed), Points() },
+            { std::make_pair("sector_", kBlue), Points() },
+            { std::make_pair("field_", kGreen), Points() },
             { std::make_pair("other", kMagenta), Points() },
         };
 
