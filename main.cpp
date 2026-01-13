@@ -92,14 +92,24 @@ public:
         int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
         double val{0.0};
 
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // O
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
+
         auto W{
-            par[3] * _d.at(idx).at(1)
-            - par[4] * _d.at(idx).at(2)
-            + par[5]
+            par[3] * _d.at(idx).at(4) // O
+            - par[4] * _d.at(idx).at(5) // Si
+            - par[5] * _d.at(idx).at(0) // Al
+            - par[6] * _d.at(idx).at(2) // Ca
+            - par[7] * _d.at(idx).at(3) // Fe
+            + par[8]
         };
 
         auto A{
-           (par[1] + par[0] * _d.at(idx).at(0))
+           (par[1] + par[0] * _d.at(idx).at(1))
             / (100.0 - par[2] * W) * 100.0
         };
 
@@ -167,36 +177,36 @@ int main()
         // { "tochka_8", {4.80, 6.31} },
         // { "tochka_9", {3.83, 6.25} },
 
-         { "tochka_1", {4.74, 25.0} },
-         { "tochka_2", {4.66, 25.0} },
-         { "tochka_3", {4.99, 25.0} },
-         { "tochka_4", {5.14, 25.0} },
-         { "tochka_5", {4.74, 25.0} },
-         { "tochka_6", {4.45, 25.0} },
-         { "tochka_7", {4.78, 25.0} },
-         { "tochka_8", {4.80, 25.0} },
-         { "tochka_9", {3.83, 25.0} },
+//         { "tochka_1", {4.74, 25.0} },
+//         { "tochka_2", {4.66, 25.0} },
+//         { "tochka_3", {4.99, 25.0} },
+//         { "tochka_4", {5.14, 25.0} },
+//         { "tochka_5", {4.74, 25.0} },
+//         { "tochka_6", {4.45, 25.0} },
+//         { "tochka_7", {4.78, 25.0} },
+//         { "tochka_8", {4.80, 25.0} },
+//         { "tochka_9", {3.83, 25.0} },
 
 
-//        { "sector_1_", {4.08, 53.0} },
-//        { "sector_2_", {4.23, 57.0} },
-//        { "sector_3_", {4.13, 56.0} },
-//        { "sector_4_", {4.17, 55.0} },
-//        { "sector_5_", {4.64, 54.0} },
-//        { "sector_6_", {4.40, 55.0} },
-//        { "sector_7_", {4.72, 59.0} },
-//        { "sector_8_", {4.33, 58.0} },
-//        { "sector_9_", {4.29, 54.0} },
-//        { "sector_10_", {4.12, 56.0} },
+        { "sector_1_", {4.08, 53.0} },
+        { "sector_2_", {4.23, 57.0} },
+        { "sector_3_", {4.13, 56.0} },
+        { "sector_4_", {4.17, 55.0} },
+        { "sector_5_", {4.64, 54.0} },
+        { "sector_6_", {4.40, 55.0} },
+        { "sector_7_", {4.72, 59.0} },
+        { "sector_8_", {4.33, 58.0} },
+        { "sector_9_", {4.29, 54.0} },
+        { "sector_10_", {4.12, 56.0} },
 
-//        { "field_1_", {4.06, 43.0} },
-//        { "field_2_", {2.95, 42.0} },
-//        { "field_3_", {3.67, 42.0} },
-//        { "field_4_", {2.50, 41.0} },
-//        { "field_5_", {3.54, 43.0} },
-//        { "field_6_", {2.65, 42.0} },
-//        { "field_7_", {3.25, 43.0} },
-//        { "field_8_", {2.66, 43.0} },
+        { "field_1_", {4.06, 43.0} },
+        { "field_2_", {2.95, 42.0} },
+        { "field_3_", {3.67, 42.0} },
+        { "field_4_", {2.50, 41.0} },
+        { "field_5_", {3.54, 43.0} },
+        { "field_6_", {2.65, 42.0} },
+        { "field_7_", {3.25, 43.0} },
+        { "field_8_", {2.66, 43.0} },
     };
     std::map<std::string, ChemResult> chemBlind
     {
@@ -223,7 +233,7 @@ int main()
         {11, "Si"},//5
     };
 
-    const auto fileName{"carbon_new_fit.csv"};
+    const auto fileName{"carbon_new_fit_odd.csv"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -273,19 +283,22 @@ int main()
         }
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 9)};
         f.get()->SetParameter(0, 1.0);
         f.get()->SetParameter(1, 0.0);
         f.get()->SetParameter(2, 1.0);
         f.get()->SetParameter(3, 1.0);
-        f.get()->SetParameter(4, 2.0);
-        f.get()->SetParameter(5, 0.0);
+        f.get()->SetParameter(4, 1.0);
+        f.get()->SetParameter(5, 2.0);
+        f.get()->SetParameter(6, 1.0);
+        f.get()->SetParameter(7, 1.0);
+        f.get()->SetParameter(8, 0.0);
 
-        f.get()->SetParLimits(0, 0.0, 10.0);
+//        f.get()->SetParLimits(0, 0.0, 10.0);
 
 //        f.get()->SetParLimits(2, 0.0, 10.0);
-        f.get()->SetParLimits(3, 0.3, 2.0);
-        f.get()->SetParLimits(4, 0.0, 20.0);
+//        f.get()->SetParLimits(3, 0.3, 2.0);
+//        f.get()->SetParLimits(4, 0.0, 20.0);
 
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
@@ -348,7 +361,7 @@ int main()
         c.get()->Close();
 
 
-        const auto fileName_1{"carbon_new_fit.csv"};
+        const auto fileName_1{"carbon_new_fit_even.csv"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
         std::regex s{"_\\d+_"};
@@ -455,7 +468,7 @@ void addPointsByValue(const std::map<std::string, Data1> &data,
                 points.x.push_back(xx++);
                 points.xErr.push_back(0.01);
                 points.y.push_back(v.value());
-                points.yErr.push_back(0.5);
+                points.yErr.push_back(0.25 * v.value());
             }
         }
 
@@ -498,9 +511,12 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value);
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value);
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value);
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // O
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
                 xx++;
             }
         }
@@ -517,6 +533,10 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p3{f.get()->GetParameter(3)};
     auto p4{f.get()->GetParameter(4)};
     auto p5{f.get()->GetParameter(5)};
+    auto p6{f.get()->GetParameter(6)};
+    auto p7{f.get()->GetParameter(7)};
+    auto p8{f.get()->GetParameter(8)};
+
 
     Points points;
     for (auto it{data.begin()}; it != data.end(); ++it)
@@ -534,7 +554,10 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
+                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
                 auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
                 auto O{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
                 auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
 
@@ -542,7 +565,10 @@ void calcConv(const std::map<std::string, Data1> &data,
                 auto w{
                     p3 * O
                     - p4 * Si
-                    + p5
+                    - p5 * Al
+                    - p6 * Ca
+                    - p7 * Fe
+                    + p8
                 };
                 auto a{
                     (p1 + p0 * C)
