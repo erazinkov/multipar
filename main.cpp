@@ -199,14 +199,14 @@ int main()
         { "sector_9_", {4.29, 54.0} },
         { "sector_10_", {4.12, 56.0} },
 
-        { "field_1_", {4.06, 43.0} },
-        { "field_2_", {2.95, 42.0} },
-        { "field_3_", {3.67, 42.0} },
-        { "field_4_", {2.50, 41.0} },
-        { "field_5_", {3.54, 43.0} },
-        { "field_6_", {2.65, 42.0} },
-        { "field_7_", {3.25, 43.0} },
-        { "field_8_", {2.66, 43.0} },
+//        { "field_1_", {4.06, 43.0} },
+//        { "field_2_", {2.95, 42.0} },
+//        { "field_3_", {3.67, 42.0} },
+//        { "field_4_", {2.50, 41.0} },
+//        { "field_5_", {3.54, 43.0} },
+//        { "field_6_", {2.65, 42.0} },
+//        { "field_7_", {3.25, 43.0} },
+//        { "field_8_", {2.66, 43.0} },
     };
     std::map<std::string, ChemResult> chemBlind
     {
@@ -233,7 +233,7 @@ int main()
         {11, "Si"},//5
     };
 
-    const auto fileName{"carbon_new_fit_odd.csv"};
+    const auto fileName{"carbon_new_fit.csv"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -361,7 +361,7 @@ int main()
         c.get()->Close();
 
 
-        const auto fileName_1{"carbon_new_fit_even.csv"};
+        const auto fileName_1{"carbon_new_fit.csv"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
         std::regex s{"_\\d+_"};
