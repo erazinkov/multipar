@@ -200,7 +200,7 @@ int main()
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 
-    std::string fileName{"carbon_new_fit_odd.csv"};
+    std::string fileName{"carbon_new_fit.csv"};
 
     std::map<std::string, ChemResult> chem
     {
@@ -214,15 +214,15 @@ int main()
         // { "tochka_8", {4.80, 6.31} },
         // { "tochka_9", {3.83, 6.25} },
 
-//         { "tochka_1", {4.74, 25.0} },
-//         { "tochka_2", {4.66, 25.0} },
-//         { "tochka_3", {4.99, 25.0} },
-//         { "tochka_4", {5.14, 25.0} },
-//         { "tochka_5", {4.74, 25.0} },
-//         { "tochka_6", {4.45, 25.0} },
-//         { "tochka_7", {4.78, 25.0} },
-//         { "tochka_8", {4.80, 25.0} },
-//         { "tochka_9", {3.83, 25.0} },
+         { "tochka_1", {4.74, 25.0} },
+         { "tochka_2", {4.66, 25.0} },
+         { "tochka_3", {4.99, 25.0} },
+         { "tochka_4", {5.14, 25.0} },
+         { "tochka_5", {4.74, 25.0} },
+         { "tochka_6", {4.45, 25.0} },
+         { "tochka_7", {4.78, 25.0} },
+         { "tochka_8", {4.80, 25.0} },
+         { "tochka_9", {3.83, 25.0} },
 
 
         { "sector_1_", {4.08, 53.0} },
@@ -354,7 +354,7 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        const std::string fileName1{"carbon_new_fit_even.csv"};
+        const std::string fileName1{"carbon_new_fit.csv"};
 
         std::regex s{"_\\d+_"};
 //         std::regex s{"\\d+_\\d+\\."};
