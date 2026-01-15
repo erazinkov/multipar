@@ -100,16 +100,13 @@ public:
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
 
         auto W{
-            par[3] * _d.at(idx).at(4) // O
-            - par[4] * _d.at(idx).at(5) // Si
-            - par[5] * _d.at(idx).at(0) // Al
-            - par[6] * _d.at(idx).at(2) // Ca
-            - par[7] * _d.at(idx).at(3) // Fe
-            + par[8]
+            par[3] * _d.at(idx).at(1) // O
+            - par[4] * _d.at(idx).at(2) // Si
+            + par[5]
         };
 
         auto A{
-           (par[1] + par[0] * _d.at(idx).at(1))
+           (par[1] + par[0] * _d.at(idx).at(0))
             / (100.0 - par[2] * W) * 100.0
         };
 
@@ -223,17 +220,24 @@ int main()
     };
 
 
+//    const std::map<int, std::string> columnElement
+//    {
+//        {1, "Al"}, //0
+//        {3, "C"},  //1
+//        {5, "Ca"}, //2
+//        {7, "Fe"}, //3
+//        {9, "O"},  //4
+//        {11, "Si"},//5
+//    };
+
     const std::map<int, std::string> columnElement
     {
-        {1, "Al"}, //0
-        {3, "C"},  //1
-        {5, "Ca"}, //2
-        {7, "Fe"}, //3
-        {9, "O"},  //4
-        {11, "Si"},//5
+        {1, "C"}, //1
+        {3, "O"}, //3
+        {5, "Si"},//5
     };
 
-    const auto fileName{"carbon_new_fit_sector.csv"};
+    const auto fileName{"carbon_old_fit_odd.csv"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -256,8 +260,10 @@ int main()
 //        auto wNumber{points.x.size() - aNumber};
         std::map<int, std::vector<double>> mmn;
 //        size_t idx{ static_cast<size_t>(std::round(points.x.front())) };
+
         addMmnByValue(data1, mmn, Data1::Value::A);
         addMmnByValue(data1, mmn, Data1::Value::W);
+
         std::cout << points.x.size() << " " << mmn.size() << std::endl;
 
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
@@ -283,16 +289,16 @@ int main()
         }
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 9)};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
         f.get()->SetParameter(0, 1.0);
         f.get()->SetParameter(1, 0.0);
         f.get()->SetParameter(2, 1.0);
         f.get()->SetParameter(3, 1.0);
         f.get()->SetParameter(4, 1.0);
         f.get()->SetParameter(5, 2.0);
-        f.get()->SetParameter(6, 1.0);
-        f.get()->SetParameter(7, 1.0);
-        f.get()->SetParameter(8, 0.0);
+//        f.get()->SetParameter(6, 1.0);
+//        f.get()->SetParameter(7, 1.0);
+//        f.get()->SetParameter(8, 0.0);
 
 //        f.get()->SetParLimits(0, 0.0, 10.0);
 
@@ -361,7 +367,7 @@ int main()
         c.get()->Close();
 
 
-        const auto fileName_1{"carbon_new_fit_field.csv"};
+        const auto fileName_1{"carbon_old_fit_even.csv"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
         std::regex s{"_\\d+_"};
@@ -511,12 +517,12 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // O
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // C
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // O
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Si
                 xx++;
             }
         }
@@ -533,9 +539,9 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p3{f.get()->GetParameter(3)};
     auto p4{f.get()->GetParameter(4)};
     auto p5{f.get()->GetParameter(5)};
-    auto p6{f.get()->GetParameter(6)};
-    auto p7{f.get()->GetParameter(7)};
-    auto p8{f.get()->GetParameter(8)};
+//    auto p6{f.get()->GetParameter(6)};
+//    auto p7{f.get()->GetParameter(7)};
+//    auto p8{f.get()->GetParameter(8)};
 
 
     Points points;
@@ -554,21 +560,21 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
-                auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
-                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
-                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
-                auto O{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
-                auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
+//                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
+                auto C{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
+//                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+//                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
+                auto O{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+                auto Si{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
 
                 auto res{0.0};
                 auto w{
                     p3 * O
                     - p4 * Si
-                    - p5 * Al
-                    - p6 * Ca
-                    - p7 * Fe
-                    + p8
+//                    - p5 * Al
+//                    - p6 * Ca
+//                    - p7 * Fe
+                    + p5
                 };
                 auto a{
                     (p1 + p0 * C)
