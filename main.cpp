@@ -221,7 +221,8 @@ int main()
 //    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_w_bach_wo_MgCaFeS"};
-    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
+//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
+    std::string fileName{"rea.elts.check.txt"};
 
     std::map<std::string, ChemResult> chemBerezaSpb
     {
@@ -298,9 +299,16 @@ int main()
         { "std_coal_proba_14_", {7.5, 4.9} },
         { "std_coal_proba_15_", {8.6, 7.2} },
         { "std_coal_proba_16_", {10.1, 5.6} },
+
+        { "coal_check_w_1p35_", {6.18, 1.35} },
+        { "coal_check_w_5p0_", {6.18, 5.0} },
+        { "coal_check_w_10p0_", {6.18, 10.0} },
+        { "coal_check_w_15p0_", {6.18, 15.0} },
+        { "coal_check_w_20p0_", {6.18, 20.0} },
+
     };
 
-    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
+//    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
 
@@ -310,14 +318,17 @@ int main()
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
+//        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
+
+        std::regex m{"grad"};
+
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, value);
 
@@ -425,8 +436,9 @@ int main()
 
 //        std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
-        std::regex s{"\\d+_(1|2|3)\\."};
+//        std::regex s{"\\d+_(1|2|3)\\."};
 //        std::regex s{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
+        std::regex s{"_"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
@@ -456,8 +468,8 @@ void useSub(const Points &points,
             const bool isLabels = false)
 {
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("coal_blind", kRed), Points() },
-        { std::make_pair("barz_blind", kBlue), Points() },
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check", kBlue), Points() },
         { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
@@ -583,8 +595,8 @@ void useSub1(const Points &points,
 
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("coal_blind", kRed), Points() },
-        { std::make_pair("barz_blind", kBlue), Points() },
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check", kBlue), Points() },
         { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
@@ -625,8 +637,8 @@ void useSub1(const Points &points,
 
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
-        { std::make_pair("coal_blind", kRed), Points() },
-        { std::make_pair("barz_blind", kBlue), Points() },
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check", kBlue), Points() },
         { std::make_pair("bereza", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
