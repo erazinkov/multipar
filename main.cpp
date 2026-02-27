@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -100,7 +101,7 @@ public:
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
 
         auto W{
-            par[3] * _d.at(idx).at(1) // O
+            par[3] * _d.at(idx).at(4) // O
             - par[4] * _d.at(idx).at(5) // Si
             - par[5] * _d.at(idx).at(0) // Al
             - par[6] * _d.at(idx).at(2) // Ca
@@ -177,15 +178,16 @@ int main()
         // { "tochka_8", {4.80, 6.31} },
         // { "tochka_9", {3.83, 6.25} },
 
-         { "tochka_1", {4.74, 25.0} },
-         { "tochka_2", {4.66, 25.0} },
-         { "tochka_3", {4.99, 25.0} },
-         { "tochka_4", {5.14, 25.0} },
-         { "tochka_5", {4.74, 25.0} },
-         { "tochka_6", {4.45, 25.0} },
-         { "tochka_7", {4.78, 25.0} },
-         { "tochka_8", {4.80, 25.0} },
-         { "tochka_9", {3.83, 25.0} },
+//         { "tochka_1", {4.74, 25.0} },
+//         { "tochka_2", {4.66, 25.0} },
+//         { "tochka_3", {4.99, 25.0} },
+//         { "tochka_4", {5.14, 25.0} },
+//         { "tochka_5", {4.74, 25.0} },
+//         { "tochka_6", {4.45, 25.0} },
+//         { "tochka_7", {4.78, 25.0} },
+//         { "tochka_8", {4.80, 25.0} },
+//         { "tochka_9", {3.83, 25.0} },
+
 
 
         { "sector_1_", {4.08, 53.0} },
@@ -210,15 +212,26 @@ int main()
     };
     std::map<std::string, ChemResult> chemBlind
     {
-        { "tochka_5_t", {3.18, 33.48} },
-        { "tochka_2_t", {1.43, 19.25} },
-        { "tochka_3_t", {1.75, 23.89} },
-        { "tochka_4_t", {2.23, 27.53} },
-        { "tochka_1_t", {1.27, 19.80} },
-        { "tochka_6_t", {1.35, 19.47} },
-        { "tochka_7_t", {1.46, 19.03} },
-        { "tochka_8_t", {1.46, 19.31} },
-        { "tochka_9_t", {1.01, 16.30} },
+//        { "tochka_5_t", {3.18, 33.48} },
+//        { "tochka_2_t", {1.43, 19.25} },
+//        { "tochka_3_t", {1.75, 23.89} },
+//        { "tochka_4_t", {2.23, 27.53} },
+//        { "tochka_1_t", {1.27, 19.80} },
+//        { "tochka_6_t", {1.35, 19.47} },
+//        { "tochka_7_t", {1.46, 19.03} },
+//        { "tochka_8_t", {1.46, 19.31} },
+//        { "tochka_9_t", {1.01, 16.30} },
+
+        { "tochka_1", {4.74, 25.0} },
+        { "tochka_2", {4.66, 25.0} },
+        { "tochka_3", {4.99, 25.0} },
+        { "tochka_4", {5.14, 25.0} },
+        { "tochka_5", {4.74, 25.0} },
+        { "tochka_6", {4.45, 25.0} },
+        { "tochka_7", {4.78, 25.0} },
+        { "tochka_8", {4.80, 25.0} },
+        { "tochka_9", {3.83, 25.0} },
+
 
     };
 
@@ -249,7 +262,7 @@ int main()
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -297,9 +310,9 @@ int main()
         f.get()->SetParameter(7, 1.0);
         f.get()->SetParameter(8, 0.0);
 
-//        f.get()->SetParLimits(0, 0.0, 10.0);
+        f.get()->FixParameter(2, 1.0);
 
-//        f.get()->SetParLimits(2, 0.0, 10.0);
+//        f.get()->SetParLimits(3, 0.0, 10.0);
 //        f.get()->SetParLimits(3, 0.3, 2.0);
 //        f.get()->SetParLimits(4, 0.0, 20.0);
 
@@ -371,10 +384,10 @@ int main()
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
-        std::regex t{"\\d+_t"};
-//        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, t)};
-//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-//        calcConv(dataBlindSum, f, value);
+        std::regex t{"_\\d+_"};
+        auto dataBlindSum{getFitResults(fileName_1, columnElement, chemBlind, t)};
+        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
@@ -472,6 +485,14 @@ void addPointsByValue(const std::map<std::string, Data1> &data,
                 points.xErr.push_back(0.01);
                 points.y.push_back(v.value());
                 points.yErr.push_back(0.25 * v.value());
+//                auto yE{0.0};
+//                if (value == Data1::Value::A) {
+//                    yE = 0.1 * v.value();
+//                }
+//                if (value == Data1::Value::W) {
+//                    yE = 0.03 * v.value();
+//                }
+//                points.yErr.push_back(yE);
             }
         }
 
@@ -536,9 +557,9 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p3{f.get()->GetParameter(3)};
     auto p4{f.get()->GetParameter(4)};
     auto p5{f.get()->GetParameter(5)};
-//    auto p6{f.get()->GetParameter(6)};
-//    auto p7{f.get()->GetParameter(7)};
-//    auto p8{f.get()->GetParameter(8)};
+    auto p6{f.get()->GetParameter(6)};
+    auto p7{f.get()->GetParameter(7)};
+    auto p8{f.get()->GetParameter(8)};
 
 
     Points points;
@@ -557,21 +578,21 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-//                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
-                auto C{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
-//                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
-//                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
-                auto O{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
-                auto Si{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
+                auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
+                auto O{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
+                auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
 
                 auto res{0.0};
                 auto w{
                     p3 * O
                     - p4 * Si
-//                    - p5 * Al
-//                    - p6 * Ca
-//                    - p7 * Fe
-                    + p5
+                    - p5 * Al
+                    - p6 * Ca
+                    - p7 * Fe
+                    + p8
                 };
                 auto a{
                     (p1 + p0 * C)
@@ -612,9 +633,12 @@ void calcConv(const std::map<std::string, Data1> &data,
     gr.get()->SetMarkerSize(1.5);
     gr.get()->SetMarkerStyle(21);
 
+    std::ofstream ofs("output_data.csv", std::ios_base::app);
+
     std::vector<TLatex> labels;
     for (size_t i{0}; i < points.x.size(); ++i)
     {
+
         auto pos{points.l.at(i).find_last_of("_")};
         auto text{points.l.at(i)};
         if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
@@ -627,7 +651,14 @@ void calcConv(const std::map<std::string, Data1> &data,
         l.SetTextAlign(12);
         l.SetTextSize(0.02);
         labels.push_back(l);
+
+        if (ofs.is_open()) {
+            ofs << text << " " << points.x.at(i) << " " << points.xErr.at(i) << " "
+                << points.y.at(i) << " " << points.yErr.at(i) << std::endl;
+        }
     }
+
+    ofs.close();
 
 
     std::stringstream ss;
@@ -659,6 +690,8 @@ void calcConv(const std::map<std::string, Data1> &data,
     gr.get()->Draw("P");
 
 
+
+
     auto useSub{true};
     if (useSub)
     {
@@ -667,7 +700,7 @@ void calcConv(const std::map<std::string, Data1> &data,
             { std::make_pair("tochka_", kRed), Points() },
             { std::make_pair("sector_", kBlue), Points() },
             { std::make_pair("field_", kGreen), Points() },
-            { std::make_pair("other", kBlack), Points() },
+            { std::make_pair("other", kMagenta), Points() },
         };
 
 
@@ -688,7 +721,7 @@ void calcConv(const std::map<std::string, Data1> &data,
                     item.second.xErr.push_back(0.1);
                     item.second.yErr.push_back(0.5);
 
-                   isOther = true;
+//                   isOther = true;
                 }
             }
             if (!isOther)
