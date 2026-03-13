@@ -300,7 +300,7 @@ int main()
         { "std_coal_proba_16_", {10.1, 5.6} },
     };
 
-    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
+//    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
 
@@ -310,9 +310,10 @@ int main()
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
+//        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
+        std::regex m{"_"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
