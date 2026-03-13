@@ -323,12 +323,12 @@ int main()
 //        std::regex m{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
-        std::regex m{"_"};
+        std::regex m{"check_w"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, value);
 
@@ -363,8 +363,8 @@ int main()
         FitFunction_2 fObj(fitResultsByValue);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
 
-        f.get()->SetParLimits(1, -5.0, 0.0);
-        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
+//        f.get()->SetParLimits(1, -5.0, 0.0);
+//        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
