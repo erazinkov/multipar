@@ -298,6 +298,14 @@ int main()
         { "std_coal_proba_14_", {7.5, 4.9} },
         { "std_coal_proba_15_", {8.6, 7.2} },
         { "std_coal_proba_16_", {10.1, 5.6} },
+
+        { "coal_check_w_1p35_", {7.0, 1.35} },
+        { "coal_check_w_5p0_", {7.3, 5.0} },
+        { "coal_check_w_10p0_", {7.6, 10.0} },
+        { "coal_check_w_15p0_", {8.6, 15.0} },
+        { "coal_check_w_20p0_", {9.2, 20.0} },
+
+        { "coal_check_p43_", {30.4, 8.2} },
     };
 
 //    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
