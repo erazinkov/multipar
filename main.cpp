@@ -222,7 +222,7 @@ int main()
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_w_bach_wo_MgCaFeS"};
 //    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
-    std::string fileName{"rea.elts.check.txt"};
+    std::string fileName{"rea.elts.check.1.txt"};
 
     std::map<std::string, ChemResult> chemBerezaSpb
     {
@@ -231,7 +231,7 @@ int main()
         { "bereza_3_",  {12.2, 0.9 } },
         { "bereza_4_",  {13.6, 0.9 } },
         { "bereza_5_",  {17.5, 0.8 } },
-//        { "bereza_6_",  {15.5, 0.8 } },
+        { "bereza_6_",  {15.5, 0.8 } },
         { "bereza_7_",  {19.8, 0.8 } },
         { "bereza_8_",  {24.5, 0.8 } },
         { "bereza_9_",  {27.0, 0.9 } },
@@ -300,11 +300,13 @@ int main()
         { "std_coal_proba_15_", {8.6, 7.2} },
         { "std_coal_proba_16_", {10.1, 5.6} },
 
-        { "coal_check_w_1p35_", {6.18, 1.35} },
-        { "coal_check_w_5p0_", {6.18, 5.0} },
-        { "coal_check_w_10p0_", {6.18, 10.0} },
-        { "coal_check_w_15p0_", {6.18, 15.0} },
-        { "coal_check_w_20p0_", {6.18, 20.0} },
+        { "coal_check_w_1p35_", {7.0, 1.35} },
+        { "coal_check_w_5p0_", {7.3, 5.0} },
+        { "coal_check_w_10p0_", {7.6, 10.0} },
+        { "coal_check_w_15p0_", {8.6, 15.0} },
+        { "coal_check_w_20p0_", {9.2, 20.0} },
+
+        { "coal_check_p43_", {30.4, 8.2} },
 
     };
 
@@ -322,7 +324,7 @@ int main()
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
 
-        std::regex m{"grad"};
+        std::regex m{"_"};
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
@@ -469,8 +471,8 @@ void useSub(const Points &points,
 {
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check", kBlue), Points() },
-        { std::make_pair("bereza", kGreen), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -596,8 +598,8 @@ void useSub1(const Points &points,
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check", kBlue), Points() },
-        { std::make_pair("bereza", kGreen), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -638,12 +640,21 @@ void useSub1(const Points &points,
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
         { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check", kBlue), Points() },
-        { std::make_pair("bereza", kGreen), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("raspad", kOrange), Points() },
         { std::make_pair("std_coal", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
+
+//    std::map<std::pair<std::string, Color_t>, Points> subPoints1{
+//        { std::make_pair("grad", kRed), Points() },
+//        { std::make_pair("check", kBlue), Points() },
+//        { std::make_pair("bereza", kGreen), Points() },
+//        { std::make_pair("raspad", kOrange), Points() },
+//        { std::make_pair("std_coal", kCyan), Points() },
+//        { std::make_pair("other", kBlack), Points() },
+//    };
 
 
 
@@ -720,7 +731,7 @@ void writePointsToFile(const std::string fileName, const Points &points)
     ofs.open(fileName, std::ios::out);
     for (size_t i{0}; i < points.l.size(); ++i)
     {
-        ofs << points.x.at(i) << " " << points.y.at(i)  << " " << points.l.at(i) << std::endl;
+        ofs << points.l.at(i) << " " << points.x.at(i) << " " << points.y.at(i)  << std::endl;
     }
     ofs.close();
 }
@@ -860,7 +871,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     writePointsToFile("output.txt", avgPoints);
 
     std::string str;
-    useSub(avgPoints, str, value, false);
+    useSub(avgPoints, str, value, true);
     h2dConv.get()->SetTitle(str.c_str());
 
     c.get()->Print(psName.c_str());
@@ -876,7 +887,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     h2dConv1->SetStats(0);
     h2dConv1.get()->Draw();
     std::string str1;
-    useSub1(avgPoints, str1, value, false);
+    useSub1(avgPoints, str1, value, true);
     h2dConv1.get()->SetTitle(str1.c_str());
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
