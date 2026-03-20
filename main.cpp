@@ -245,18 +245,18 @@ int main()
          {9, "Si"},
          };
 
-    const std::map<int, std::string> columnElement
-    {
-        {1, "Al"}, //0
-        {3, "C"},  //1
-        {5, "Ca"}, //2
-        {7, "Fe"}, //3
-        {9, "O"},  //4
-        {11, "Si"},//5
-    };
+//    const std::map<int, std::string> columnElement
+//    {
+//        {1, "Al"}, //0
+//        {3, "C"},  //1
+//        {5, "Ca"}, //2
+//        {7, "Fe"}, //3
+//        {9, "O"},  //4
+//        {11, "Si"},//5
+//    };
 
 
-    const auto fileName{"carbon_new_fit.csv"};
+    const auto fileName{"rea.elts.check.1.txt"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -266,7 +266,7 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"_\\d+_"};
+        std::regex m{"_"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
