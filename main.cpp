@@ -237,6 +237,15 @@ int main()
 
 
     const std::map<int, std::string> columnElement
+        {
+         {1, "Al"},
+         {3, "C"},
+         {5, "N"},
+         {7, "O"},
+         {9, "Si"},
+         };
+
+    const std::map<int, std::string> columnElement
     {
         {1, "Al"}, //0
         {3, "C"},  //1
