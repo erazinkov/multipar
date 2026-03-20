@@ -643,17 +643,27 @@ int main()
 //        {5, "Si"},
 //    };
 
-    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
-    {
-//        {1, "Al"},
-        {3, "C"},
-//        {5, "Ca"},
-//        {7, "Fe"},
-//        {9, "N"},
-        {11, "O"},
-//        {13, "S"},
-        {15, "Si"},
-    };
+    //wo_MgCaFeS
+    const std::map<int, std::string> columnElement
+        {
+//         {1, "Al"},
+         {3, "C"},
+//         {5, "N"},
+         {7, "O"},
+         {9, "Si"},
+         };
+
+//    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
+//    {
+////        {1, "Al"},
+//        {3, "C"},
+////        {5, "Ca"},
+////        {7, "Fe"},
+////        {9, "N"},
+//        {11, "O"},
+////        {13, "S"},
+//        {15, "Si"},
+//    };
 
     const std::map<std::string, size_t> elementColumn
     {
