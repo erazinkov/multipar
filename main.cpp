@@ -656,7 +656,8 @@ int main()
     // const auto fileName{"rea.elts.txt_shahta12_wo_MgCaFeSNAl"};
 //    const auto fileName{"rea.elts.txt_bereza_wo_MgCaFeSNAl"};
 //    const auto fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeSNAl.grad_w_blind.all"};
-    const auto fileName{"rea.elts.txt.raspad"};
+//    const auto fileName{"rea.elts.txt.raspad"};
+    const auto fileName{"rea.elts.check.1.txt"};
     std::cout << fileName << std::endl;
 
 //    chem1.insert(chemBlind.begin(), chemBlind.end());
