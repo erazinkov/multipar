@@ -95,22 +95,20 @@ public:
 
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // O
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
 
         auto W{
-            par[3] * _d.at(idx).at(4) // O
-            - par[4] * _d.at(idx).at(5) // Si
+            par[3] * _d.at(idx).at(3) // O
+            - par[4] * _d.at(idx).at(4) // Si
             - par[5] * _d.at(idx).at(0) // Al
-            - par[6] * _d.at(idx).at(2) // Ca
-            - par[7] * _d.at(idx).at(3) // Fe
+            - par[6] * _d.at(idx).at(2) // N
             + par[8]
         };
 
         auto A{
-           (par[1] + par[0] * _d.at(idx).at(1))
+           (par[1] + par[0] * _d.at(idx).at(1)) // C
             / (100.0 - par[2] * W) * 100.0
         };
 
@@ -313,17 +311,17 @@ int main()
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 9)};
-        f.get()->SetParameter(0, 1.0);
-        f.get()->SetParameter(1, 0.0);
-        f.get()->SetParameter(2, 1.0);
-        f.get()->SetParameter(3, 1.0);
-        f.get()->SetParameter(4, 1.0);
-        f.get()->SetParameter(5, 2.0);
-        f.get()->SetParameter(6, 1.0);
-        f.get()->SetParameter(7, 1.0);
-        f.get()->SetParameter(8, 0.0);
+//        f.get()->SetParameter(0, 1.0);
+//        f.get()->SetParameter(1, 0.0);
+//        f.get()->SetParameter(2, 1.0);
+//        f.get()->SetParameter(3, 1.0);
+//        f.get()->SetParameter(4, 1.0);
+//        f.get()->SetParameter(5, 2.0);
+//        f.get()->SetParameter(6, 1.0);
+//        f.get()->SetParameter(7, 1.0);
+//        f.get()->SetParameter(8, 0.0);
 
-        f.get()->FixParameter(2, 1.0);
+//        f.get()->FixParameter(2, 1.0);
 
 //        f.get()->SetParLimits(3, 0.0, 10.0);
 //        f.get()->SetParLimits(3, 0.3, 2.0);
@@ -393,14 +391,14 @@ int main()
         const auto fileName_1{"carbon_new_fit.csv"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
-        std::regex s{"_\\d+_"};
+        std::regex s{"_"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
-        std::regex t{"_\\d+_"};
-        auto dataBlindSum{getFitResults(fileName_1, columnElement, chemBlind, t)};
-        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
-        calcConv(dataBlindSum, f, value);
+//        std::regex t{"_\\d+_"};
+//        auto dataBlindSum{getFitResults(fileName_1, columnElement, chemBlind, t)};
+//        dataBlindSum.insert(data1Sum.begin(), data1Sum.end());
+//        calcConv(dataBlindSum, f, value);
 
     }
     catch (const my_error& err)
@@ -550,10 +548,9 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             {
                 mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
                 mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // Ca
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Fe
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // O
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(5)).value); // Si
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
                 xx++;
             }
         }
@@ -572,7 +569,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p5{f.get()->GetParameter(5)};
     auto p6{f.get()->GetParameter(6)};
     auto p7{f.get()->GetParameter(7)};
-    auto p8{f.get()->GetParameter(8)};
+
 
 
     Points points;
@@ -710,10 +707,12 @@ void calcConv(const std::map<std::string, Data1> &data,
     {
 
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("tochka_", kRed), Points() },
-            { std::make_pair("sector_", kBlue), Points() },
-            { std::make_pair("field_", kGreen), Points() },
-            { std::make_pair("other", kMagenta), Points() },
+            { std::make_pair("b8", kRed), Points() },
+            { std::make_pair("check_w", kBlue), Points() },
+            { std::make_pair("p43", kGreen), Points() },
+            { std::make_pair("bereza_8", kOrange), Points() },
+            { std::make_pair("raspad", kCyan), Points() },
+            { std::make_pair("other", kBlack), Points() },
         };
 
 
