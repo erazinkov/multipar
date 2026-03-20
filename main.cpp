@@ -395,8 +395,16 @@ void calcConv(const std::map<std::string, Data1> &data,
             { std::make_pair("coal_blind", kRed), Points() },
             { std::make_pair("barz_blind", kBlue), Points() },
             { std::make_pair("bereza_blind", kGreen), Points() },
-            { std::make_pair("other", kMagenta), Points() },
+            { std::make_pair("raspad", kOrange), Points() },
+            { std::make_pair("std_coal", kCyan), Points() },
+            { std::make_pair("other", kBlack), Points() },
         };
+//        std::map<std::pair<std::string, Color_t>, Points> subPoints{
+//            { std::make_pair("coal_blind", kRed), Points() },
+//            { std::make_pair("barz_blind", kBlue), Points() },
+//            { std::make_pair("bereza_blind", kGreen), Points() },
+//            { std::make_pair("other", kMagenta), Points() },
+//        };
 
 
         for (size_t i{0}; i < points.x.size(); ++i)
