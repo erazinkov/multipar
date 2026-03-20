@@ -392,11 +392,11 @@ void calcConv(const std::map<std::string, Data1> &data,
     if (useSub)
     {
         std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("coal_blind", kRed), Points() },
-            { std::make_pair("barz_blind", kBlue), Points() },
-            { std::make_pair("bereza_blind", kGreen), Points() },
-            { std::make_pair("raspad", kOrange), Points() },
-            { std::make_pair("std_coal", kCyan), Points() },
+            { std::make_pair("b8", kRed), Points() },
+            { std::make_pair("check_w", kBlue), Points() },
+            { std::make_pair("p43", kGreen), Points() },
+            { std::make_pair("bereza_8", kOrange), Points() },
+            { std::make_pair("raspad", kCyan), Points() },
             { std::make_pair("other", kBlack), Points() },
         };
 //        std::map<std::pair<std::string, Color_t>, Points> subPoints{
@@ -673,30 +673,30 @@ int main()
 //        {15, "Si"},
 //    };
 
-    const std::map<std::string, size_t> elementColumn
-    {
-        // all
-        // {"C", 3},
-        // {"O", 13},
-        //wo Mg
-        // {"C", 3},
-        // {"O", 11},
-        //wo MgCa
-        // {"C", 3},
-        // {"O", 9},
-        //wo MgCaFe
-        // {"C", 3},
-        // {"O", 7},
-        //wo MgCaFeS
-        // {"C", 3},
-        // {"O", 7},
-        //wo MgCaFeSN
-        // {"C", 3},
-        // {"O", 5},
-        //wo MgCaFeSNAl
-        {"C", 1},
-        {"O", 3},
-    };
+//    const std::map<std::string, size_t> elementColumn
+//    {
+//        // all
+//        // {"C", 3},
+//        // {"O", 13},
+//        //wo Mg
+//        // {"C", 3},
+//        // {"O", 11},
+//        //wo MgCa
+//        // {"C", 3},
+//        // {"O", 9},
+//        //wo MgCaFe
+//        // {"C", 3},
+//        // {"O", 7},
+//        //wo MgCaFeS
+//        // {"C", 3},
+//        // {"O", 7},
+//        //wo MgCaFeSN
+//        // {"C", 3},
+//        // {"O", 5},
+//        //wo MgCaFeSNAl
+//        {"C", 1},
+//        {"O", 3},
+//    };
 
     // const auto fileName{"rea.elts.txt_shahta12_all"};
     // const auto fileName{"rea.elts.txt_shahta12_wo_Mg"};
@@ -716,12 +716,13 @@ int main()
     try
     {
 //        std::regex m{"\\d+_\\d\\."};
-        std::regex m{"\\d+_(1|2|3)\\."};
+//        std::regex m{"\\d+_(1|2|3)\\."};
+        std::regex m{"_"};
         auto data1{getFitResults(fileName, columnElement, chem1, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -775,6 +776,7 @@ int main()
         auto useSub{true};
         if (useSub)
         {
+
             std::map<std::pair<std::string, Color_t>, Points> subPoints{
                 { std::make_pair("coal_blind", kRed), Points() },
                 { std::make_pair("barz_blind", kBlue), Points() },
@@ -825,8 +827,9 @@ int main()
 
 //        std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
-         std::regex s{"\\d+_(1|2|3)\\."};
-        auto data1Sum{getFitResults(fileName, columnElement, chem1, s)};
+//         std::regex s{"\\d+_(1|2|3)\\."};
+         std::regex s{"_"};
+        auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
 //        auto dataBlindSum{getFitResults(fileName, columnElement, chemBlind, s)};
