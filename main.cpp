@@ -104,7 +104,7 @@ public:
             - par[4] * _d.at(idx).at(4) // Si
             - par[5] * _d.at(idx).at(0) // Al
             - par[6] * _d.at(idx).at(2) // N
-            + par[8]
+            + par[7]
         };
 
         auto A{
@@ -268,7 +268,7 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"_"};
+        std::regex m{"check"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -310,7 +310,7 @@ int main()
         }
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 9)};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 8)};
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.0);
 //        f.get()->SetParameter(2, 1.0);
@@ -388,7 +388,7 @@ int main()
         c.get()->Close();
 
 
-        const auto fileName_1{"carbon_new_fit.csv"};
+        const auto fileName_1{"rea.elts.check.1.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
         std::regex s{"_"};
@@ -570,8 +570,6 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p6{f.get()->GetParameter(6)};
     auto p7{f.get()->GetParameter(7)};
 
-
-
     Points points;
     for (auto it{data.begin()}; it != data.end(); ++it)
     {
@@ -590,19 +588,17 @@ void calcConv(const std::map<std::string, Data1> &data,
             {
                 auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
                 auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
-                auto Ca{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
-                auto Fe{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
-                auto O{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
-                auto Si{it->second.fr.at(i).at(static_cast<size_t>(5)).value};
+                auto N{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+                auto O{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
+                auto Si{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
 
                 auto res{0.0};
                 auto w{
                     p3 * O
                     - p4 * Si
                     - p5 * Al
-                    - p6 * Ca
-                    - p7 * Fe
-                    + p8
+                    - p6 * N
+                    + p7
                 };
                 auto a{
                     (p1 + p0 * C)
@@ -733,7 +729,7 @@ void calcConv(const std::map<std::string, Data1> &data,
                     item.second.xErr.push_back(0.1);
                     item.second.yErr.push_back(0.5);
 
-//                   isOther = true;
+                   isOther = true;
                 }
             }
             if (!isOther)
