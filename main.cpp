@@ -328,7 +328,7 @@ int main()
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
 //        std::regex m{"bereza_8_w"};
-        std::regex m{"_"};
+        std::regex m{"(raspad|check)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -465,7 +465,7 @@ void useSub(const Points &points,
             const bool isLabels = false)
 {
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("b8", kRed), Points() },
+        { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
@@ -490,7 +490,7 @@ void useSub(const Points &points,
                 item.second.xErr.push_back(0.1);
                 item.second.yErr.push_back(0.5);
 
-//                isOther = false;
+                isOther = false;
             }
         }
         if (isOther)
@@ -592,7 +592,7 @@ void useSub1(const Points &points,
 
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("b8", kRed), Points() },
+        { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
@@ -632,7 +632,7 @@ void useSub1(const Points &points,
     str = ss.str();
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
-        { std::make_pair("b8", kRed), Points() },
+        { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
