@@ -301,16 +301,16 @@ int main()
         { "std_coal_proba_15_", {8.6, 7.2} },
         { "std_coal_proba_16_", {10.1, 5.6} },
 
-//        { "coal_check_w_1p35_", {7.0, 1.35} },
-//        { "coal_check_w_5p0_", {7.3, 5.0} },
-//        { "coal_check_w_10p0_", {7.6, 10.0} },
+        { "coal_check_w_1p35_", {7.0, 1.35} },
+        { "coal_check_w_5p0_", {7.3, 5.0} },
+        { "coal_check_w_10p0_", {7.6, 10.0} },
         { "coal_check_w_15p0_", {8.6, 15.0} },
         { "coal_check_w_20p0_", {9.2, 20.0} },
 
 //        { "coal_check_p43_", {30.4, 8.2} },
-//        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
-//        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
-//        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
+        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
+        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
+        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
         { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
     };
 
@@ -328,7 +328,8 @@ int main()
 //        std::regex m{"(raspad_\\d+)_(1|2|3)\\."};
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
 //        std::regex m{"bereza_8_w"};
-        std::regex m{"(raspad|check)"};
+//        std::regex m{"(raspad|check)"};
+        std::regex m{"check"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -434,8 +435,9 @@ int main()
 //        std::regex s{"sum"};
 //         std::regex s{"\\d+_\\d+\\."};
 //        std::regex s{"\\d+_(1|2|3)\\."};
-        std::regex s{"_"};
+//        std::regex s{"_"};
 //        std::regex s{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
+        std::regex s{"check"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
