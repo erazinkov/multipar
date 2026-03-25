@@ -202,16 +202,16 @@ int main()
         { "std_coal_proba_15_", {8.6, 7.2} },
         { "std_coal_proba_16_", {10.1, 5.6} },
 
-//        { "coal_check_w_1p35_", {7.0, 1.35} },
-//        { "coal_check_w_5p0_", {7.3, 5.0} },
-//        { "coal_check_w_10p0_", {7.6, 10.0} },
+        { "coal_check_w_1p35_", {7.0, 1.35} },
+        { "coal_check_w_5p0_", {7.3, 5.0} },
+        { "coal_check_w_10p0_", {7.6, 10.0} },
         { "coal_check_w_15p0_", {8.6, 15.0} },
         { "coal_check_w_20p0_", {9.2, 20.0} },
 
 //        { "coal_check_p43_", {30.4, 8.2} },
-//        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
-//        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
-//        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
+        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
+        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
+        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
         { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
     };
     std::map<std::string, ChemResult> chemBlind
@@ -393,7 +393,7 @@ int main()
         const auto fileName_1{"rea.elts.check.1.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
-        std::regex s{"_"};
+        std::regex s{"check"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
@@ -956,7 +956,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
     c.get()->Print((psName + '[').c_str());
     h2dConv.get()->Draw();
-    gr.get()->Draw("P");
+//    gr.get()->Draw("P");
 
 
     std::vector<std::string> uniqueL{points.l};
