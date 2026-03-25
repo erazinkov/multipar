@@ -151,6 +151,8 @@ void calcConv(const std::map<std::string, Data1> &data,
               const std::unique_ptr<TF1> &f,
               const Data1::Value value);
 
+void writePointsToFile(const std::string fileName, const Points &points);
+
 int main()
 {
     // TVirtualFitter::SetDefaultFitter("Minuit");
@@ -555,6 +557,267 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             }
         }
     }
+}
+
+void useSub(const Points &points,
+            std::string &str,
+            const Data1::Value value,
+            const bool isLabels = false)
+{
+    std::map<std::pair<std::string, Color_t>, Points> subPoints{
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("raspad", kCyan), Points() },
+        { std::make_pair("other", kBlack), Points() },
+    };
+
+    for (size_t i{0}; i < points.x.size(); ++i)
+    {
+        auto isOther{true};
+        for (auto &item : subPoints)
+        {
+            if (points.l.at(i).find(item.first.first) != std::string::npos)
+            {
+                TMarker m{points.x.at(i), points.y.at(i), 21};
+                m.SetMarkerSize(1.5);
+                m.SetMarkerColor(item.first.second);
+                m.DrawClone("SAME");
+                item.second.l.push_back(points.l.at(i));
+                item.second.x.push_back(points.x.at(i));
+                item.second.y.push_back(points.y.at(i));
+                item.second.xErr.push_back(0.1);
+                item.second.yErr.push_back(0.5);
+
+                isOther = false;
+            }
+        }
+        if (isOther)
+        {
+            TMarker m{points.x.at(i), points.y.at(i), 21};
+            m.SetMarkerSize(1.5);
+            m.SetMarkerColor(kBlack);
+            m.DrawClone("SAME");
+            subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
+            subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
+            subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
+            subPoints.at({"other", kBlack}).xErr.push_back(0.1);
+            subPoints.at({"other", kBlack}).yErr.push_back(0.5);
+        }
+    }
+    std::stringstream ss;
+    ss.str("");ss.clear();
+    ss << (value == Data1::Value::A ? "Ad" : "Wr");
+    ss << ": stdAbs=" << std::setprecision(3);
+    auto stdAbs1 = [](const Points &points){
+        std::vector<double> d2;
+        for (size_t i{0}; i < points.x.size(); ++i)
+        {
+            d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
+        }
+        return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / static_cast<double>(d2.size()));
+    };
+    for (auto item : subPoints)
+    {
+        if (!std::isnan(stdAbs1(item.second)))
+        {
+            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        }
+    }
+
+    ss << ";AGP-K, %;Chem, %";
+    str = ss.str();
+
+    if (isLabels)
+    {
+        std::vector<TLatex> labels;
+        for (size_t i{0}; i < points.x.size(); ++i)
+        {
+            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), points.l.at(i).c_str());
+            l.SetTextAngle(90);
+            l.SetTextAlign(12);
+            l.SetTextSize(0.02);
+            labels.push_back(l);
+        }
+        for (const auto &item : labels)
+        {
+            item.DrawClone("SAME");
+        }
+    }
+}
+
+void addSubPoints(const Points &points, std::map<std::pair<std::string, Color_t>, Points> &subPoints)
+{
+    for (size_t i{0}; i < points.x.size(); ++i)
+    {
+        auto isOther{true};
+        for (auto &item : subPoints)
+        {
+            if (points.l.at(i).find(item.first.first) != std::string::npos)
+            {
+//                TMarker m{points.x.at(i), points.y.at(i), 21};
+//                m.SetMarkerSize(1.5);
+//                m.SetMarkerColor(item.first.second);
+//                m.DrawClone("SAME");
+                item.second.l.push_back(points.l.at(i));
+                item.second.x.push_back(points.x.at(i));
+                item.second.y.push_back(points.y.at(i));
+                item.second.xErr.push_back(0.1);
+                item.second.yErr.push_back(0.5);
+
+                isOther = false;
+            }
+        }
+        if (isOther)
+        {
+//            TMarker m{points.x.at(i), points.y.at(i), 21};
+//            m.SetMarkerSize(1.5);
+//            m.SetMarkerColor(kBlack);
+//            m.DrawClone("SAME");
+            subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
+            subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
+            subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
+            subPoints.at({"other", kBlack}).xErr.push_back(0.1);
+            subPoints.at({"other", kBlack}).yErr.push_back(0.5);
+        }
+    }
+}
+
+void useSub1(const Points &points,
+            std::string &str,
+            const Data1::Value value,
+            const bool isLabels = false)
+{
+
+
+    std::map<std::pair<std::string, Color_t>, Points> subPoints{
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("raspad", kCyan), Points() },
+        { std::make_pair("other", kBlack), Points() },
+    };
+
+    addSubPoints(points, subPoints);
+    std::stringstream ss;
+    ss.str("");ss.clear();
+    ss << (value == Data1::Value::A ? "Ad" : "Wr");
+    ss << ": stdAbs=" << std::setprecision(3);
+    auto stdAbs1 = [](const Points &points){
+        std::vector<double> d2;
+        for (size_t i{0}; i < points.x.size(); ++i)
+        {
+            d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
+        }
+        return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / static_cast<double>(d2.size()));
+    };
+    for (auto item : subPoints)
+    {
+//        for (size_t i{0}; i < item.second.x.size(); ++i)
+//        {
+//            TMarker m{item.second.x.at(i), item.second.y.at(i), 21};
+//            m.SetMarkerSize(1.5);
+//            m.SetMarkerColor(item.first.second);
+//            m.DrawClone("SAME");
+//        }
+        if (!std::isnan(stdAbs1(item.second)))
+        {
+            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+        }
+    }
+
+    ss << ";Number;Chem/AGP-K, %";
+    str = ss.str();
+
+    std::map<std::pair<std::string, Color_t>, Points> subPoints1{
+        { std::make_pair("grad", kRed), Points() },
+        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("raspad", kCyan), Points() },
+        { std::make_pair("other", kBlack), Points() },
+    };
+
+
+
+    Points pointsC{points};
+    Points pointsR{points};
+    for (size_t i{0}; i < points.x.size(); ++i)
+    {
+        pointsC.x.at(i) = static_cast<double>(i + 1);
+        pointsC.yErr.at(i) = 0.0;
+        pointsR.x.at(i) = static_cast<double>(i + 1);
+        pointsR.y.at(i) = points.x.at(i);
+        pointsR.yErr.at(i) = points.xErr.at(i);
+    }
+
+    addSubPoints(pointsR, subPoints1);
+
+    writePointsToFile("outputR.txt", pointsR);
+    writePointsToFile("outputC.txt", pointsC);
+
+    std::unique_ptr<TGraphErrors> grC{new TGraphErrors(static_cast<int>(pointsC.x.size()),
+                                                       &pointsC.x[0],
+                                                       &pointsC.y[0],
+                                                       &pointsC.xErr[0],
+                                                       &pointsC.yErr[0])};
+    grC.get()->SetLineColor(kRed);
+    grC.get()->SetLineWidth(3);
+    grC.get()->SetMarkerSize(1.5);
+    grC.get()->SetMarkerStyle(21);
+
+    std::unique_ptr<TGraphErrors> grR{new TGraphErrors(static_cast<int>(pointsR.x.size()),
+                                                       &pointsR.x[0],
+                                                       &pointsR.y[0],
+                                                       &pointsR.xErr[0],
+                                                       &pointsR.yErr[0])};
+    grR.get()->SetMarkerSize(1.5);
+    grR.get()->SetMarkerStyle(21);
+
+
+    grC.get()->DrawClone("SAME L");
+    grR.get()->DrawClone("SAME P");
+
+    for (auto item : subPoints1)
+    {
+        for (size_t i{0}; i < item.second.x.size(); ++i)
+        {
+            TMarker m{item.second.x.at(i), item.second.y.at(i), 21};
+            m.SetMarkerSize(1.5);
+            m.SetMarkerColor(item.first.second);
+            m.DrawClone("SAME");
+        }
+    }
+
+    if (isLabels)
+    {
+        std::vector<TLatex> labels;
+        for (size_t i{0}; i < pointsR.x.size(); ++i)
+        {
+            TLatex l(pointsR.x.at(i), pointsR.y.at(i) + 1.25 * pointsR.yErr.at(i), pointsR.l.at(i).c_str());
+            l.SetTextAngle(90);
+            l.SetTextAlign(12);
+            l.SetTextSize(0.02);
+            labels.push_back(l);
+        }
+        for (const auto &item : labels)
+        {
+            item.DrawClone("SAME");
+        }
+    }
+}
+
+void writePointsToFile(const std::string fileName, const Points &points)
+{
+    std::ofstream ofs;
+    ofs.open(fileName, std::ios::out);
+    for (size_t i{0}; i < points.l.size(); ++i)
+    {
+        ofs << points.x.at(i) << " " << points.y.at(i)  << " " << points.l.at(i) << std::endl;
+    }
+    ofs.close();
 }
 
 void calcConv(const std::map<std::string, Data1> &data,
