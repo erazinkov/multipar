@@ -958,7 +958,7 @@ void calcConv(const std::map<std::string, Data1> &data,
     h2dConv.get()->Draw();
 //    gr.get()->Draw("P");
 
-
+    lConv.get()->Draw("SAME");
     std::vector<std::string> uniqueL{points.l};
     std::sort(uniqueL.begin(), uniqueL.end());
     auto uniqueIt{std::unique(uniqueL.begin(), uniqueL.end())};
