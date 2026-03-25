@@ -959,83 +959,137 @@ void calcConv(const std::map<std::string, Data1> &data,
     gr.get()->Draw("P");
 
 
+    std::vector<std::string> uniqueL{points.l};
+    std::sort(uniqueL.begin(), uniqueL.end());
+    auto uniqueIt{std::unique(uniqueL.begin(), uniqueL.end())};
+    uniqueL.erase(uniqueIt, uniqueL.end());
+    Points avgPoints;
+    avgPoints.l = uniqueL;
 
-
-    auto useSub{true};
-    if (useSub)
+    for (size_t i{0}; i < avgPoints.l.size(); ++i)
     {
-
-        std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair("b8", kRed), Points() },
-            { std::make_pair("check_w", kBlue), Points() },
-            { std::make_pair("p43", kGreen), Points() },
-            { std::make_pair("bereza_8", kOrange), Points() },
-            { std::make_pair("raspad", kCyan), Points() },
-            { std::make_pair("other", kBlack), Points() },
-        };
-
-
-        for (size_t i{0}; i < points.x.size(); ++i)
+        std::vector<double> tmpX;
+        std::vector<double> tmpXerr;
+        std::vector<double> tmpY;
+        std::vector<double> tmpYerr;
+        auto it{points.l.begin()};
+        while ((it = std::find(it, points.l.end(), avgPoints.l.at(i))) != points.l.end())
         {
-            auto isOther{false};
-            for (auto &item : subPoints)
-            {
-                if (points.l.at(i).find(item.first.first) != std::string::npos)
-                {
-                    TMarker m{points.x.at(i), points.y.at(i), 21};
-                    m.SetMarkerSize(1.5);
-                    m.SetMarkerColor(item.first.second);
-                    m.DrawClone("SAME");
-                    item.second.l.push_back(points.l.at(i));
-                    item.second.x.push_back(points.x.at(i));
-                    item.second.y.push_back(points.y.at(i));
-                    item.second.xErr.push_back(0.1);
-                    item.second.yErr.push_back(0.5);
-
-                   isOther = true;
-                }
-            }
-            if (!isOther)
-            {
-                subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
-                subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
-                subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
-                subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
-                subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
-            }
+            auto idx{std::distance(points.l.begin(), it)};
+            tmpX.push_back(points.x.at(static_cast<size_t>(idx)));
+            tmpXerr.push_back(points.xErr.at(static_cast<size_t>(idx)));
+            tmpY.push_back(points.y.at(static_cast<size_t>(idx)));
+            tmpYerr.push_back(points.yErr.at(static_cast<size_t>(idx)));
+            it++;
         }
-        std::stringstream ss;
-        ss.str("");ss.clear();
-        ss << (value == Data1::Value::A ? "Ad" : "Wr");
-        ss << ": stdAbs=" << std::setprecision(3);
-        auto stdAbs1 = [](Points points){
-            std::vector<double> d2;
-            for (size_t i{0}; i < points.x.size(); ++i)
-            {
-                d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
-            }
-            return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / static_cast<double>(d2.size()));
-        };
-//        auto avg1 = [](Points points){
-//            return std::accumulate(points.x.begin(), points.x.end(), 0.0) / points.x.size();
-//        };
-        for (auto item : subPoints)
-        {
-            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
-        }
-
-        ss << ";AGP-K, %;Chem, %";
-        h2dConv.get()->SetTitle(ss.str().c_str());
+        avgPoints.x.push_back(std::accumulate(tmpX.begin(), tmpX.end(), 0.0) / static_cast<double>(tmpX.size()));
+        avgPoints.xErr.push_back(std::accumulate(tmpXerr.begin(), tmpXerr.end(), 0.0) / static_cast<double>(tmpXerr.size()));
+        avgPoints.y.push_back(std::accumulate(tmpY.begin(), tmpY.end(), 0.0) / static_cast<double>(tmpY.size()));
+        avgPoints.yErr.push_back(std::accumulate(tmpYerr.begin(), tmpYerr.end(), 0.0) / static_cast<double>(tmpYerr.size()));
     }
 
-    lConv.get()->Draw("SAME");
-    for (const auto &item : labels)
-    {
-        item.DrawClone("SAME");
-    }
+    writePointsToFile("output.txt", avgPoints);
+
+    std::string str;
+    useSub(avgPoints, str, value, true);
+    h2dConv.get()->SetTitle(str.c_str());
+
+    c.get()->Print(psName.c_str());
+
+    std::unique_ptr<TH2D> h2dConv1{new TH2D("h2dConv1",
+                                           ss.str().c_str(),
+                                           static_cast<int>(avgPoints.x.size()),
+                                           0.5,
+                                           0.5 + static_cast<int>(avgPoints.x.size()),
+                                           static_cast<int>(points.y.size()),
+                                           0.75 * (*std::min_element(points.y.begin(), points.y.end())),
+                                           1.25 * (*std::max_element(points.y.begin(), points.y.end())))};
+    h2dConv1->SetStats(0);
+    h2dConv1.get()->Draw();
+    std::string str1;
+    useSub1(avgPoints, str1, value, true);
+    h2dConv1.get()->SetTitle(str1.c_str());
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
     c.get()->Close();
+
+
+
+//    auto useSub{true};
+//    if (useSub)
+//    {
+
+//        std::map<std::pair<std::string, Color_t>, Points> subPoints{
+//            { std::make_pair("b8", kRed), Points() },
+//            { std::make_pair("check_w", kBlue), Points() },
+//            { std::make_pair("p43", kGreen), Points() },
+//            { std::make_pair("bereza_8", kOrange), Points() },
+//            { std::make_pair("raspad", kCyan), Points() },
+//            { std::make_pair("other", kBlack), Points() },
+//        };
+
+
+//        for (size_t i{0}; i < points.x.size(); ++i)
+//        {
+//            auto isOther{false};
+//            for (auto &item : subPoints)
+//            {
+//                if (points.l.at(i).find(item.first.first) != std::string::npos)
+//                {
+//                    TMarker m{points.x.at(i), points.y.at(i), 21};
+//                    m.SetMarkerSize(1.5);
+//                    m.SetMarkerColor(item.first.second);
+//                    m.DrawClone("SAME");
+//                    item.second.l.push_back(points.l.at(i));
+//                    item.second.x.push_back(points.x.at(i));
+//                    item.second.y.push_back(points.y.at(i));
+//                    item.second.xErr.push_back(0.1);
+//                    item.second.yErr.push_back(0.5);
+
+//                   isOther = true;
+//                }
+//            }
+//            if (!isOther)
+//            {
+//                subPoints.at({"other", kMagenta}).l.push_back(points.l.at(i));
+//                subPoints.at({"other", kMagenta}).x.push_back(points.x.at(i));
+//                subPoints.at({"other", kMagenta}).y.push_back(points.y.at(i));
+//                subPoints.at({"other", kMagenta}).xErr.push_back(0.1);
+//                subPoints.at({"other", kMagenta}).yErr.push_back(0.5);
+//            }
+//        }
+//        std::stringstream ss;
+//        ss.str("");ss.clear();
+//        ss << (value == Data1::Value::A ? "Ad" : "Wr");
+//        ss << ": stdAbs=" << std::setprecision(3);
+//        auto stdAbs1 = [](Points points){
+//            std::vector<double> d2;
+//            for (size_t i{0}; i < points.x.size(); ++i)
+//            {
+//                d2.push_back(std::pow(points.y.at(i) - points.x.at(i), 2));
+//            }
+//            return std::sqrt(std::accumulate(d2.begin(), d2.end(), 0.0) / static_cast<double>(d2.size()));
+//        };
+////        auto avg1 = [](Points points){
+////            return std::accumulate(points.x.begin(), points.x.end(), 0.0) / points.x.size();
+////        };
+//        for (auto item : subPoints)
+//        {
+//            ss << "[#color[" << static_cast<int>(item.first.second) << "]{" << stdAbs1(item.second) << "}] ";
+//        }
+
+//        ss << ";AGP-K, %;Chem, %";
+//        h2dConv.get()->SetTitle(ss.str().c_str());
+//    }
+
+//    lConv.get()->Draw("SAME");
+//    for (const auto &item : labels)
+//    {
+//        item.DrawClone("SAME");
+//    }
+//    c.get()->Print(psName.c_str());
+//    c.get()->Print((psName + ']').c_str());
+//    c.get()->Close();
 }
 
 struct Data { // TODO need this for calcRep
