@@ -312,6 +312,11 @@ int main()
         { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
         { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
         { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
+
+        { "coal_check_bereza_9_w_0p0_", {27.0, 0.9} },
+        { "coal_check_bereza_9_w_5p0_", {27.0, 5.0} },
+        { "coal_check_bereza_9_w_10p0_", {27.0, 10.0} },
+        { "coal_check_bereza_9_w_15p0_", {27.0, 15.0} },
     };
 
 //    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
@@ -329,7 +334,7 @@ int main()
 //        std::regex m{"(std_coal_proba_\\d+)_(1|2|3)\\."};
 //        std::regex m{"bereza_8_w"};
 //        std::regex m{"(raspad|check)"};
-        std::regex m{"check"};
+        std::regex m{"(check_bereza_9)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -368,6 +373,19 @@ int main()
 
         FitFunction_2 fObj(fitResultsByValue);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), static_cast<int>(columnElement.size() + 1))};
+
+        if (value == Data1::Value::W) {
+//            {1, "Al"},
+//            {3, "C"},
+//            {5, "N"},
+//            {7, "O"},
+//            {9, "Si"},
+            f.get()->SetParLimits(0, -10.0, 0.0);
+            f.get()->SetParLimits(1, -10.0, 0.0);
+            f.get()->SetParLimits(2, -10.0, 0.0);
+            f.get()->SetParLimits(3, 0.0, 10.0);
+            f.get()->SetParLimits(4, -10.0, 0.0);
+        }
 
 //        f.get()->SetParLimits(1, -5.0, 0.0);
 //        f.get()->SetParLimits(f->GetNpar() - 1, 50.0, 150.0);
@@ -437,7 +455,7 @@ int main()
 //        std::regex s{"\\d+_(1|2|3)\\."};
 //        std::regex s{"_"};
 //        std::regex s{"((bereza_\\d+)|[0-9]{4})_(1|2|3)\\."};
-        std::regex s{"check"};
+        std::regex s{"check_bereza"};
         auto data1Sum{getFitResults(fileName, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 //        std::regex p{"_povtor_\\d+\\."};
