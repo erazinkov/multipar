@@ -209,10 +209,16 @@ int main()
         { "coal_check_w_20p0_", {9.2, 20.0} },
 
 //        { "coal_check_p43_", {30.4, 8.2} },
-//        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
-//        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
-//        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
+        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
+        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
+        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
         { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
+
+        { "coal_check_bereza_9_w_0p0_", {27.0, 0.9} },
+        { "coal_check_bereza_9_w_5p0_", {27.0, 5.0} },
+        { "coal_check_bereza_9_w_10p0_", {27.0, 10.0} },
+        { "coal_check_bereza_9_w_15p0_", {27.0, 15.0} },
+
     };
     std::map<std::string, ChemResult> chemBlind
     {
@@ -270,7 +276,7 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"(check|raspad)"};
+        std::regex m{"(check_bereza_8)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -313,6 +319,34 @@ int main()
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 8)};
+
+//        Minimizer is Minuit2 / Migrad
+//        Chi2                      =     0.422729
+//        NDf                       =           16
+//        Edm                       =  5.26448e-06
+//        NCalls                    =          523
+//        p0                        =   -0.0155134   +/-   8.73025
+//        p1                        =      28.0486   +/-   589.099
+//        p2                        =    -0.034946   +/-   19.5082
+//        p3                        =      1.66255   +/-   0.296869
+//        p4                        =     -2.03471   +/-   2.03427
+//        p5                        =     -1.16104   +/-   0.928683
+//        p6                        =    -0.698159   +/-   1.09904
+//        p7                        =     -52.9772   +/-   26.1898
+
+        f.get()->SetParameter(0, -1.0);
+        f.get()->SetParLimits(0, -2.0, 0.5);
+        f.get()->SetParameter(1, 100.0);
+        f.get()->SetParLimits(1, 50.0, 150.0);
+        f.get()->SetParameter(2, 1.0);
+        f.get()->SetParLimits(2, 0.0, 2.0);
+        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
+            f.get()->SetParameter(pIdx, 1.0);
+            f.get()->SetParLimits(pIdx, 0.0, 100.0);
+        }
+        f.get()->SetParameter(7, 0.0);
+        f.get()->SetParLimits(7, -50.0, 50.0);
+
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.0);
 //        f.get()->SetParameter(2, 1.0);
@@ -393,7 +427,7 @@ int main()
         const auto fileName_1{"rea.elts.check.1.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
-        std::regex s{"_"};
+        std::regex s{"check_bereza"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
