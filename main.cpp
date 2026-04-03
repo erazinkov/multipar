@@ -871,23 +871,35 @@ void calcConv(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
-                auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
-                auto N{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
-                auto O{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
-                auto Si{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
+//                auto Al{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
+//                auto C{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
+//                auto N{it->second.fr.at(i).at(static_cast<size_t>(2)).value};
+//                auto O{it->second.fr.at(i).at(static_cast<size_t>(3)).value};
+//                auto Si{it->second.fr.at(i).at(static_cast<size_t>(4)).value};
+
+//                auto res{0.0};
+//                auto w{
+//                    p3 * O
+//                    - p4 * Si
+//                    - p5 * Al
+//                    - p6 * N
+//                    + p7
+//                };
+//                auto a{
+//                    (p1 + p0 * C)
+//                    / (100.0 - p2 * w) * 100.0
+//                };
+
+                auto C{it->second.fr.at(i).at(static_cast<size_t>(0)).value};
+                auto O{it->second.fr.at(i).at(static_cast<size_t>(1)).value};
 
                 auto res{0.0};
-                auto w{
-                    p3 * O
-                    - p4 * Si
-                    - p5 * Al
-                    - p6 * N
-                    + p7
-                };
+
                 auto a{
-                    (p1 + p0 * C)
-                    / (100.0 - p2 * w) * 100.0
+                    (p0 - p1 * C - p5 * (p2 * O + p4)) / (1 - p5 * p3)
+                };
+                auto w{
+                    p2 * O - p3 * a + p4
                 };
 
                 switch (value) {
