@@ -99,17 +99,31 @@ public:
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
 
-        auto W{
-            par[3] * _d.at(idx).at(3) // O
-            - par[4] * _d.at(idx).at(4) // Si
-            - par[5] * _d.at(idx).at(0) // Al
-            - par[6] * _d.at(idx).at(2) // N
-            + par[7]
-        };
+//        auto W{
+//            par[3] * _d.at(idx).at(3) // O
+//            - par[4] * _d.at(idx).at(4) // Si
+//            - par[5] * _d.at(idx).at(0) // Al
+//            - par[6] * _d.at(idx).at(2) // N
+//            + par[7]
+//        };
+
+//        auto A{
+//           (par[1] + par[0] * _d.at(idx).at(1)) // C
+//            / (100.0 - par[2] * W) * 100.0
+//        };
+
+//        if (idx < _aNumber)
+//        {
+//            val = A;
+//        }
+//        else
+//        {
+//            val = W;
+//        }
 
         auto A{
-           (par[1] + par[0] * _d.at(idx).at(1)) // C
-            / (100.0 - par[2] * W) * 100.0
+           (par[0] - par[1] * _d.at(idx).at(0) - par[5] * (par[2] * _d.at(idx).at(1) + par[4]))
+                   / (1.0 - par[5] * par[3])
         };
 
         if (idx < _aNumber)
@@ -118,8 +132,10 @@ public:
         }
         else
         {
-            val = W;
+            val = par[2] * _d.at(idx).at(1) - par[3] * A + par[4];
         }
+
+
         return val;
    }
 private:
@@ -248,11 +264,11 @@ int main()
 
     const std::map<int, std::string> columnElement
         {
-         {1, "Al"},
+//         {1, "Al"},
          {3, "C"},
-         {5, "N"},
+//         {5, "N"},
          {7, "O"},
-         {9, "Si"},
+//         {9, "Si"},
          };
 
 //    const std::map<int, std::string> columnElement
@@ -318,50 +334,21 @@ int main()
         }
 
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 8)};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
 
-//        Minimizer is Minuit2 / Migrad
-//        Chi2                      =     0.422729
-//        NDf                       =           16
-//        Edm                       =  5.26448e-06
-//        NCalls                    =          523
-//        p0                        =   -0.0155134   +/-   8.73025
-//        p1                        =      28.0486   +/-   589.099
-//        p2                        =    -0.034946   +/-   19.5082
-//        p3                        =      1.66255   +/-   0.296869
-//        p4                        =     -2.03471   +/-   2.03427
-//        p5                        =     -1.16104   +/-   0.928683
-//        p6                        =    -0.698159   +/-   1.09904
-//        p7                        =     -52.9772   +/-   26.1898
-
-        f.get()->SetParameter(0, -1.0);
-        f.get()->SetParLimits(0, -2.0, 0.5);
-        f.get()->SetParameter(1, 100.0);
-        f.get()->SetParLimits(1, 50.0, 150.0);
-        f.get()->SetParameter(2, 1.0);
-        f.get()->SetParLimits(2, 0.0, 2.0);
-        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
-            f.get()->SetParameter(pIdx, 1.0);
-            f.get()->SetParLimits(pIdx, 0.0, 100.0);
-        }
-        f.get()->SetParameter(7, 0.0);
-        f.get()->SetParLimits(7, -50.0, 50.0);
-
-//        f.get()->SetParameter(0, 1.0);
-//        f.get()->SetParameter(1, 0.0);
+//        f.get()->SetParameter(0, -1.0);
+//        f.get()->SetParLimits(0, -2.0, 0.5);
+//        f.get()->SetParameter(1, 100.0);
+//        f.get()->SetParLimits(1, 50.0, 150.0);
 //        f.get()->SetParameter(2, 1.0);
-//        f.get()->SetParameter(3, 1.0);
-//        f.get()->SetParameter(4, 1.0);
-//        f.get()->SetParameter(5, 2.0);
-//        f.get()->SetParameter(6, 1.0);
-//        f.get()->SetParameter(7, 1.0);
-//        f.get()->SetParameter(8, 0.0);
+//        f.get()->SetParLimits(2, 0.0, 2.0);
+//        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
+//            f.get()->SetParameter(pIdx, 1.0);
+//            f.get()->SetParLimits(pIdx, 0.0, 100.0);
+//        }
+//        f.get()->SetParameter(7, 0.0);
+//        f.get()->SetParLimits(7, -50.0, 50.0);
 
-//        f.get()->FixParameter(2, 1.0);
-
-//        f.get()->SetParLimits(3, 0.0, 10.0);
-//        f.get()->SetParLimits(3, 0.3, 2.0);
-//        f.get()->SetParLimits(4, 0.0, 20.0);
 
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
@@ -582,11 +569,14 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             }
             if (v.has_value())
             {
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+//                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // C
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // O
+
                 xx++;
             }
         }
@@ -864,8 +854,6 @@ void calcConv(const std::map<std::string, Data1> &data,
     auto p3{f.get()->GetParameter(3)};
     auto p4{f.get()->GetParameter(4)};
     auto p5{f.get()->GetParameter(5)};
-    auto p6{f.get()->GetParameter(6)};
-    auto p7{f.get()->GetParameter(7)};
 
     Points points;
     for (auto it{data.begin()}; it != data.end(); ++it)
