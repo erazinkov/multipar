@@ -171,15 +171,15 @@ void writePointsToFile(const std::string fileName, const Points &points);
 
 int main()
 {
-    // TVirtualFitter::SetDefaultFitter("Minuit");
+//     TVirtualFitter::SetDefaultFitter("Minuit");
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
+//        { "3835", { 7.8, 4.2 } },
+//        { "3834", { 9.6, 5.5 } },
+//        { "3836", { 11.2, 6.2 } },
+//        { "3837", { 11.8, 3.9 } },
+//        { "3838", { 15.1, 7.9 } },
+//        { "3839", { 18.2, 4.9 } },
         { "3840", { 20.7, 6.7 } },
         { "3841", { 27.6, 8.0 } },
         { "3842", { 28.3, 7.8 } },
@@ -225,7 +225,7 @@ int main()
         { "coal_check_w_20p0_", {9.2, 20.0} },
 
 //        { "coal_check_p43_", {30.4, 8.2} },
-        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
+        { "coal_check_bereza_8_w_0p8_", {24.5, 0.8} },
         { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
         { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
         { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
@@ -292,7 +292,7 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"(check_bereza_8)"};
+        std::regex m{"(check_bereza)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
@@ -336,6 +336,20 @@ int main()
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
 
+        f.get()->SetParameter(0, 100.0);
+        f.get()->SetParLimits(0, 30.0, 150.0);
+        f.get()->SetParameter(1, 1.0);
+        f.get()->SetParLimits(1, 0.0, 2.0);
+        f.get()->SetParameter(2, 1.0);
+        f.get()->SetParLimits(2, 0.0, 2.0);
+        f.get()->SetParameter(3, 0.5);
+        f.get()->SetParLimits(3, 0.0, 2.0);
+        f.get()->SetParameter(4, 0.0);
+        f.get()->SetParLimits(4, -25.0, 25.0);
+        f.get()->SetParameter(5, 1.0);
+        f.get()->SetParLimits(5, 0.0, 2.0);
+
+
 //        f.get()->SetParameter(0, -1.0);
 //        f.get()->SetParLimits(0, -2.0, 0.5);
 //        f.get()->SetParameter(1, 100.0);
@@ -350,7 +364,7 @@ int main()
 //        f.get()->SetParLimits(7, -50.0, 50.0);
 
 
-        f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
+        f.get()->SetNpx(static_cast<int>(points.x.size()));
 
         gr.get()->Fit(f.get(), "R");
 
@@ -414,7 +428,7 @@ int main()
         const auto fileName_1{"rea.elts.check.1.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
-        std::regex s{"check_bereza"};
+        std::regex s{"(check_bereza|grad)"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
@@ -518,7 +532,8 @@ void addPointsByValue(const std::map<std::string, Data1> &data,
                 points.x.push_back(xx++);
                 points.xErr.push_back(0.01);
                 points.y.push_back(v.value());
-                points.yErr.push_back(0.25 * v.value());
+                points.yErr.push_back(0.5);
+//                points.yErr.push_back(0.25 * v.value());
 //                auto yE{0.0};
 //                if (value == Data1::Value::A) {
 //                    yE = 0.1 * v.value();
@@ -591,7 +606,7 @@ void useSub(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
-        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_9", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -718,7 +733,7 @@ void useSub1(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
-        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_9", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
@@ -758,7 +773,7 @@ void useSub1(const Points &points,
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
         { std::make_pair("grad", kRed), Points() },
         { std::make_pair("check_w", kBlue), Points() },
-        { std::make_pair("p43", kGreen), Points() },
+        { std::make_pair("bereza_9", kGreen), Points() },
         { std::make_pair("bereza_8", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
