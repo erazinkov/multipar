@@ -219,6 +219,23 @@ int main()
         { "coal_check_bereza_9_w_10p0_", {27.0, 10.0} },
         { "coal_check_bereza_9_w_15p0_", {27.0, 15.0} },
 
+        { "pulp_rot_berez_2_", {15.6, 0.9} },
+        { "pulp_rot_berez_6_", {15.5, 0.8} },
+        { "pulp_rot_berez_7_", {19.8, 0.8} },
+        { "pulp_rot_berez_11_", {24.2, 0.8} },
+
+        { "pulp_rot_N12_1_", { 7.8, 4.2 } },
+        { "pulp_rot_N12_2_", { 9.6, 5.5 } },
+        { "pulp_rot_N12_3_", { 11.2, 6.2 } },
+        { "pulp_rot_N12_4_", { 11.8, 3.9 } },
+        { "pulp_rot_N12_5_", { 15.1, 7.9 } },
+        { "pulp_rot_N12_6_", { 18.2, 4.9 } },
+        { "pulp_rot_N12_7_", { 20.7, 6.7 } },
+        { "pulp_rot_N12_8_", { 27.6, 8.0 } },
+        { "pulp_rot_N12_9_", { 28.3, 7.8 } },
+        { "pulp_rot_N12_10_", { 30.4, 8.2 } },
+        { "pulp_rot_N12_11_", { 32.9, 8.1 } },
+
     };
     std::map<std::string, ChemResult> chemBlind
     {
@@ -243,22 +260,7 @@ int main()
         { "tochka_9", {3.83, 25.0} },
 
 
-        { "pulp_rot_berez_2_", {15.6, 0.9} },
-        { "pulp_rot_berez_6_", {15.5, 0.8} },
-        { "pulp_rot_berez_7_", {19.8, 0.8} },
-        { "pulp_rot_berez_11_", {24.2, 0.8} },
 
-        { "pulp_rot_N12_1_", { 7.8, 4.2 } },
-        { "pulp_rot_N12_2_", { 9.6, 5.5 } },
-        { "pulp_rot_N12_3_", { 11.2, 6.2 } },
-        { "pulp_rot_N12_4_", { 11.8, 3.9 } },
-        { "pulp_rot_N12_5_", { 15.1, 7.9 } },
-        { "pulp_rot_N12_6_", { 18.2, 4.9 } },
-        { "pulp_rot_N12_7_", { 20.7, 6.7 } },
-        { "pulp_rot_N12_8_", { 27.6, 8.0 } },
-        { "pulp_rot_N12_9_", { 28.3, 7.8 } },
-        { "pulp_rot_N12_10_", { 30.4, 8.2 } },
-        { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
     };
 
@@ -293,12 +295,13 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"(check_bereza_8)"};
+//        std::regex m{"(check_bereza_8)"};
+        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
