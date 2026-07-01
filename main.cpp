@@ -283,7 +283,7 @@ int main()
 //    };
 
 
-    const auto fileName{"rea.elts.check.1.txt"};
+    const auto fileName{"rea.elts.stroy.txt"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -441,7 +441,7 @@ int main()
         c.get()->Close();
 
 
-        const auto fileName_1{"rea.elts.check.1.txt"};
+        const auto fileName_1{"rea.elts.stroy.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
         std::regex s{"check_bereza"};
