@@ -444,7 +444,9 @@ int main()
         const auto fileName_1{"rea.elts.stroy.txt"};
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
-        std::regex s{"check_bereza"};
+//        std::regex s{"check_bereza"};
+        std::regex s{"(pulp_rot_N12_\\d+_sum)"};
+//        std::regex s{"(pulp_rot_berez_\\d+_sum)"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
