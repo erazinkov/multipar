@@ -24,6 +24,15 @@
 
 #include <regex>
 
+std::map<std::string, std::pair<double, double>> preGrad{
+    { "C", {-1.70467, 1.074623} },
+    { "Al", {0.785556, 1.088333} },
+    { "N", {-0.33024, 1.281688} },
+    { "O", {-6.21944, 1.068012} },
+    { "Si", {0.090895, 0.992175} },
+    { "UNKNOWN", {0.0, 1.0}},
+};
+
 class my_error: public std::exception
 {
 public:
@@ -302,10 +311,10 @@ int main()
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
 //        std::regex m{"(check_bereza_8)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
+        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
@@ -483,6 +492,8 @@ double strToDouble(std::string str)
     return d;
 }
 
+
+
 std::map<std::string, Data1> getFitResults(const std::string &fileName,
                    const std::map<int, std::string> &columnElement,
                    const std::map<std::string, ChemResult> &chem,
@@ -515,6 +526,15 @@ std::map<std::string, Data1> getFitResults(const std::string &fileName,
                     fR.push_back({ item.second, strToDouble(strs.at(static_cast<unsigned int>(item.first))),
                                    strToDouble(strs.at(static_cast<unsigned int>(item.first + 1))) });
                 }
+
+                for (auto &i : fR) {
+                    auto itPreGrad = preGrad.find(i.e);
+                    if (itPreGrad != preGrad.end()) {
+                        i.value = itPreGrad->second.first +  itPreGrad->second.second * i.value;
+                    }
+                }
+
+
                 data[(*it).first].chem.a = it->second.a;
                 data[(*it).first].chem.w = it->second.w;
                 data[(*it).first].fr.push_back(fR);
