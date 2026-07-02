@@ -219,10 +219,7 @@ int main()
         { "coal_check_bereza_9_w_10p0_", {27.0, 10.0} },
         { "coal_check_bereza_9_w_15p0_", {27.0, 15.0} },
 
-        { "pulp_rot_berez_2_", {15.6, 0.9} },
-        { "pulp_rot_berez_6_", {15.5, 0.8} },
-        { "pulp_rot_berez_7_", {19.8, 0.8} },
-        { "pulp_rot_berez_11_", {24.2, 0.8} },
+
 
         { "pulp_rot_N12_1_", { 7.8, 4.2 } },
         { "pulp_rot_N12_2_", { 9.6, 5.5 } },
@@ -235,6 +232,15 @@ int main()
         { "pulp_rot_N12_9_", { 28.3, 7.8 } },
         { "pulp_rot_N12_10_", { 30.4, 8.2 } },
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
+
+        { "pulp_rot_berez_2_", {15.6, 0.9} },
+        { "pulp_rot_berez_6_", {15.5, 0.8} },
+        { "pulp_rot_berez_7_", {19.8, 0.8} },
+        { "pulp_rot_berez_11_", {24.2, 0.8} },
+
+        { "pulp_rot_berez_111_w5_", { 24.2, 5.0 } },
+        { "pulp_rot_berez_111_w10_", { 24.2, 10.0 } },
+        { "pulp_rot_berez_111_w15_", { 24.2, 15.0 } },
 
     };
     std::map<std::string, ChemResult> chemBlind
@@ -296,12 +302,16 @@ int main()
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
 //        std::regex m{"(check_bereza_8)"};
-        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
+        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
+
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::A};
+        auto value{Data1::Value::W};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -340,32 +350,19 @@ int main()
         FitFunction_2 fObj(mmn, static_cast<int>(aNumber));
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 8)};
 
-//        Minimizer is Minuit2 / Migrad
-//        Chi2                      =     0.422729
-//        NDf                       =           16
-//        Edm                       =  5.26448e-06
-//        NCalls                    =          523
-//        p0                        =   -0.0155134   +/-   8.73025
-//        p1                        =      28.0486   +/-   589.099
-//        p2                        =    -0.034946   +/-   19.5082
-//        p3                        =      1.66255   +/-   0.296869
-//        p4                        =     -2.03471   +/-   2.03427
-//        p5                        =     -1.16104   +/-   0.928683
-//        p6                        =    -0.698159   +/-   1.09904
-//        p7                        =     -52.9772   +/-   26.1898
 
-        f.get()->SetParameter(0, -1.0);
-        f.get()->SetParLimits(0, -2.0, 0.5);
-        f.get()->SetParameter(1, 100.0);
-        f.get()->SetParLimits(1, 50.0, 150.0);
-        f.get()->SetParameter(2, 1.0);
-        f.get()->SetParLimits(2, 0.0, 2.0);
-        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
-            f.get()->SetParameter(pIdx, 1.0);
-            f.get()->SetParLimits(pIdx, 0.0, 100.0);
-        }
-        f.get()->SetParameter(7, 0.0);
-        f.get()->SetParLimits(7, -50.0, 50.0);
+//        f.get()->SetParameter(0, -1.0);
+//        f.get()->SetParLimits(0, -2.0, 0.5);
+//        f.get()->SetParameter(1, 100.0);
+//        f.get()->SetParLimits(1, 50.0, 150.0);
+//        f.get()->SetParameter(2, 1.0);
+//        f.get()->SetParLimits(2, 0.0, 2.0);
+//        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
+//            f.get()->SetParameter(pIdx, 1.0);
+//            f.get()->SetParLimits(pIdx, 0.0, 100.0);
+//        }
+//        f.get()->SetParameter(7, 0.0);
+//        f.get()->SetParLimits(7, -50.0, 50.0);
 
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.0);
@@ -448,8 +445,10 @@ int main()
 //        std::regex s{"sum"};
         // std::regex s{"\\d+_s"};
 //        std::regex s{"check_bereza"};
-        std::regex s{"(pulp_rot_N12_\\d+_sum)"};
-//        std::regex s{"(pulp_rot_berez_\\d+_sum)"};
+//        std::regex s{"(pulp_rot_N12_\\d+_\\d+)"};
+//        std::regex s{"(pulp_rot_N12_\\d+_sum)"};
+        std::regex s{"(pulp_rot_N12_\\d+_sum|pulp_rot_berez_\\d+_sum)"};
+//        std::regex s{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
@@ -621,10 +620,10 @@ void useSub(const Points &points,
             const bool isLabels = false)
 {
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("N12", kRed), Points() },
+        { std::make_pair("berez", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
-        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("111", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -646,7 +645,7 @@ void useSub(const Points &points,
                 item.second.xErr.push_back(0.1);
                 item.second.yErr.push_back(0.5);
 
-                isOther = false;
+//                isOther = false;
             }
         }
         if (isOther)
@@ -654,7 +653,7 @@ void useSub(const Points &points,
             TMarker m{points.x.at(i), points.y.at(i), 21};
             m.SetMarkerSize(1.5);
             m.SetMarkerColor(kBlack);
-            m.DrawClone("SAME");
+//            m.DrawClone("SAME");
             subPoints.at({"other", kBlack}).l.push_back(points.l.at(i));
             subPoints.at({"other", kBlack}).x.push_back(points.x.at(i));
             subPoints.at({"other", kBlack}).y.push_back(points.y.at(i));
@@ -748,10 +747,10 @@ void useSub1(const Points &points,
 
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("N12", kRed), Points() },
+        { std::make_pair("berez", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
-        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("111", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -788,10 +787,10 @@ void useSub1(const Points &points,
     str = ss.str();
 
     std::map<std::pair<std::string, Color_t>, Points> subPoints1{
-        { std::make_pair("grad", kRed), Points() },
-        { std::make_pair("check_w", kBlue), Points() },
+        { std::make_pair("N12", kRed), Points() },
+        { std::make_pair("berez", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
-        { std::make_pair("bereza_8", kOrange), Points() },
+        { std::make_pair("111", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -1021,6 +1020,8 @@ void calcConv(const std::map<std::string, Data1> &data,
     uniqueL.erase(uniqueIt, uniqueL.end());
     Points avgPoints;
     avgPoints.l = uniqueL;
+
+
 
     for (size_t i{0}; i < avgPoints.l.size(); ++i)
     {
