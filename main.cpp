@@ -137,49 +137,6 @@ void writePointsToFile(const std::string fileName, const Points &points);
 
 int main()
 {
-    std::map<std::string, ChemResult> chemBlind
-    {
-        { "barz_blind_309_310", {16.6, 1.6 } },
-        { "barz_blind_311_312", {10.5, 1.9 } },
-        { "barz_blind_313_314", {21.9, 1.6 } },
-        { "barz_blind_315_316", {6.8, 1.4 } },
-        { "barz_blind_317_318", {17.8, 2.3 } },
-        { "barz_blind_319_320", {7.4, 2.1 } },
-
-        { "coal_blind_N12_1", {8.6, 2.2 } },
-        { "coal_blind_N12_2", {13.6, 2.1 } },
-        { "coal_blind_N12_3", {7.5, 2.2 } },
-        { "coal_blind_N12_4", {11.8, 1.8 } },
-        { "coal_blind_N12_5", {11.5, 2.1 } },
-        { "coal_blind_N12_6", {8.6, 2.4 } },
-
-        { "bereza_blind_601_602", {11.7, 3.0 } },
-        { "bereza_blind_603_604", {13.5, 2.8 } },
-        { "bereza_blind_605_606", {17.9, 2.8 } },
-        { "bereza_blind_607_608", {16.9, 5.2 } },
-        { "bereza_blind_609_610", {12.3, 2.8 } },
-        { "bereza_blind_611_612", {12.1, 4.1 } },
-        { "bereza_blind_613_614", {4.6, 4.2 } },
-
-        { "bereza_blind_625_626", {9.4, 2.8 } },
-        { "bereza_blind_627_628", {9.7, 7.5 } },
-        { "bereza_blind_629_630", {9.1, 7.1 } },
-
-        { "bereza_blind_701_702", {9.1, 6.0 } },
-        { "bereza_blind_703_704", {8.7, 4.4 } },
-    };
-//    const std::map<int, std::string> columnElement // raspad Al C Ca Fe N O S Si
-//        {
-//         {1, "Al"},
-//         {3, "C"},
-//         {5, "Ca"},
-//         {7, "Fe"},
-//         {9, "N"},
-//         {11, "O"},
-//         {13, "S"},
-//         {15, "Si"},
-//         };
-    //wo_MgCaFeS
     const std::map<int, std::string> columnElement
         {
          {1, "Al"},
@@ -188,102 +145,12 @@ int main()
          {7, "O"},
          {9, "Si"},
          };
-//    //wo_MgS
-//    const std::map<int, std::string> columnElement
-//        {
-//         {1,  "Al"},
-//         {3,  "C"},
-//         {5,  "Ca"},
-//         {7,  "Fe"},
-//         {9,  "N"},
-//         {11, "O"},
-//         {13, "Si"},
-//         };
-//    //all
-//    const std::map<int, std::string> columnElement
-//    {
-//        {1,  "Al"},
-//        {3,  "C"},
-//        {5,  "Ca"},
-//        {7,  "Fe"},
-//        {9,  "Mg"},
-//        {11, "N"},
-//        {13, "O"},
-//        {15, "S"},
-//        {17, "Si"},
-//    };
-//    std::string fileName{"rea.elts.txt.12.wo_MgS" }; // wo_MgCaFeS 12
-//    std::string fileName{"rea.elts.txt.12.wo_MgCaFeS.all" }; // wo_MgCaFeS 12
-//     std::string fileName{"rea.elts.txt.bereza_wo_MgCaFeS.all" }; // wo_MgCaFeS bereza
-
-//    std::string fileName{"rea.elts.txt.12_w_bereza_wo_MgCaFeS.all"}; // wo_MgCaFeS 12+bereza
-//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.grad_w_blind.all"};
-//    std::string fileNameBlind{"rea.elts.txt.12_w_bereza_w_barz_wo_MgCaFeS.blind"}; // wo_MgCaFeS barz+12+bereza
-//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_all.grad_w_blind.all"};
-//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_w_bach_wo_MgCaFeS"};
-//    std::string fileName{"rea.elts.txt.12_w_bereza_w_barz_w_raspad_wo_MgCaFeS_bach_original_fit"};
 
     std::string fileName{"rea.elts.stroy.txt"};
 
-    std::map<std::string, ChemResult> chemBerezaSpb
-    {
-        { "bereza_1_",  {10.4, 1.1 } },
-        { "bereza_2_",  {15.6, 0.9 } },
-        { "bereza_3_",  {12.2, 0.9 } },
-        { "bereza_4_",  {13.6, 0.9 } },
-        { "bereza_5_",  {17.5, 0.8 } },
-//        { "bereza_6_",  {15.5, 0.8 } },
-        { "bereza_7_",  {19.8, 0.8 } },
-        { "bereza_8_",  {24.5, 0.8 } },
-        { "bereza_9_",  {27.0, 0.9 } },
-        { "bereza_10_", {22.3, 0.7 } },
-        { "bereza_11_", {24.2, 0.8 } },
-    };
-
-    std::map<std::string, ChemResult> chemBerezaStroy
-    {
-    { "bereza_1_", {9.3, std::nullopt } },
-//        { "bereza_2_", {12.1, std::nullopt } },
-    { "bereza_3_", {14.1, std::nullopt } },
-    { "bereza_4_", {16.3, std::nullopt } },
-    { "bereza_5_", {18.1, std::nullopt } },
-    { "bereza_6_", {19.5, std::nullopt } },
-    { "bereza_7_", {21.8, 5.3 } },
-    { "bereza_8_", {23.7, 5.4 } },
-//        { "bereza_9_", {25.6, 5.2 } },
-//        { "bereza_10_", {28.4, 5.2 } },
-//        { "bereza_11_", {30.7, 5.0 } },
-    };
 
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        { "raspad_1_", {15.9, 7.6 } },
-        { "raspad_2_", {17.4, 7.3 } },
-        { "raspad_3_", {17.9, 7.2 } },
-        { "raspad_4_", {18.3, 8.0 } },
-        { "raspad_5_", {19.1, 8.7 } },
-        { "raspad_6_", {19.6, 7.5 } },
-        { "raspad_7_", {20.2, 8.7 } },
-        { "raspad_8_", {21.3, 9.1 } },
-        { "raspad_9_", {21.9, 10.3 } },
-        { "raspad_10_", {22.3, 9.6 } },
-        { "raspad_11_", {22.6, 8.6 } },
-        { "raspad_12_", {23.4, 8.7 } },// TODO Check
-        { "raspad_13_", {24.1, 8.2 } },
-        { "raspad_14_", {28.2, 7.7 } },
-        { "raspad_15_", {32.5, 7.5 } },
-
         { "std_coal_proba_1_", {8.2, 5.2} },
         { "std_coal_proba_2_", {8.0, 5.3 } },
 //        { "std_coal_proba_3_", {7.75, 4.8 } },
@@ -341,18 +208,17 @@ int main()
         { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
         { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
         { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
-{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
-{ "pulp_rot_berez_6_w20_", {15.5, 20.0} },
+        { "pulp_rot_berez_6_w5_", {15.5, 5.0} },
+        { "pulp_rot_berez_6_w10_", {15.5, 10.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+        { "pulp_rot_berez_6_w20_", {15.5, 20.0} },
     };
 
 //    chem.insert(chemBerezaSpb.begin(), chemBerezaSpb.end());
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
 
-    try
-    {
+    try {
 
         // std::regex p{"_povtor_\\d+\\."};
 //        std::regex m{"\\d+_\\d+\\."};
