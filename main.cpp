@@ -572,7 +572,8 @@ int main() {
         canvas.Close();
 
         // Calculate convergence for summed data
-        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum|pulp_rot_berez_\d+_sum|pulp_rot_kuz_\d+_a\d+p\d+_sum))");
+//        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum|pulp_rot_berez_\d+_sum|pulp_rot_kuz_\d+_a\d+p\d+_sum))");
+        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum))");
         auto sumData = loadFitResults(inputFile, columnElements, chemicalData, sumPattern);
         calculateConvergence(sumData, fitFunction, useAValue);
 
