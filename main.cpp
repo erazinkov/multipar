@@ -133,6 +133,7 @@ double calculateStdAbs(const DataPoints& points) {
     double sumSquaredDiff = 0.0;
     for (size_t i = 0; i < points.x.size(); ++i) {
         const double diff = points.y[i] - points.x[i];
+        std::cout << points.y[i] << " " << points.x[i] << std::endl;
         sumSquaredDiff += diff * diff;
     }
     return std::sqrt(sumSquaredDiff / points.x.size());
@@ -414,6 +415,11 @@ void calculateRepeatability(
               << ", stdAbs = " << stdAbs << std::endl;
 }
 
+DataPoints getPredictedPoints(
+    const std::map<std::string, SampleData>& data,
+    const std::unique_ptr<TF1>& fitFunction,
+    bool useAValue);
+
 // ============================================================================
 // Main Application
 // ============================================================================
@@ -493,11 +499,16 @@ int main() {
             {"pulp_rot_berez_6_w5_", {15.5, 5.0}},
             {"pulp_rot_berez_6_w10_", {15.5, 10.0}},
             {"pulp_rot_berez_6_w15_", {15.5, 15.0}},
-            {"pulp_rot_berez_6_w20_", {15.5, 20.0}}
+            {"pulp_rot_berez_6_w20_", {15.5, 20.0}},
+
+            {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
+            {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
+            {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
         };
 
         // Load data
-        std::regex pattern(R"((pulp_rot_N12_\d+_\d+))");
+//        std::regex pattern(R"((pulp_rot_N12_\d+_\d+))");
+        std::regex pattern(R"((pulp_rot_berez_(11|6)_w\d+_\d+))");
         auto fitData = loadFitResults(inputFile, columnElements, chemicalData, pattern);
 
         // Build points and fit
@@ -573,9 +584,83 @@ int main() {
 
         // Calculate convergence for summed data
 //        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum|pulp_rot_berez_\d+_sum|pulp_rot_kuz_\d+_a\d+p\d+_sum))");
-        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum))");
-        auto sumData = loadFitResults(inputFile, columnElements, chemicalData, sumPattern);
-        calculateConvergence(sumData, fitFunction, useAValue);
+//        std::regex sumPattern(R"((pulp_rot_N12_\d+_sum))");
+//        auto sumData = loadFitResults(inputFile, columnElements, chemicalData, sumPattern);
+//        calculateConvergence(sumData, fitFunction, useAValue);
+
+        struct Results {
+            std::string title;
+            DataPoints predictedPoints;
+            double stdAbs;
+            Color_t color;
+        };
+
+        auto getResults = [&inputFile, &columnElements, &chemicalData, &fitFunction](const std::string &title,
+                const std::regex &pattern,
+                const bool useAValue, const Color_t color){
+            Results r;
+            r.title = title;
+            auto fitResults = loadFitResults(inputFile, columnElements, chemicalData, pattern);
+            for (const auto &[key, value] : fitResults) {
+                std::cout << key << " ";
+                value.print();
+            }
+            r.predictedPoints = getPredictedPoints(fitResults, fitFunction, useAValue);
+            r.stdAbs = calculateStdAbs(r.predictedPoints);
+            r.color = color;
+            return r;
+        };
+
+        std::vector<std::tuple<std::string, std::regex, Color_t>> preResults{
+//            {"N12", std::regex(R"((pulp_rot_N12_\d+_sum))"), kRed},
+//            {"berez", std::regex(R"((pulp_rot_berez_\d+_sum))"), kBlue},
+//            {"kuz", std::regex(R"((pulp_rot_kuz_\d+_a\d+p\d+_sum))"), kGreen},
+            {"berez_11_w", std::regex(R"((pulp_rot_berez_11_w\d+_\d+))"), kOrange},
+            {"berez_6_w", std::regex(R"((pulp_rot_berez_6_w\d+_\d+))"), kMagenta},
+        };
+        std::vector<Results> results;
+        for (const auto &r : preResults) {
+            auto [title, pattern, color] = r;
+            auto rr = getResults(title, pattern, useAValue, color);
+            results.push_back(rr);
+        }
+
+        const auto minY = 0.5 * *std::min_element(points.y.begin(), points.y.end());
+        const auto maxY = 1.5 * *std::max_element(points.y.begin(), points.y.end());
+
+        std::string h2dConvTitle = useAValue ? "Ad" : "Wr";
+        auto h2dConv = std::make_unique<TH2D>("h2dConv", h2dConvTitle.c_str(), points.y.size(), minY, maxY, points.y.size(), minY, maxY);
+
+        h2dConv->SetStats(0);
+
+        auto line = std::make_unique<TLine>(minY, minY, maxY, maxY);
+
+        TCanvas convCanvas("convCanvas", "Convergence Plot", 1024, 960);
+        convCanvas.Print("output_conv.ps[");
+        convCanvas.SetGrid();
+        h2dConv->Draw();
+        line->Draw("SAME");
+
+        for (const auto &r : results) {
+            for (size_t i{0}; i < r.predictedPoints.x.size(); ++i) {
+                std::cout << r.predictedPoints.x.at(i) << " " <<  r.predictedPoints.y.at(i) << std::endl;
+                TMarker marker(r.predictedPoints.x.at(i), r.predictedPoints.y.at(i), 21);
+                marker.SetMarkerSize(1.5);
+                marker.SetMarkerColor(r.color);
+                marker.DrawClone("SAME");
+                drawLabels(r.predictedPoints);
+            }
+            std::stringstream ss;
+            ss.precision(2);
+            ss << " " << "#color[" << r.color << "]{" << r.stdAbs << "}";
+            h2dConvTitle.append(ss.str());
+        }
+        h2dConvTitle.append("; AGP-K, %; Chem, %");
+        h2dConv->SetTitle(h2dConvTitle.c_str());
+        convCanvas.Print("output_conv.ps");
+        convCanvas.Print("output_conv.ps]");
+        convCanvas.Close();
+
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -583,4 +668,34 @@ int main() {
     }
 
     return 0;
+}
+
+DataPoints getPredictedPoints(
+    const std::map<std::string, SampleData>& data,
+    const std::unique_ptr<TF1>& fitFunction,
+    bool useAValue)
+{
+    DataPoints points;
+
+    // Calculate predicted values
+    for (const auto& [sampleName, sampleData] : data) {
+        for (const auto& resultSet : sampleData.fitResults) {
+            std::optional<double> chemValue = useAValue ? sampleData.chem.a : sampleData.chem.w;
+            if (!chemValue.has_value()) continue;
+
+            const int numParams = fitFunction->GetNpar();
+            double predicted = 0.0;
+            for (int p = 0; p < numParams - 1; ++p) {
+                predicted += fitFunction->GetParameter(p) * resultSet[p].value;
+            }
+            predicted += fitFunction->GetParameter(numParams - 1);
+
+            points.labels.push_back(sampleName);
+            points.x.push_back(predicted);
+            points.y.push_back(chemValue.value());
+            points.xError.push_back(0.1);
+            points.yError.push_back(0.5);
+        }
+    }
+    return points;
 }
