@@ -243,20 +243,27 @@ int main()
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
         { "pulp_rot_berez_2_", {15.6, 0.9} },
-//        { "pulp_rot_berez_6_", {15.5, 0.8} },
+        { "pulp_rot_berez_6_", {15.5, 0.8} },
         { "pulp_rot_berez_7_", {19.8, 0.8} },
         { "pulp_rot_berez_11_", {24.2, 0.8} },
 
 
-        { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
-        { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
-        { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
-        { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
-        { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
-{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
-{ "pulp_rot_berez_6_w20_", {15.5, 20.0} },
+        { "pulp_rot_barz_blind_a21p9_", {21.9, 1.6} },
+        { "pulp_rot_barz_blind_a6p8_", {6.8, 1.4} },
+        { "pulp_rot_berez_blind_a11p7_", {11.7, 3.0} },
+        { "pulp_rot_berez_blind_a17p9_", {17.9, 2.8} },
+        { "pulp_rot_N12_blind_a8p6_", {8.6, 2.4} },
+        { "pulp_rot_N12_blind_a13p6_", {13.6, 2.1} },
+
+//        { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
+//        { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
+//        { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
+//        { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
+//        { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
+//{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
+//{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
+//{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+//{ "pulp_rot_berez_6_w20_", {15.5, 20.0} },
 
     };
     std::map<std::string, ChemResult> chemBlind
@@ -280,7 +287,6 @@ int main()
         { "tochka_7", {4.78, 25.0} },
         { "tochka_8", {4.80, 25.0} },
         { "tochka_9", {3.83, 25.0} },
-
 
 
 
@@ -317,18 +323,18 @@ int main()
 //        std::regex m{"\\d+_\\d\\."};
         // std::regex m{"\\d+_(s|t)"};
         // std::regex m{"\\d+"};
-        std::regex m{"(pulp_rot_berez_6_w\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_berez_6_w\\d+_\\d+)"};
 //        std::regex m{"(check_bereza_8)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
+        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -464,9 +470,9 @@ int main()
 //        std::regex s{"check_bereza"};
 //        std::regex s{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex s{"(pulp_rot_N12_\\d+_sum)"};
-//        std::regex s{"(pulp_rot_N12_\\d+_sum|pulp_rot_berez_\\d+_sum)"};
+        std::regex s{"(pulp_rot_N12_\\d+_sum|pulp_rot_berez_\\d+_sum|_blind_a\\d+p\\d+_sum)"};
 //        std::regex s{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-        std::regex s{"(pulp_rot_berez_6_w\\d+_sum)"};
+//        std::regex s{"(pulp_rot_berez_6_w\\d+_sum)"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
@@ -652,7 +658,7 @@ void useSub(const Points &points,
         { std::make_pair("N12", kRed), Points() },
         { std::make_pair("berez", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
-        { std::make_pair("111", kOrange), Points() },
+        { std::make_pair("blind", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -779,7 +785,7 @@ void useSub1(const Points &points,
         { std::make_pair("N12", kRed), Points() },
         { std::make_pair("berez", kBlue), Points() },
         { std::make_pair("p43", kGreen), Points() },
-        { std::make_pair("111", kOrange), Points() },
+        { std::make_pair("blind", kOrange), Points() },
         { std::make_pair("raspad", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
