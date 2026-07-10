@@ -489,6 +489,8 @@ int main() {
             {"pulp_rot_berez_2_", {15.6, 0.9}},
             {"pulp_rot_berez_7_", {19.8, 0.8}},
             {"pulp_rot_berez_11_", {24.2, 0.8}},
+            {"pulp_rot_berez_5_", {17.5, std::nullopt}},
+            {"pulp_rot_berez_10_", {22.3, std::nullopt}},
 
             {"pulp_rot_kuz_1_a7p85_", {7.85, 0.5}},
             {"pulp_rot_kuz_6_a18p48_", {18.48, 0.5}},
@@ -504,11 +506,18 @@ int main() {
             {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
             {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
             {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
+
+            { "pulp_rot_barz_blind_a21p9_", {21.9, 1.6} },
+            { "pulp_rot_barz_blind_a6p8_", {6.8, 1.4} },
+            { "pulp_rot_berez_blind_a11p7_", {11.7, 3.0} },
+            { "pulp_rot_berez_blind_a17p9_", {17.9, 2.8} },
+            { "pulp_rot_N12_blind_a8p6_", {8.6, 2.4} },
+            { "pulp_rot_N12_blind_a13p6_", {13.6, 2.1} },
         };
 
         // Load data
-//        std::regex pattern(R"((pulp_rot_N12_\d+_\d+))");
-        std::regex pattern(R"((pulp_rot_berez_(11|6)_w\d+_\d+))");
+        std::regex pattern(R"((pulp_rot_N12_\d+_\d+|pulp_rot_berez_\d+_\d+))");
+//        std::regex pattern(R"((pulp_rot_berez_(11|6)_w\d+_\d+))");
         auto fitData = loadFitResults(inputFile, columnElements, chemicalData, pattern);
 
         // Build points and fit
@@ -612,11 +621,11 @@ int main() {
         };
 
         std::vector<std::tuple<std::string, std::regex, Color_t>> preResults{
-//            {"N12", std::regex(R"((pulp_rot_N12_\d+_sum))"), kRed},
-//            {"berez", std::regex(R"((pulp_rot_berez_\d+_sum))"), kBlue},
+            {"N12", std::regex(R"((pulp_rot_N12_\d+_sum))"), kRed},
+            {"berez", std::regex(R"((pulp_rot_berez_\d+_sum))"), kBlue},
 //            {"kuz", std::regex(R"((pulp_rot_kuz_\d+_a\d+p\d+_sum))"), kGreen},
-            {"berez_11_w", std::regex(R"((pulp_rot_berez_11_w\d+_\d+))"), kOrange},
-            {"berez_6_w", std::regex(R"((pulp_rot_berez_6_w\d+_\d+))"), kMagenta},
+            {"berez_11_w", std::regex(R"((_blind_a\d+p\d+_sum))"), kOrange},
+//            {"berez_6_w", std::regex(R"((pulp_rot_berez_6_w\d+_\d+))"), kMagenta},
         };
         std::vector<Results> results;
         for (const auto &r : preResults) {
