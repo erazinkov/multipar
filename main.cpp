@@ -164,17 +164,28 @@ void calcConv(const std::map<std::string, Data1> &data,
 void writePointsToFile(const std::string fileName, const Points &points);
 
 
-void drawCorrGraph(const std::map<std::string, Data1> &data) {
+void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
 
     Points points;
 
-    auto par{-1.00};
-
+    auto par{-1.75};
+    std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
     for (const auto &i : data) {
-        std::cout << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
-        points.l.push_back(std::to_string(i.second.chem.a.value()));
-        points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
+        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
+        std::stringstream ss;
+        ss << std::setprecision(3) << i.second.chem.a.value();
+        points.l.push_back(i.first);
+//        points.x.push_back(i.second.fr.at(0).at(3).value + i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
+        points.x.push_back(i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
+//        points.x.push_back(i.second.fr.at(0).at(3).value);
+//        std::cout << i.first << " ";
+//        std::cout << i.second.chem.a.value() << " ";
+//        std::cout << i.second.chem.w.value() << " ";
+//        std::cout << "coeff = " << (100.0 - i.second.chem.w.value()) / 100.0 << " ";
+//        std::cout << i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0 << " ";
+//        std::cout << std::endl;
         points.y.push_back(i.second.chem.w.value());
+//        points.y.push_back(i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0 + i.second.chem.w.value());
         points.xErr.push_back(0.0);
         points.yErr.push_back(0.0);
     }
@@ -188,6 +199,8 @@ void drawCorrGraph(const std::map<std::string, Data1> &data) {
     auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
     auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
 
+
+
     std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
                                            "h2dCorr",
                                            static_cast<int>(points.y.size()),
@@ -199,7 +212,7 @@ void drawCorrGraph(const std::map<std::string, Data1> &data) {
     h2dCorr.get()->SetStats(0);
     h2dCorr.get()->Draw();
     std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
-    gr.get()->SetMarkerSize(1.5);
+    gr.get()->SetMarkerSize(1.05);
     gr.get()->SetMarkerStyle(21);
     std::stringstream ss;
     ss << std::setprecision(1);
@@ -207,7 +220,7 @@ void drawCorrGraph(const std::map<std::string, Data1> &data) {
     h2dCorr.get()->SetTitle(ss.str().c_str());
 
     std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
-    gr.get()->Fit(f.get(), "R");
+//    gr.get()->Fit(f.get(), "R");
     gr.get()->Draw("SAME P");
 
     std::unique_ptr<TLine> l{new TLine(0.75 * min,
@@ -218,31 +231,66 @@ void drawCorrGraph(const std::map<std::string, Data1> &data) {
 
 
     std::vector<TLatex> labels;
+    std::map<std::pair<std::string, Color_t>, Points> subPoints{
+        { std::make_pair("N12", kRed), Points() },
+        { std::make_pair("berez_6", kBlue), Points() },
+        { std::make_pair("berez_11", kGreen), Points() },
+        { std::make_pair("other", kBlack), Points() },
+    };
+
+
     for (size_t i{0}; i < points.x.size(); ++i)
     {
-//        auto pos{points.l.at(i).find_last_of("_")};
+        for (auto &item : subPoints)
+        {
+            if (points.l.at(i).find(item.first.first) != std::string::npos)
+            {
+                TMarker m{points.x.at(i), points.y.at(i), 21};
+                m.SetMarkerSize(1.05);
+                m.SetMarkerColor(item.first.second);
+                m.DrawClone("SAME");
+                item.second.l.push_back(points.l.at(i));
+                item.second.x.push_back(points.x.at(i));
+                item.second.y.push_back(points.y.at(i));
+//                item.second.xErr.push_back(0.1);
+//                item.second.yErr.push_back(0.5);
+
+            }
+        }
+    }
+
+
+//    for (const auto &item : labels)
+//    {
+//        item.DrawClone("SAME");
+//    }
+
+//    for (size_t i{0}; i < points.x.size(); ++i)
+//    {
+////        auto pos{points.l.at(i).find_last_of("_")};
+////        auto text{points.l.at(i)};
+////        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
+////        {
+////            text = text.substr(0, pos);
+////        }
 //        auto text{points.l.at(i)};
-//        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-//        {
-//            text = text.substr(0, pos);
-//        }
-        auto text{points.l.at(i)};
-        std::cout << i << " " << text << std::endl;
-        TLatex l(points.x.at(i), points.y.at(i) + 0.05 * max, text.c_str());
-        l.SetTextAngle(90);
-        l.SetTextAlign(12);
-        l.SetTextSize(0.02);
-        labels.push_back(l);
-    }
+//        std::cout << i << " " << text << std::endl;
+//        TLatex l(points.x.at(i), points.y.at(i) + 0.025 * max, text.c_str());
+//        l.SetTextAngle(90);
+//        l.SetTextAlign(12);
+//        l.SetTextSize(0.02);
+//        labels.push_back(l);
+//    }
 
 
-    for (const auto &l : labels) {
-        l.DrawClone("SAME");
-    }
+//    for (const auto &l : labels) {
+//        l.DrawClone("SAME");
+//    }
 
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
 }
+
 
 int main()
 {
@@ -276,13 +324,13 @@ int main()
 
 
 
-{ "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
-{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+{ "pulp_rot_berez_6_w0p8_", {19.5, 0.8} },//15.5
+{ "pulp_rot_berez_6_w5_", {19.5, 5.0} },
+{ "pulp_rot_berez_6_w10_", {19.5, 10.0} },
+{ "pulp_rot_berez_6_w15_", {19.5, 15.0} },
 
 
-        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
+        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},//24.2
         {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
         {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
@@ -354,8 +402,9 @@ int main()
 //        std::regex m{"(check_bereza_8)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
-        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
+        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
@@ -381,9 +430,9 @@ int main()
 
         std::cout << data1.size() << std::endl;
 
-        drawCorrGraph(data1);
+        drawCorrGraphWr(data1);
 
-
+//        drawCorrGraphs(data1);
 
 
         return 0;
