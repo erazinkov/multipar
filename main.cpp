@@ -19,6 +19,7 @@
 #include <TH2.h>
 #include <TLine.h>
 #include <TMarker.h>
+#include <TStyle.h>
 
 #include <bits/stdc++.h>
 
@@ -162,73 +163,92 @@ void calcConv(const std::map<std::string, Data1> &data,
 
 void writePointsToFile(const std::string fileName, const Points &points);
 
+
+void drawCorrGraph(const std::map<std::string, Data1> &data) {
+
+    Points points;
+
+    auto par{-1.00};
+
+    for (const auto &i : data) {
+        std::cout << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
+        points.l.push_back(std::to_string(i.second.chem.a.value()));
+        points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
+        points.y.push_back(i.second.chem.w.value());
+        points.xErr.push_back(0.0);
+        points.yErr.push_back(0.0);
+    }
+
+    const std::string psName{"output_corr.ps"};
+    std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+    c.get()->SetGrid();
+    gStyle->SetOptFit(11111);
+    c.get()->Print((psName + '[').c_str());
+
+    auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
+    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
+
+    std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
+                                           "h2dCorr",
+                                           static_cast<int>(points.y.size()),
+                                           0.75 * min,
+                                           1.25 * max,
+                                           static_cast<int>(points.y.size()),
+                                           0.75 * min,
+                                           1.25 * max)};
+    h2dCorr.get()->SetStats(0);
+    h2dCorr.get()->Draw();
+    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
+    gr.get()->SetMarkerSize(1.5);
+    gr.get()->SetMarkerStyle(21);
+    std::stringstream ss;
+    ss << std::setprecision(1);
+    ss << par << ";mOxy,%;Wr,%";
+    h2dCorr.get()->SetTitle(ss.str().c_str());
+
+    std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
+    gr.get()->Fit(f.get(), "R");
+    gr.get()->Draw("SAME P");
+
+    std::unique_ptr<TLine> l{new TLine(0.75 * min,
+                                       0.75 * min,
+                                       1.25 * max,
+                                       1.25 * max)};
+    l.get()->Draw("SAME");
+
+
+    std::vector<TLatex> labels;
+    for (size_t i{0}; i < points.x.size(); ++i)
+    {
+//        auto pos{points.l.at(i).find_last_of("_")};
+//        auto text{points.l.at(i)};
+//        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
+//        {
+//            text = text.substr(0, pos);
+//        }
+        auto text{points.l.at(i)};
+        std::cout << i << " " << text << std::endl;
+        TLatex l(points.x.at(i), points.y.at(i) + 0.05 * max, text.c_str());
+        l.SetTextAngle(90);
+        l.SetTextAlign(12);
+        l.SetTextSize(0.02);
+        labels.push_back(l);
+    }
+
+
+    for (const auto &l : labels) {
+        l.DrawClone("SAME");
+    }
+
+    c.get()->Print(psName.c_str());
+    c.get()->Print((psName + ']').c_str());
+}
+
 int main()
 {
     // TVirtualFitter::SetDefaultFitter("Minuit");
     std::map<std::string, ChemResult> chem
     {
-        { "3835", { 7.8, 4.2 } },
-        { "3834", { 9.6, 5.5 } },
-        { "3836", { 11.2, 6.2 } },
-        { "3837", { 11.8, 3.9 } },
-        { "3838", { 15.1, 7.9 } },
-        { "3839", { 18.2, 4.9 } },
-        { "3840", { 20.7, 6.7 } },
-        { "3841", { 27.6, 8.0 } },
-        { "3842", { 28.3, 7.8 } },
-        { "3843", { 30.4, 8.2 } },
-        { "3844", { 32.9, 8.1 } },
-        { "raspad_1_", {15.9, 7.6 } },
-        { "raspad_2_", {17.4, 7.3 } },
-        { "raspad_3_", {17.9, 7.2 } },
-        { "raspad_4_", {18.3, 8.0 } },
-        { "raspad_5_", {19.1, 8.7 } },
-        { "raspad_6_", {19.6, 7.5 } },
-        { "raspad_7_", {20.2, 8.7 } },
-        { "raspad_8_", {21.3, 9.1 } },
-        { "raspad_9_", {21.9, 10.3 } },
-        { "raspad_10_", {22.3, 9.6 } },
-        { "raspad_11_", {22.6, 8.6 } },
-        { "raspad_12_", {23.4, 8.7 } },// TODO Check
-        { "raspad_13_", {24.1, 8.2 } },
-        { "raspad_14_", {28.2, 7.7 } },
-        { "raspad_15_", {32.5, 7.5 } },
-
-        { "std_coal_proba_1_", {8.2, 5.2} },
-        { "std_coal_proba_2_", {8.0, 5.3 } },
-//        { "std_coal_proba_3_", {7.75, 4.8 } },
-        { "std_coal_proba_4_",  {9.0, 5.5} },
-        { "std_coal_proba_5_",  {6.9, 4.9} },
-//        { "std_coal_proba_6_",  {7.6, 5.1} },
-        { "std_coal_proba_7_",  {8.6, 6.1} },
-        { "std_coal_proba_8_",  {9.2, 6.5} },
-        { "std_coal_proba_9_",  {7.5, 5.0} },
-        { "std_coal_proba_10_", {6.9, 5.6} },
-        { "std_coal_proba_11_", {7.3, 5.7} },
-        { "std_coal_proba_12_", {7.35, 5.5} },
-        { "std_coal_proba_13_", {7.55, 5.3} },
-        { "std_coal_proba_14_", {7.5, 4.9} },
-        { "std_coal_proba_15_", {8.6, 7.2} },
-        { "std_coal_proba_16_", {10.1, 5.6} },
-
-//        { "coal_check_w_1p35_", {7.0, 1.35} },
-//        { "coal_check_w_5p0_", {7.3, 5.0} },
-//        { "coal_check_w_10p0_", {7.6, 10.0} },
-        { "coal_check_w_15p0_", {8.6, 15.0} },
-        { "coal_check_w_20p0_", {9.2, 20.0} },
-
-//        { "coal_check_p43_", {30.4, 8.2} },
-        { "coal_check_bereza_8_w_0p8", {24.5, 0.8} },
-        { "coal_check_bereza_8_w_5p0_", {24.5, 5.0} },
-        { "coal_check_bereza_8_w_10p0_", {24.5, 10.0} },
-        { "coal_check_bereza_8_w_25p0_", {24.5, 25.0} },
-
-        { "coal_check_bereza_9_w_0p0_", {27.0, 0.9} },
-        { "coal_check_bereza_9_w_5p0_", {27.0, 5.0} },
-        { "coal_check_bereza_9_w_10p0_", {27.0, 10.0} },
-        { "coal_check_bereza_9_w_15p0_", {27.0, 15.0} },
-
-
 
         { "pulp_rot_N12_1_", { 7.8, 4.2 } },
         { "pulp_rot_N12_2_", { 9.6, 5.5 } },
@@ -242,12 +262,11 @@ int main()
         { "pulp_rot_N12_10_", { 30.4, 8.2 } },
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
-        { "pulp_rot_berez_2_", {15.6, 0.9} },
-        { "pulp_rot_berez_6_", {15.5, 0.8} },
-        { "pulp_rot_berez_7_", {19.8, 0.8} },
-        { "pulp_rot_berez_11_", {24.2, 0.8} },
-
-
+        {"pulp_rot_berez_2_", {15.6, 0.9}},
+        {"pulp_rot_berez_7_", {19.8, 0.8}},
+//        {"pulp_rot_berez_11_", {24.2, 0.8}},
+        {"pulp_rot_berez_5_", {17.5, std::nullopt}},
+        {"pulp_rot_berez_10_", {22.3, std::nullopt}},
         { "pulp_rot_barz_blind_a21p9_", {21.9, 1.6} },
         { "pulp_rot_barz_blind_a6p8_", {6.8, 1.4} },
         { "pulp_rot_berez_blind_a11p7_", {11.7, 3.0} },
@@ -255,15 +274,23 @@ int main()
         { "pulp_rot_N12_blind_a8p6_", {8.6, 2.4} },
         { "pulp_rot_N12_blind_a13p6_", {13.6, 2.1} },
 
-//        { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
-//        { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
-//        { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
-//        { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
-//        { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
-//{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-//{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-//{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
-//{ "pulp_rot_berez_6_w20_", {15.5, 20.0} },
+
+
+{ "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
+{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
+{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
+{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+
+
+        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
+        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
+        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
+
+        //        { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
+        //        { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
+        //        { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
+        //        { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
+        //        { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
 
     };
     std::map<std::string, ChemResult> chemBlind
@@ -326,9 +353,15 @@ int main()
 //        std::regex m{"(pulp_rot_berez_6_w\\d+_\\d+)"};
 //        std::regex m{"(check_bereza_8)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
+//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
+        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
+//        std::regex m{"(pulp_rot_N12_\\d*[02468]_\\d+)"};
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
@@ -346,7 +379,18 @@ int main()
         addMmnByValue(data1, mmn, Data1::Value::A);
         addMmnByValue(data1, mmn, Data1::Value::W);
 
+        std::cout << data1.size() << std::endl;
+
+        drawCorrGraph(data1);
+
+
+
+
+        return 0;
+
         std::cout << points.x.size() << " " << mmn.size() << std::endl;
+
+
 
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
         gr.get()->SetMarkerSize(1.5);
@@ -374,18 +418,18 @@ int main()
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 8)};
 
 
-//        f.get()->SetParameter(0, -1.0);
-//        f.get()->SetParLimits(0, -2.0, 0.5);
-//        f.get()->SetParameter(1, 100.0);
-//        f.get()->SetParLimits(1, 50.0, 150.0);
-//        f.get()->SetParameter(2, 1.0);
-//        f.get()->SetParLimits(2, 0.0, 2.0);
-//        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
-//            f.get()->SetParameter(pIdx, 1.0);
-//            f.get()->SetParLimits(pIdx, 0.0, 100.0);
-//        }
-//        f.get()->SetParameter(7, 0.0);
-//        f.get()->SetParLimits(7, -50.0, 50.0);
+        f.get()->SetParameter(0, -1.0);
+        f.get()->SetParLimits(0, -2.0, 0.5);
+        f.get()->SetParameter(1, 100.0);
+        f.get()->SetParLimits(1, 50.0, 150.0);
+        f.get()->SetParameter(2, 1.0);
+        f.get()->SetParLimits(2, 0.0, 2.0);
+        for (auto pIdx{3}; pIdx < 7; ++pIdx) {
+            f.get()->SetParameter(pIdx, 1.0);
+            f.get()->SetParLimits(pIdx, 0.0, 100.0);
+        }
+        f.get()->SetParameter(7, 0.0);
+        f.get()->SetParLimits(7, -50.0, 50.0);
 
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.0);
@@ -470,9 +514,11 @@ int main()
 //        std::regex s{"check_bereza"};
 //        std::regex s{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex s{"(pulp_rot_N12_\\d+_sum)"};
+//        std::regex s{"(pulp_rot_N12_[13579]_sum|pulp_rot_N12_[1-9]\\d*[13579]_sum)"};
         std::regex s{"(pulp_rot_N12_\\d+_sum|pulp_rot_berez_\\d+_sum|_blind_a\\d+p\\d+_sum)"};
 //        std::regex s{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-//        std::regex s{"(pulp_rot_berez_6_w\\d+_sum)"};
+//        std::regex s{"(pulp_rot_berez_6_w\\d+_\\d+)"};
+//        std::regex s{"(pulp_rot_N12_\\d*[02468]_\\d+)"};
         auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
         calcConv(data1Sum, f, value);
 
@@ -542,12 +588,12 @@ std::map<std::string, Data1> getFitResults(const std::string &fileName,
                                    strToDouble(strs.at(static_cast<unsigned int>(item.first + 1))) });
                 }
 
-                for (auto &i : fR) {
-                    auto itPreGrad = preGrad.find(i.e);
-                    if (itPreGrad != preGrad.end()) {
-                        i.value = itPreGrad->second.first +  itPreGrad->second.second * i.value;
-                    }
-                }
+//                for (auto &i : fR) {
+//                    auto itPreGrad = preGrad.find(i.e);
+//                    if (itPreGrad != preGrad.end()) {
+//                        i.value = itPreGrad->second.first +  itPreGrad->second.second * i.value;
+//                    }
+//                }
 
 
                 data[(*it).first].chem.a = it->second.a;
