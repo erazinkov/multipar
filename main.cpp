@@ -177,17 +177,7 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
         ss << std::setprecision(3) << i.second.chem.a.value();
         points.l.push_back(i.first);
         points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
-//        points.x.push_back(i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
-        std::cout << i.second.chem.a.value() << " " << i.second.fr.at(0).at(3).value << " " << 0.573 * i.second.fr.at(0).at(3).value - 0.416 * i.second.chem.a.value() - 1.05 << std::endl;
-//        points.x.push_back(i.second.fr.at(0).at(3).value);
-//        std::cout << i.first << " ";
-//        std::cout << i.second.chem.a.value() << " ";
-//        std::cout << i.second.chem.w.value() << " ";
-//        std::cout << "coeff = " << (100.0 - i.second.chem.w.value()) / 100.0 << " ";
-//        std::cout << i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0 << " ";
-//        std::cout << std::endl;
         points.y.push_back(i.second.chem.w.value());
-//        points.y.push_back(i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0 + i.second.chem.w.value());
         points.xErr.push_back(0.0);
         points.yErr.push_back(0.0);
     }
@@ -199,8 +189,7 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
     c.get()->Print((psName + '[').c_str());
 
     auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
-//    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
-    auto max = 35.0;
+    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
 
 
 
@@ -261,35 +250,6 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
             }
         }
     }
-
-
-//    for (const auto &item : labels)
-//    {
-//        item.DrawClone("SAME");
-//    }
-
-//    for (size_t i{0}; i < points.x.size(); ++i)
-//    {
-////        auto pos{points.l.at(i).find_last_of("_")};
-////        auto text{points.l.at(i)};
-////        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-////        {
-////            text = text.substr(0, pos);
-////        }
-//        auto text{points.l.at(i)};
-//        std::cout << i << " " << text << std::endl;
-//        TLatex l(points.x.at(i), points.y.at(i) + 0.025 * max, text.c_str());
-//        l.SetTextAngle(90);
-//        l.SetTextAlign(12);
-//        l.SetTextSize(0.02);
-//        labels.push_back(l);
-//    }
-
-
-//    for (const auto &l : labels) {
-//        l.DrawClone("SAME");
-//    }
-
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
 }
@@ -407,7 +367,8 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
-        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
+        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
