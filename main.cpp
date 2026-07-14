@@ -164,12 +164,64 @@ void calcConv(const std::map<std::string, Data1> &data,
 void writePointsToFile(const std::string fileName, const Points &points);
 
 
-void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
+double calculateStdAbs(const Points& points) {
+    if (points.x.empty()) return 0.0;
+
+    double sumSquaredDiff = 0.0;
+    for (size_t i = 0; i < points.x.size(); ++i) {
+        const double diff = points.y[i] - points.x[i];
+        std::cout << points.y[i] << " " << points.x[i] << std::endl;
+        sumSquaredDiff += diff * diff;
+    }
+    return std::sqrt(sumSquaredDiff / points.x.size());
+}
+
+double getOptimalPar(const std::map<std::string, Data1> &data) {
+
+    std::vector<double> pars;
+    std::vector<double> stds;
+    for (auto par{-0.4}; par > -1.0; par -= 0.01) {
+        Points points;
+        for (const auto &i : data) {
+            points.l.push_back(i.first);
+            points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
+            points.y.push_back(i.second.chem.w.value());
+            points.xErr.push_back(0.0);
+            points.yErr.push_back(0.0);
+        }
+        pars.push_back(par);
+        stds.push_back(calculateStdAbs(points));
+    }
+    if (!stds.empty() && !pars.empty() && stds.size() == pars.size()) {
+        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(pars.size()), &pars[0], &stds[0], nullptr, nullptr)};
+        gr.get()->SetMarkerSize(1.05);
+        gr.get()->SetMarkerStyle(21);
+        std::stringstream ss;
+        ss << std::setprecision(2);
+        auto it{std::min_element(stds.begin(), stds.end())};
+        size_t index = std::distance(stds.begin(), it);
+        ss << stds.at(index) << " " << pars.at(index) << ";par;stdAbs";
+        gr.get()->SetTitle(ss.str().c_str());
+        const std::string psName{"output_optimal.ps"};
+        std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+        c.get()->SetGrid();
+        gStyle->SetOptFit(11111);
+        c.get()->Print((psName + '[').c_str());
+
+        gr.get()->Draw("APL");
+
+        c.get()->Print(psName.c_str());
+        c.get()->Print((psName + ']').c_str());
+
+        return pars.at(index);
+    }
+    return 0.0;
+}
+
+void drawCorrGraphWr(const std::map<std::string, Data1> &data, double par = 0.0) {
 
     Points points;
 
-//    auto par{-0.4};
-    auto par{0.0};
     std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
     for (const auto &i : data) {
 //        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
@@ -394,7 +446,9 @@ int main()
 
         std::cout << data1.size() << std::endl;
 
-        drawCorrGraphWr(data1);
+        auto par{getOptimalPar(data1)};
+
+        drawCorrGraphWr(data1, par);
 
 //        drawCorrGraphs(data1);
 
