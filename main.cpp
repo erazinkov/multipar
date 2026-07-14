@@ -168,15 +168,17 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
 
     Points points;
 
-    auto par{-1.75};
+//    auto par{-0.4};
+    auto par{0.0};
     std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
     for (const auto &i : data) {
-        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
+//        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
         std::stringstream ss;
         ss << std::setprecision(3) << i.second.chem.a.value();
         points.l.push_back(i.first);
-//        points.x.push_back(i.second.fr.at(0).at(3).value + i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
-        points.x.push_back(i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
+        points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
+//        points.x.push_back(i.second.fr.at(0).at(3).value - i.second.chem.a.value() * (100.0 - i.second.chem.w.value()) / 100.0);
+        std::cout << i.second.chem.a.value() << " " << i.second.fr.at(0).at(3).value << " " << 0.573 * i.second.fr.at(0).at(3).value - 0.416 * i.second.chem.a.value() - 1.05 << std::endl;
 //        points.x.push_back(i.second.fr.at(0).at(3).value);
 //        std::cout << i.first << " ";
 //        std::cout << i.second.chem.a.value() << " ";
@@ -197,7 +199,8 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
     c.get()->Print((psName + '[').c_str());
 
     auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
-    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
+//    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
+    auto max = 35.0;
 
 
 
@@ -215,8 +218,8 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data) {
     gr.get()->SetMarkerSize(1.05);
     gr.get()->SetMarkerStyle(21);
     std::stringstream ss;
-    ss << std::setprecision(1);
-    ss << par << ";mOxy,%;Wr,%";
+    ss << std::setprecision(2);
+    ss << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxy,%;Wr,%";
     h2dCorr.get()->SetTitle(ss.str().c_str());
 
     std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
@@ -324,10 +327,10 @@ int main()
 
 
 
-{ "pulp_rot_berez_6_w0p8_", {19.5, 0.8} },//15.5
-{ "pulp_rot_berez_6_w5_", {19.5, 5.0} },
-{ "pulp_rot_berez_6_w10_", {19.5, 10.0} },
-{ "pulp_rot_berez_6_w15_", {19.5, 15.0} },
+//{ "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },//15.5
+{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
+{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
+{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
 
 
         {"pulp_rot_berez_11_w5_", {24.2, 5.0}},//24.2
@@ -402,9 +405,9 @@ int main()
 //        std::regex m{"(check_bereza_8)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
-        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
+        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
