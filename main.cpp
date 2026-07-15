@@ -111,9 +111,8 @@ public:
 //        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
 
         val = par[0] * _d.at(idx).at(3) // O
-              + par[1] * _dA.at(idx) // A
-              + par[2] * _d.at(idx).at(0) // N
-              + par[3];
+              - par[1] * _dA.at(idx) // A
+              + par[2];
 
         return val;
    }
@@ -488,54 +487,105 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     std::map<int, std::vector<double>> d;
     std::map<int, double> dA;
 
-    auto getData = [&](){
-        int xx{static_cast<int>(d.size())};
-        for (auto it{data.begin()}; it != data.end(); ++it)
-        {
-            for (size_t i{0}; i < it->second.fr.size(); ++i)
-            {
-                std::string label{it->first + "_" + i};
-                std::optional<double> v;
-                v = (*it).second.chem.a;
-                if (v.has_value())
-                {
-                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
-                    dA[xx] = v.value();
-                    xx++;
-                }
+    int xx{static_cast<int>(d.size())};
+    for (auto it{data.begin()}; it != data.end(); ++it) {
+        for (size_t i{0}; i < it->second.fr.size(); ++i) {
+            std::string label{it->first + "_" + i};
+            std::optional<double> v;
+            v = (*it).second.chem.a;
+            if (v.has_value()) {
+                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+                dA[xx] = v.value();
+                xx++;
             }
         }
-    };
+    }
 
     Points points;
+    addPointsByValue(data, points, Data1::Value::W);
+
+    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
+    gr.get()->SetMarkerSize(1.5);
+    gr.get()->SetMarkerStyle(21);
+    gr.get()->SetTitle(";N_{probe};W, %");
+
+    std::vector<TLatex> labels;
+
+    for (size_t i{0}; i < points.x.size(); ++i) {
+        auto pos{points.l.at(i).find_last_of("_")};
+        auto text{points.l.at(i)};
+        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
+        {
+            text = text.substr(0, pos);
+        }
+        TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
+        l.SetTextAngle(90);
+        l.SetTextAlign(12);
+        l.SetTextSize(0.02);
+        labels.push_back(l);
+    }
+
+    FitFunction_1 fObj(d, dA);
+    std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 3)};
+    f.get()->SetParameter(0, 1.0);
+    f.get()->SetParameter(1, 0.4);
+
+    f.get()->SetParameter(2, 0.0);
+    f.get()->SetParLimits(0, 0.0, 2.0);
+    f.get()->SetParLimits(1, 0.0, 2.0);
+
+    f.get()->SetParLimits(2, -20.0, 20.0);
+
+    f.get()->SetParName(0, "O");
+    f.get()->SetParName(1, "A");
+
+    f.get()->SetParName(2, "const");
+
+    f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
+
+    gr.get()->Fit(f.get(), "R");
+
+
+    Points points1;
 
     std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
     for (const auto &i : data) {
 //        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
         std::stringstream ss;
         ss << std::setprecision(3) << i.second.chem.a.value();
-        points.l.push_back(i.first);
-        points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
-        points.y.push_back(i.second.chem.w.value());
-        points.xErr.push_back(0.0);
-        points.yErr.push_back(0.0);
+        points1.l.push_back(i.first);
+        points1.x.push_back(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).value
+                            - f.get()->GetParameter(1) * i.second.chem.a.value()
+                            + f.get()->GetParameter(2));
+        points1.y.push_back(i.second.chem.w.value());
+        points1.xErr.push_back(0.0);
+        points1.yErr.push_back(0.0);
     }
 
-    const std::string psName{"output_corr.ps"};
+    auto min = std::min((*std::min_element(points1.x.begin(), points1.x.end())), (*std::min_element(points1.y.begin(), points1.y.end())));
+    auto max = std::max((*std::max_element(points1.x.begin(), points1.x.end())), (*std::max_element(points1.y.begin(), points1.y.end())));
+
+
+
+    std::unique_ptr<TGraphErrors> gr1{new TGraphErrors(static_cast<int>(points1.x.size()), &points1.x[0], &points1.y[0], &points1.xErr[0], &points1.yErr[0])};
+    gr1.get()->SetMarkerSize(1.5);
+    gr1.get()->SetMarkerStyle(21);
+    gr1.get()->SetTitle(";Wgrad, %;W, %");
+
+    const std::string psName{"output_corr_2.ps"};
     std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
     c.get()->SetGrid();
-    gStyle->SetOptFit(11111);
     c.get()->Print((psName + '[').c_str());
-
-    auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
-    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
-
-
-
+    gr.get()->Draw("APL");
+    for (const auto &item : labels)
+    {
+        item.DrawClone("SAME");
+    }
+    c.get()->Print(psName.c_str());
     std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
                                            "h2dCorr",
                                            static_cast<int>(points.y.size()),
@@ -546,26 +596,7 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
                                            1.25 * max)};
     h2dCorr.get()->SetStats(0);
     h2dCorr.get()->Draw();
-    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
-    gr.get()->SetMarkerSize(1.05);
-    gr.get()->SetMarkerStyle(21);
-    std::stringstream ss;
-    ss << std::setprecision(2);
-    ss << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxy,%;Wr,%";
-    h2dCorr.get()->SetTitle(ss.str().c_str());
-
-    std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
-//    gr.get()->Fit(f.get(), "R");
-    gr.get()->Draw("SAME P");
-
-    std::unique_ptr<TLine> l{new TLine(0.75 * min,
-                                       0.75 * min,
-                                       1.25 * max,
-                                       1.25 * max)};
-    l.get()->Draw("SAME");
-
-
-    std::vector<TLatex> labels;
+    gr1.get()->Draw("SAME P");
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("N12", kRed), Points() },
         { std::make_pair("berez_blind_", kBlue), Points() },
@@ -578,26 +609,25 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     };
 
 
-    for (size_t i{0}; i < points.x.size(); ++i)
+    for (size_t i{0}; i < points1.x.size(); ++i)
     {
         for (auto &item : subPoints)
         {
-            if (points.l.at(i).find(item.first.first) != std::string::npos)
+            if (points1.l.at(i).find(item.first.first) != std::string::npos)
             {
-                TMarker m{points.x.at(i), points.y.at(i), 21};
+                TMarker m{points1.x.at(i), points1.y.at(i), 21};
                 m.SetMarkerSize(1.05);
                 m.SetMarkerColor(item.first.second);
                 m.DrawClone("SAME");
-                item.second.l.push_back(points.l.at(i));
-                item.second.x.push_back(points.x.at(i));
-                item.second.y.push_back(points.y.at(i));
+                item.second.l.push_back(points1.l.at(i));
+                item.second.x.push_back(points1.x.at(i));
+                item.second.y.push_back(points1.y.at(i));
 //                item.second.xErr.push_back(0.1);
 //                item.second.yErr.push_back(0.5);
 
             }
         }
     }
-
     std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
     pt.get()->SetFillColor(0);
     pt.get()->SetBorderSize(1);
@@ -611,6 +641,12 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
         text->SetTextColor(color);
     }
     pt.get()->Draw("SAME");
+
+    std::unique_ptr<TLine> l{new TLine(0.75 * min,
+                                       0.75 * min,
+                                       1.25 * max,
+                                       1.25 * max)};
+    l.get()->Draw("SAME");
     c.get()->Print(psName.c_str());
     c.get()->Print((psName + ']').c_str());
 }
@@ -662,9 +698,9 @@ int main()
         { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 3.0} },
         { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 3.0} },
 
-        {"pulp_rot_berez_11_w5_", {24.2, 5.0 + 1.5}},
-        {"pulp_rot_berez_11_w10_", {24.2, 10.0 + 1.5}},
-        {"pulp_rot_berez_11_w15_", {24.2, 15.0 + 1.5}},
+        {"pulp_rot_berez_11_w5_", {24.2, 5.0 + 1.5} },
+        {"pulp_rot_berez_11_w10_", {24.2, 10.0 + 1.5} },
+        {"pulp_rot_berez_11_w15_", {24.2, 15.0 + 1.5} },
 
                 { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
                 { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
@@ -747,6 +783,7 @@ int main()
         auto par{getOptimalPar(data1)};
 
         drawCorrGraphWr(data1, par);
+        drawCorrGraphWr2(data1);
 //        drawCorrGraphWr1(data1, -0.39);
 
 //        drawCorrGraphs(data1);
