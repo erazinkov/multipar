@@ -495,14 +495,14 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
-        { "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-        { "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-        { "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8 + 3.0} },
+        { "pulp_rot_berez_6_w5_", {15.5, 5.0 + 3.0} },
+        { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 3.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 3.0} },
 
-        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
-        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
-        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
+        {"pulp_rot_berez_11_w5_", {24.2, 5.0 + 1.5}},
+        {"pulp_rot_berez_11_w10_", {24.2, 10.0 + 1.5}},
+        {"pulp_rot_berez_11_w15_", {24.2, 15.0 + 1.5}},
 
                 { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
                 { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
