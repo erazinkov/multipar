@@ -491,6 +491,15 @@ int main()
 //{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
 
 
+//        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
+//        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
+//        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
+
+        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
+        { "pulp_rot_berez_6_w5_", {15.5, 5.0} },
+        { "pulp_rot_berez_6_w10_", {15.5, 10.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 15.0} },
+
         {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
         {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
         {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
@@ -541,6 +550,7 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"}; // used to get optimal par
+        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
@@ -550,7 +560,7 @@ int main()
 
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum|pulp_rot_berez_[27]_sum|pulp_rot_kuz_\d+_a\d+p\d+_sum)"};
 
-        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};
 
 
@@ -558,7 +568,7 @@ int main()
 
         Points points;
 
-        auto value{Data1::Value::W};
+        auto value{Data1::Value::A};
 
         addPointsByValue(data1, points, Data1::Value::A);
         auto aNumber{points.x.size()};
@@ -572,15 +582,15 @@ int main()
 
         std::cout << data1.size() << std::endl;
 
-//        auto par{getOptimalPar(data1)};
+        auto par{getOptimalPar(data1)};
 
-//        drawCorrGraphWr(data1, -0.39);
+        drawCorrGraphWr(data1, par);
 //        drawCorrGraphWr1(data1, -0.39);
 
 //        drawCorrGraphs(data1);
 
 
-//        return 0;
+        return 0;
 
         std::cout << points.x.size() << " " << mmn.size() << std::endl;
 
