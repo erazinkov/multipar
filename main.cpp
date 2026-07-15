@@ -92,6 +92,36 @@ struct Data1 {
     }
 };
 
+class FitFunction_1
+{
+public:
+    FitFunction_1(const std::map<int, std::vector<double>> &d, const std::map<int, double> &dA)
+        : _d{d}, _dA{dA} {}
+
+    double operator() (double *x, double *par)
+    {
+        double arg{x[0]};
+        int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
+        double val{0.0};
+
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+
+        val = par[0] * _d.at(idx).at(3) // O
+              + par[1] * _dA.at(idx) // A
+              + par[2] * _d.at(idx).at(0) // N
+              + par[3];
+
+        return val;
+   }
+private:
+    const std::map<int, std::vector<double>> _d;
+    const std::map<int, double> _dA;
+};
+
 class FitFunction_2
 {
 public:
@@ -453,6 +483,138 @@ void drawCorrGraphWr1(const std::map<std::string, Data1> &data, double par = 0.0
 }
 
 
+void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
+
+    std::map<int, std::vector<double>> d;
+    std::map<int, double> dA;
+
+    auto getData = [&](){
+        int xx{static_cast<int>(d.size())};
+        for (auto it{data.begin()}; it != data.end(); ++it)
+        {
+            for (size_t i{0}; i < it->second.fr.size(); ++i)
+            {
+                std::string label{it->first + "_" + i};
+                std::optional<double> v;
+                v = (*it).second.chem.a;
+                if (v.has_value())
+                {
+                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
+                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
+                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
+                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
+                    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+                    dA[xx] = v.value();
+                    xx++;
+                }
+            }
+        }
+    };
+
+    Points points;
+
+    std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
+    for (const auto &i : data) {
+//        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
+        std::stringstream ss;
+        ss << std::setprecision(3) << i.second.chem.a.value();
+        points.l.push_back(i.first);
+        points.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
+        points.y.push_back(i.second.chem.w.value());
+        points.xErr.push_back(0.0);
+        points.yErr.push_back(0.0);
+    }
+
+    const std::string psName{"output_corr.ps"};
+    std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+    c.get()->SetGrid();
+    gStyle->SetOptFit(11111);
+    c.get()->Print((psName + '[').c_str());
+
+    auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
+    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
+
+
+
+    std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
+                                           "h2dCorr",
+                                           static_cast<int>(points.y.size()),
+                                           0.75 * min,
+                                           1.25 * max,
+                                           static_cast<int>(points.y.size()),
+                                           0.75 * min,
+                                           1.25 * max)};
+    h2dCorr.get()->SetStats(0);
+    h2dCorr.get()->Draw();
+    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
+    gr.get()->SetMarkerSize(1.05);
+    gr.get()->SetMarkerStyle(21);
+    std::stringstream ss;
+    ss << std::setprecision(2);
+    ss << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxy,%;Wr,%";
+    h2dCorr.get()->SetTitle(ss.str().c_str());
+
+    std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
+//    gr.get()->Fit(f.get(), "R");
+    gr.get()->Draw("SAME P");
+
+    std::unique_ptr<TLine> l{new TLine(0.75 * min,
+                                       0.75 * min,
+                                       1.25 * max,
+                                       1.25 * max)};
+    l.get()->Draw("SAME");
+
+
+    std::vector<TLatex> labels;
+    std::map<std::pair<std::string, Color_t>, Points> subPoints{
+        { std::make_pair("N12", kRed), Points() },
+        { std::make_pair("berez_blind_", kBlue), Points() },
+        { std::make_pair("berez_11_w", kGreen), Points() },
+        { std::make_pair("N12_blind", kOrange), Points() },
+        { std::make_pair("barz_blind", kMagenta), Points() },
+        { std::make_pair("berez_", kYellow), Points() },
+        { std::make_pair("kuz_", kCyan), Points() },
+        { std::make_pair("other", kBlack), Points() },
+    };
+
+
+    for (size_t i{0}; i < points.x.size(); ++i)
+    {
+        for (auto &item : subPoints)
+        {
+            if (points.l.at(i).find(item.first.first) != std::string::npos)
+            {
+                TMarker m{points.x.at(i), points.y.at(i), 21};
+                m.SetMarkerSize(1.05);
+                m.SetMarkerColor(item.first.second);
+                m.DrawClone("SAME");
+                item.second.l.push_back(points.l.at(i));
+                item.second.x.push_back(points.x.at(i));
+                item.second.y.push_back(points.y.at(i));
+//                item.second.xErr.push_back(0.1);
+//                item.second.yErr.push_back(0.5);
+
+            }
+        }
+    }
+
+    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
+    pt.get()->SetFillColor(0);
+    pt.get()->SetBorderSize(1);
+
+    // Add entries from map keys
+    for (const auto& entry : subPoints) {
+        const std::string& key = entry.first.first;
+        Color_t color = entry.first.second;
+
+        TText *text = pt.get()->AddText(key.c_str());
+        text->SetTextColor(color);
+    }
+    pt.get()->Draw("SAME");
+    c.get()->Print(psName.c_str());
+    c.get()->Print((psName + ']').c_str());
+}
+
 int main()
 {
      TVirtualFitter::SetDefaultFitter("Minuit");
@@ -589,12 +751,9 @@ int main()
 
 //        drawCorrGraphs(data1);
 
-
         return 0;
 
         std::cout << points.x.size() << " " << mmn.size() << std::endl;
-
-
 
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
         gr.get()->SetMarkerSize(1.5);
