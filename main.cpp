@@ -563,11 +563,13 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
                             + f.get()->GetParameter(2));
         points1.y.push_back(i.second.chem.w.value());
         auto xErr{std::sqrt(
-                        std::pow(i.second.fr.at(0).at(3).value * f.get()->GetParError(0), 2)
-                        + std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
-                        + std::pow(-1.0 * i.second.chem.a.value() * f.get()->GetParError(1), 2)
+//                        std::pow(i.second.fr.at(0).at(3).value * f.get()->GetParError(0), 2)
+//                        + std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
+//                        + std::pow(-1.0 * i.second.chem.a.value() * f.get()->GetParError(1), 2)
+//                        + std::pow(-1.0 * f.get()->GetParameter(1) * (i.second.chem.a.value() * 0.1), 2)
+//                        + std::pow(f.get()->GetParError(2), 2)
+                        std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
                         + std::pow(-1.0 * f.get()->GetParameter(1) * (i.second.chem.a.value() * 0.1), 2)
-                        + std::pow(f.get()->GetParError(2), 2)
                         )
         };
         auto yErr{0.03 * i.second.chem.w.value()};
