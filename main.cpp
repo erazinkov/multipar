@@ -562,8 +562,17 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
                             - f.get()->GetParameter(1) * i.second.chem.a.value()
                             + f.get()->GetParameter(2));
         points1.y.push_back(i.second.chem.w.value());
-        points1.xErr.push_back(0.0);
-        points1.yErr.push_back(0.0);
+        auto xErr{std::sqrt(
+                        std::pow(i.second.fr.at(0).at(3).value * f.get()->GetParError(0), 2)
+                        + std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
+                        + std::pow(-1.0 * i.second.chem.a.value() * f.get()->GetParError(1), 2)
+                        + std::pow(-1.0 * f.get()->GetParameter(1) * (i.second.chem.a.value() * 0.1), 2)
+                        + std::pow(f.get()->GetParError(2), 2)
+                        )
+        };
+        auto yErr{0.03 * i.second.chem.w.value()};
+        points1.xErr.push_back(xErr);
+        points1.yErr.push_back(yErr);
     }
 
     auto min = std::min((*std::min_element(points1.x.begin(), points1.x.end())), (*std::min_element(points1.y.begin(), points1.y.end())));
@@ -574,7 +583,7 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     std::unique_ptr<TGraphErrors> gr1{new TGraphErrors(static_cast<int>(points1.x.size()), &points1.x[0], &points1.y[0], &points1.xErr[0], &points1.yErr[0])};
     gr1.get()->SetMarkerSize(1.5);
     gr1.get()->SetMarkerStyle(21);
-    gr1.get()->SetTitle(";Wgrad, %;W, %");
+
 
     const std::string psName{"output_corr_2.ps"};
     std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
@@ -589,23 +598,27 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     c.get()->Print(psName.c_str());
     std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
                                            "h2dCorr",
-                                           static_cast<int>(points.y.size()),
+                                           static_cast<int>(points1.y.size()),
                                            0.75 * min,
                                            1.25 * max,
-                                           static_cast<int>(points.y.size()),
+                                           static_cast<int>(points1.y.size()),
                                            0.75 * min,
                                            1.25 * max)};
     h2dCorr.get()->SetStats(0);
+    std::stringstream ss;
+    ss << std::setprecision(2);
+    ss << "stdAbs=" << calculateStdAbs(points1) << ", " << "mOxy'=par_{0}O-par_{1}A+par_{2}" << ";mOxy', %;W, %";
+    h2dCorr.get()->SetTitle(ss.str().c_str());
     h2dCorr.get()->Draw();
     gr1.get()->Draw("SAME P");
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_blind_", kBlue), Points() },
-        { std::make_pair("berez_11_w", kGreen), Points() },
+        { std::make_pair("berez_6", kBlue), Points() },
+        { std::make_pair("berez_11", kGreen), Points() },
         { std::make_pair("N12_blind", kOrange), Points() },
         { std::make_pair("barz_blind", kMagenta), Points() },
-        { std::make_pair("berez_", kYellow), Points() },
-        { std::make_pair("kuz_", kCyan), Points() },
+        { std::make_pair("berez_7", kYellow), Points() },
+        { std::make_pair("berez_2", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
 
@@ -617,7 +630,7 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
             if (points1.l.at(i).find(item.first.first) != std::string::npos)
             {
                 TMarker m{points1.x.at(i), points1.y.at(i), 21};
-                m.SetMarkerSize(1.05);
+                m.SetMarkerSize(1.5);
                 m.SetMarkerColor(item.first.second);
                 m.DrawClone("SAME");
                 item.second.l.push_back(points1.l.at(i));
@@ -670,8 +683,8 @@ int main()
         { "pulp_rot_N12_10_", { 30.4, 8.2 } },
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
-        {"pulp_rot_berez_2_", {15.6, 0.9}},
-        {"pulp_rot_berez_7_", {19.8, 0.8}},
+        {"pulp_rot_berez_2_", {15.6, 0.9 + 3.0}},
+//        {"pulp_rot_berez_7_", {19.8, 0.8}},
 //        {"pulp_rot_berez_11_", {24.2, 0.8}},
 //        {"pulp_rot_berez_5_", {17.5, std::nullopt}},
 //        {"pulp_rot_berez_10_", {22.3, std::nullopt}},
@@ -681,8 +694,6 @@ int main()
         { "pulp_rot_berez_blind_a17p9_", {17.9, 2.8} },
         { "pulp_rot_N12_blind_a8p6_", {8.6, 2.4} },
         { "pulp_rot_N12_blind_a13p6_", {13.6, 2.1} },
-
-
 
 //{ "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
 //{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
@@ -694,10 +705,15 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8 + 5.0} },
-        { "pulp_rot_berez_6_w5_", {15.5, 5.0 + 5.0} },
-        { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 5.0} },
-        { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 5.0} },
+        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8 + 3.0} },
+        { "pulp_rot_berez_6_w5_", {15.5, 5.0 + 3.0} },
+        { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 3.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 3.0} },
+
+        {"pulp_rot_berez_7_w2_", {19.8, 2.0}},
+        {"pulp_rot_berez_7_w5_", {19.8, 5.0}},
+        {"pulp_rot_berez_7_w10_", {19.8, 10.0}},
+        {"pulp_rot_berez_7_w15_", {19.8, 15.0}},
 
         {"pulp_rot_berez_11_w5_", {24.2, 5.0 + 1.5} },
         {"pulp_rot_berez_11_w10_", {24.2, 10.0 + 1.5} },
@@ -749,7 +765,9 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"}; // used to get optimal par
-        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
+        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum)"};//!
 //        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
 //        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
 //        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
@@ -1041,15 +1059,15 @@ void addPointsByValue(const std::map<std::string, Data1> &data,
                 points.x.push_back(xx++);
                 points.xErr.push_back(0.01);
                 points.y.push_back(v.value());
-                points.yErr.push_back(0.25 * v.value());
-//                auto yE{0.0};
-//                if (value == Data1::Value::A) {
-//                    yE = 0.1 * v.value();
-//                }
-//                if (value == Data1::Value::W) {
-//                    yE = 0.03 * v.value();
-//                }
-//                points.yErr.push_back(yE);
+//                points.yErr.push_back(0.25 * v.value());
+                auto yE{0.0};
+                if (value == Data1::Value::A) {
+                    yE = 0.1 * v.value();
+                }
+                if (value == Data1::Value::W) {
+                    yE = 0.03 * v.value();
+                }
+                points.yErr.push_back(yE);
             }
         }
 
