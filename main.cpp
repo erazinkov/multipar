@@ -579,6 +579,7 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     const std::string psName{"output_corr_2.ps"};
     std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
     c.get()->SetGrid();
+    gStyle->SetOptFit(11111);
     c.get()->Print((psName + '[').c_str());
     gr.get()->Draw("APL");
     for (const auto &item : labels)
@@ -693,10 +694,10 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8 + 3.0} },
-        { "pulp_rot_berez_6_w5_", {15.5, 5.0 + 3.0} },
-        { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 3.0} },
-        { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 3.0} },
+        { "pulp_rot_berez_6_w0p8_", {15.5, 0.8 + 5.0} },
+        { "pulp_rot_berez_6_w5_", {15.5, 5.0 + 5.0} },
+        { "pulp_rot_berez_6_w10_", {15.5, 10.0 + 5.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 15.0 + 5.0} },
 
         {"pulp_rot_berez_11_w5_", {24.2, 5.0 + 1.5} },
         {"pulp_rot_berez_11_w10_", {24.2, 10.0 + 1.5} },
@@ -780,9 +781,9 @@ int main()
 
         std::cout << data1.size() << std::endl;
 
-        auto par{getOptimalPar(data1)};
+//        auto par{getOptimalPar(data1)};
 
-        drawCorrGraphWr(data1, par);
+//        drawCorrGraphWr(data1, par);
         drawCorrGraphWr2(data1);
 //        drawCorrGraphWr1(data1, -0.39);
 
