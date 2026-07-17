@@ -780,8 +780,8 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
         { std::make_pair("berez_6", kBlue), Points() },
         { std::make_pair("berez_11", kGreen), Points() },
         { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("barz_blind", kMagenta), Points() },
-        { std::make_pair("berez_7", kYellow), Points() },
+        { std::make_pair("berez_7", kMagenta), Points() },
+        { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -901,11 +901,11 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
     gr1.get()->Draw("SAME P");
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_6_w", kBlue), Points() },
-        { std::make_pair("berez_11_w", kGreen), Points() },
+        { std::make_pair("berez_6", kBlue), Points() },
+        { std::make_pair("berez_11", kGreen), Points() },
         { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("barz_blind", kMagenta), Points() },
-        { std::make_pair("berez_7_w", kYellow), Points() },
+        { std::make_pair("berez_7", kMagenta), Points() },
+        { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
@@ -971,7 +971,7 @@ int main()
         { "pulp_rot_N12_10_", { 30.4, 8.2 } },
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
-        {"pulp_rot_berez_2_", {15.6, 0.9 + 3.0}},
+//        {"pulp_rot_berez_2_", {15.6, 0.9 + 3.0}},
 //        {"pulp_rot_berez_7_", {19.8, 0.8}},
 //        {"pulp_rot_berez_11_", {24.2, 0.8}},
 //        {"pulp_rot_berez_5_", {17.5, std::nullopt}},
@@ -993,19 +993,28 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0_", {15.5, 3.5} },
-        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
-        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
-        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
+//        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
+//        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
+//        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
+//        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
+
+        {"pulp_rot_berez_2_w0_", {15.6, 5.0}},
+        {"pulp_rot_berez_2_w10_", {15.6, 10.0}},
+        {"pulp_rot_berez_2_w15_", {15.6, 15.0}},
 
         {"pulp_rot_berez_7_w0_", {19.8, 2.0}},
         {"pulp_rot_berez_7_w5_", {19.8, 5.0}},
         {"pulp_rot_berez_7_w10_", {19.8, 10.0}},
         {"pulp_rot_berez_7_w15_", {19.8, 15.0}},
 
-        {"pulp_rot_berez_11_w0_", {24.2, 1.4}},
+//        {"pulp_rot_berez_11_w0_", {24.2, 1.4}},
+//        {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
+//        {"pulp_rot_berez_11_w10_", {24.2, 11.6} },
+//        {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
+
+        {"pulp_rot_berez_11_w0_", {24.2, 1.5}},
         {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
-        {"pulp_rot_berez_11_w10_", {24.2, 11.6} },
+        {"pulp_rot_berez_11_w10_", {24.2, 11.5} },
         {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
 
                 { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
@@ -1074,8 +1083,11 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_\d+)"};//!
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum)"};//!
-        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+)"};//!
-        std::regex m_{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+)"};//!
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
+//        std::regex m_{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
+
+        std::regex m_{R"(pulp_rot_berez_11_w\d+_sum)"};//!
+        std::regex m{R"(pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+)"};//!
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+)"};//!
 
 
@@ -1174,6 +1186,8 @@ int main()
         f.get()->SetParLimits(4, 0.0, 2.0);
         f.get()->SetParLimits(5, 0.0, 2.0);
         f.get()->SetParLimits(6, 0.0, 3.0);
+
+//        f.get()->FixParameter(6, 0.0);
 
 
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
