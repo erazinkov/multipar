@@ -1087,7 +1087,7 @@ int main()
 //        std::regex m_{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
 
         std::regex m_{R"(pulp_rot_berez_11_w\d+_sum)"};//!
-        std::regex m{R"(pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+)"};//!
+        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_11_w\d+_sum)"};//!
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+)"};//!
 
 
