@@ -190,7 +190,8 @@ public:
         if (idx < static_cast<int>(dA_.size())) {
             val = ( par[3]
                   - par[4] * par[0] * dm.at("O")
-                  - par[2] * par[4] - par[5] * dm.at("C")
+                  - par[2] * par[4]
+                  - par[5] * dm.at("C")
                   - par[6] * dm.at("N") )
                   / ( 1.0 - par[1] * par[4] );
         } else {
@@ -232,17 +233,35 @@ void calcConv(const std::map<std::string, Data1> &data,
 void writePointsToFile(const std::string fileName, const Points &points);
 
 
-double calculateStdAbs(const Points& points) {
+double calculateStdAbsCon(const Points& points) {
     if (points.x.empty()) return 0.0;
 
     double sumSquaredDiff = 0.0;
     for (size_t i = 0; i < points.x.size(); ++i) {
         const double diff = points.y[i] - points.x[i];
-        std::cout << points.y[i] << " " << points.x[i] << std::endl;
         sumSquaredDiff += diff * diff;
     }
     return std::sqrt(sumSquaredDiff / points.x.size());
 }
+
+double calculateAvg(const std::vector<double>& values) {
+    if (values.empty()) return 0.0;
+    return std::accumulate(values.begin(), values.end(), 0.0) / values.size();
+}
+
+double calculateStdAbsRep(const std::vector<double>& values) {
+    if (values.empty()) return 0.0;
+
+    double sumSquaredDiff = 0.0;
+    auto avg = calculateAvg(values);
+    for (size_t i = 0; i < values.size() - 1; ++i) {
+        const double diff = values[i + 1] - avg;
+        sumSquaredDiff += diff * diff;
+    }
+    return std::sqrt(sumSquaredDiff / values.size());
+}
+
+
 
 Points getPredicatedPoints(const Points& points) {
     Points predicatedPoints;
@@ -277,7 +296,7 @@ double getOptimalPar(const std::map<std::string, Data1> &data) {
         }
         pars.push_back(par);
         Points predicatedPoints{getPredicatedPoints(points)};
-        stds.push_back(calculateStdAbs(predicatedPoints));
+        stds.push_back(calculateStdAbsCon(predicatedPoints));
     }
     if (!stds.empty() && !pars.empty() && stds.size() == pars.size()) {
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(pars.size()), &pars[0], &stds[0], nullptr, nullptr)};
@@ -455,7 +474,7 @@ void drawCorrGraphWr1(const std::map<std::string, Data1> &data, double par = 0.0
     gr.get()->SetMarkerStyle(21);
     std::stringstream ss;
     ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbs(points) << ", " << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxyGrad,%;Wr,%";
+    ss << "stdAbs=" << calculateStdAbsCon(points) << ", " << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxyGrad,%;Wr,%";
     h2dCorr.get()->SetTitle(ss.str().c_str());
 
     std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
@@ -647,7 +666,7 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
     h2dCorr.get()->SetStats(0);
     std::stringstream ss;
     ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbs(points1) << ", " << "mOxy'=par_{0}O-par_{1}A+par_{2}" << ";mOxy', %;W, %";
+    ss << "stdAbs=" << calculateStdAbsCon(points1) << ", " << "mOxy'=par_{0}O-par_{1}A+par_{2}" << ";mOxy', %;W, %";
     h2dCorr.get()->SetTitle(ss.str().c_str());
     h2dCorr.get()->Draw();
     gr1.get()->Draw("SAME P");
@@ -736,7 +755,13 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
                                / ( 1.0 - par[1] * par[4] )
                                 );
                     points1.y.push_back(i.second.chem.a.value());
-                    auto xErr{0.0};
+                    auto xErr{
+                        std::sqrt(
+                            std::pow(par[4] * par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                            + std::pow(par[5] * i.second.fr.at(ii).at(1).valueError, 2)
+                            + std::pow(par[6] * i.second.fr.at(ii).at(2).valueError, 2)
+                                )
+                    };
                     auto yErr{0.03 * i.second.chem.a.value()};
                     points1.xErr.push_back(xErr);
                     points1.yErr.push_back(yErr);
@@ -771,7 +796,7 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
     h2dCorr.get()->SetStats(0);
     std::stringstream ss;
     ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbs(points1) << ", " << "..." << ";A_{m}', %;A_{c}, %";
+    ss << "stdAbs=" << calculateStdAbsCon(points1) << ", " << "..." << ";A_{m}', %;A_{c}, %";
     h2dCorr.get()->SetTitle(ss.str().c_str());
     h2dCorr.get()->Draw();
     gr1.get()->Draw("SAME P");
@@ -783,6 +808,7 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
         { std::make_pair("berez_7", kMagenta), Points() },
         { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
+        { std::make_pair("berez_blind", kMagenta + 2), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
 
@@ -855,13 +881,22 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
                 - par[5] * i.second.fr.at(ii).at(1).value
                 - par[6] * i.second.fr.at(ii).at(2).value )
                / ( 1.0 - par[1] * par[4] );
+        auto aErr = std::sqrt(
+                        std::pow(par[4] * par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                        + std::pow(par[5] * i.second.fr.at(ii).at(1).valueError, 2)
+                        + std::pow(par[6] * i.second.fr.at(ii).at(2).valueError, 2)
+                        );
         points1.x.push_back(
                     par[0] * i.second.fr.at(ii).at(3).value
                     - par[1] * a
                     + par[2]
                     );
         points1.y.push_back(i.second.chem.w.value());
-        auto xErr{0.0};
+        auto xErr{std::sqrt(
+                        std::pow(par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                        + std::pow(par[1] * aErr, 2)
+                    )
+                 };
         auto yErr{0.03 * i.second.chem.w.value()};
         points1.xErr.push_back(xErr);
         points1.yErr.push_back(yErr);
@@ -895,7 +930,7 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
     h2dCorr.get()->SetStats(0);
     std::stringstream ss;
     ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbs(points1) << ", " << "..." << ";W_{m}', %;W_{c}, %";
+    ss << "stdAbs=" << calculateStdAbsCon(points1) << ", " << "..." << ";W_{m}', %;W_{c}, %";
     h2dCorr.get()->SetTitle(ss.str().c_str());
     h2dCorr.get()->Draw();
     gr1.get()->Draw("SAME P");
@@ -907,6 +942,7 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
         { std::make_pair("berez_7", kMagenta), Points() },
         { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
+        { std::make_pair("berez_blind", kMagenta + 2), Points() },
         { std::make_pair("other", kBlack), Points() },
     };
 
@@ -1086,9 +1122,19 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
 //        std::regex m_{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
 
-        std::regex m_{R"(pulp_rot_berez_11_w\d+_sum)"};//!
-        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_11_w\d+_sum)"};//!
-//        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+)"};//!
+        // check 1
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
+//        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
+
+        // optimal
+//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
+//        std::regex m_{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
+
+        // check 2
+//        std::regex m{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
+        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
+//        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_6_w\d+_\d+)"};//!
+        std::regex m_{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_\d+|barz_blind|berez_blind|N12)"};//!
 
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
@@ -1169,23 +1215,65 @@ int main()
         FitFunction_3 fObj(mmn, dA);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
 
-        f.get()->SetParameter(0, 1.0);
-        f.get()->SetParameter(1, 0.4);
-        f.get()->SetParameter(2, 1.0);
+//        1  p0           1.47827e+00   2.12331e-02   6.09507e-06  -6.36787e-02
+//        2  p1           7.48264e-01   1.33882e-02   5.07337e-06   7.66778e-02
+//        3  p2          -1.08420e+01   4.12276e-01   6.48338e-06  -6.00355e-02
+//        4  p3           9.96211e+01   8.80069e+00   1.98367e-05  -6.53131e-03
+//        5  p4           6.55157e-01   9.83356e-02   1.00802e-04  -3.23001e-04
+//        6  p5           1.05471e+00   1.60176e-01   1.46443e-05   9.51756e-03
+//        7  p6           2.34298e+00   1.90737e+00   5.97416e-04  -1.11492e-04
 
-        f.get()->SetParameter(3, 100.0);
-        f.get()->SetParameter(4, 1.0);
-        f.get()->SetParameter(5, 1.0);
-        f.get()->SetParameter(6, 1.0);
 
-        f.get()->SetParLimits(0, 0.0, 2.0);
-        f.get()->SetParLimits(1, 0.0, 2.0);
-        f.get()->SetParLimits(2, -20.0, 20.0);
 
-        f.get()->SetParLimits(3, 50.0, 150.0);
-        f.get()->SetParLimits(4, 0.0, 2.0);
-        f.get()->SetParLimits(5, 0.0, 2.0);
-        f.get()->SetParLimits(6, 0.0, 3.0);
+        const std::vector<double> parameters = {
+            1.47827e+00,
+            7.48264e-01,
+           -1.08420e+01,
+            9.96211e+01,
+            6.55157e-01,
+            1.05471e+00,
+            2.34298e+00
+        };
+
+        auto setInitialParameters = [&parameters](TF1 *f){
+            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
+                f->SetParameter(std::distance(parameters.begin(), it), *it);
+            }
+        };
+
+        auto setParametersLimits = [&parameters](TF1 *f, double min = 0.8, double max = 1.2){
+            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
+                auto minPar{min * (*it)};
+                auto maxPar{max * (*it)};
+                if (*it < 0) {
+                    maxPar = min * (*it);
+                    minPar = max * (*it);
+                }
+                f->SetParLimits(std::distance(parameters.begin(), it), minPar, maxPar);
+            }
+        };
+
+        setInitialParameters(f.get());
+//        setParametersLimits(f.get());
+//        f.get()->FixParameter(6, 0.0);
+
+//        f.get()->SetParameter(0, 1.0);
+//        f.get()->SetParameter(1, 0.4);
+//        f.get()->SetParameter(2, 1.0);
+
+//        f.get()->SetParameter(3, 100.0);
+//        f.get()->SetParameter(4, 1.0);
+//        f.get()->SetParameter(5, 1.0);
+//        f.get()->SetParameter(6, 1.0);
+
+//        f.get()->SetParLimits(0, 0.0, 2.0);
+//        f.get()->SetParLimits(1, 0.0, 2.0);
+//        f.get()->SetParLimits(2, -20.0, 20.0);
+
+//        f.get()->SetParLimits(3, 50.0, 150.0);
+//        f.get()->SetParLimits(4, 0.0, 2.0);
+//        f.get()->SetParLimits(5, 0.0, 2.0);
+//        f.get()->SetParLimits(6, 0.0, 3.0);
 
 //        f.get()->FixParameter(6, 0.0);
 
@@ -1275,8 +1363,8 @@ int main()
 
 //        std::regex s{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum)"};
 //        std::regex s{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum)"};
-        std::regex s{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
-        auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
+//        std::regex s{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
+//        auto data1Sum{getFitResults(fileName_1, columnElement, chem, s)};
 //        calcConv(data1Sum, f, value);
 
 //        std::regex t{"_\\d+_"};
