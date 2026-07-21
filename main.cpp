@@ -725,6 +725,19 @@ void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
 }
 
 
+
+void set_plot_style() {
+    const Int_t NRGBs = 5;
+    const Int_t NCont = 50;
+    Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
+    Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
+    Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
+    Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
+    TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+    gStyle->SetNumberContours(NCont);
+
+}
+
 void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::unique_ptr<TF1> &f) {
 
 //    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
@@ -738,6 +751,49 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
     auto par{f->GetParameters()};
 
     std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
+
+    std::ofstream ofs("output_a.txt");
+    ofs << "fileName" << " ";
+    ofs << "p0" << " " << "p1" << " " << "p2" << " "
+        << "p3" << " " << "p4" << " " << "p5" << " "
+        << "p6" << " ";
+    ofs << "O" << " ";
+    ofs << "C" << " ";
+    ofs << "N" << " ";
+    ofs << "Ammn" << " ";
+    ofs << "Wmmn" << " ";
+    ofs << "Achem" << " ";
+    ofs << "Wchem" << " " << std::endl;
+    if (ofs.is_open()) {
+        for (const auto &i : data) {
+            for (size_t ii{0}; ii < i.second.fr.size(); ii++) {
+                ofs << i.first << " ";
+                ofs << par[0] << " " << par[1] << " " << par[2] << " "
+                    << par[3] << " " << par[4] << " " << par[5] << " "
+                    << par[6] << " ";
+                ofs << i.second.fr.at(ii).at(3).value << " ";
+                ofs << i.second.fr.at(ii).at(1).value << " ";
+                ofs << i.second.fr.at(ii).at(2).value << " ";
+
+                auto a = (par[3]
+                        - par[4] * par[0] * i.second.fr.at(ii).at(3).value
+                        - par[2] * par[4]
+                        - par[5] * i.second.fr.at(ii).at(1).value
+                        - par[6] * i.second.fr.at(ii).at(2).value )
+                       / ( 1.0 - par[1] * par[4] );
+                auto w =                     par[0] * i.second.fr.at(ii).at(3).value
+                        - par[1] * a
+                        + par[2];
+                ofs << a << " ";
+                ofs << w << " ";
+                ofs << i.second.chem.a.value() << " ";
+                ofs << i.second.chem.w.value() << " ";
+                ofs << std::endl;
+            }
+        }
+        ofs.close();
+    }
+
     for (const auto &i : data) {
         for (size_t ii{0}; ii < i.second.fr.size(); ii++) {
             //        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
@@ -765,8 +821,8 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
                     auto yErr{0.03 * i.second.chem.a.value()};
                     points1.xErr.push_back(xErr);
                     points1.yErr.push_back(yErr);
-        }
 
+        }
     }
 
     auto min = std::min((*std::min_element(points1.x.begin(), points1.x.end())), (*std::min_element(points1.y.begin(), points1.y.end())));
@@ -1344,7 +1400,7 @@ int main()
         auto data2{getFitResults(fileName, columnElement, chem, m_)};
 
         drawCorrGraphWr3_a(data2, f);
-        drawCorrGraphWr3_w(data2, f);
+//        drawCorrGraphWr3_w(data2, f);
 
         return 0;
 
