@@ -1344,7 +1344,7 @@ int main()
 
         setInitialParameters(f.get());
 //        setParametersLimits(f.get());
-        f.get()->FixParameter(6, 0.0);
+//        f.get()->FixParameter(6, 0.0);
 
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.4);
