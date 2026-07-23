@@ -181,9 +181,8 @@ public:
         std::map<std::string, double> dm{
             {"Al", d_.at(idx).at(0)},
             {"C", d_.at(idx).at(1)},
-            {"N", d_.at(idx).at(2)},
-            {"O", d_.at(idx).at(3)},
-            {"Si", d_.at(idx).at(4)},
+            {"O", d_.at(idx).at(2)},
+            {"Si", d_.at(idx).at(3)},
 //            {"A", dA_.at(idx - dA_.size())}
         };
 
@@ -192,7 +191,7 @@ public:
                   - par[4] * par[0] * dm.at("O")
                   - par[2] * par[4]
                   - par[5] * dm.at("C")
-                  - par[6] * dm.at("N") )
+                  )
                   / ( 1.0 - par[1] * par[4] );
         } else {
             val = ( par[0] * dm.at("O")
@@ -752,14 +751,12 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
 
     std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
 
-    std::ofstream ofs("output_a.txt");
+    std::ofstream ofs("output_a_wo_n.txt");
     ofs << "fileName" << " ";
     ofs << "p0" << " " << "p1" << " " << "p2" << " "
-        << "p3" << " " << "p4" << " " << "p5" << " "
-        << "p6" << " ";
+        << "p3" << " " << "p4" << " " << "p5" << " ";
     ofs << "O" << " ";
     ofs << "C" << " ";
-    ofs << "N" << " ";
     ofs << "Ammn" << " ";
     ofs << "Wmmn" << " ";
     ofs << "Achem" << " ";
@@ -770,18 +767,17 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
                 ofs << i.first << " ";
                 ofs << par[0] << " " << par[1] << " " << par[2] << " "
                     << par[3] << " " << par[4] << " " << par[5] << " "
-                    << par[6] << " ";
-                ofs << i.second.fr.at(ii).at(3).value << " ";
-                ofs << i.second.fr.at(ii).at(1).value << " ";
+                    ;
                 ofs << i.second.fr.at(ii).at(2).value << " ";
+                ofs << i.second.fr.at(ii).at(1).value << " ";
 
                 auto a = (par[3]
-                        - par[4] * par[0] * i.second.fr.at(ii).at(3).value
+                        - par[4] * par[0] * i.second.fr.at(ii).at(2).value
                         - par[2] * par[4]
                         - par[5] * i.second.fr.at(ii).at(1).value
-                        - par[6] * i.second.fr.at(ii).at(2).value )
+                        )
                        / ( 1.0 - par[1] * par[4] );
-                auto w =                     par[0] * i.second.fr.at(ii).at(3).value
+                auto w =                     par[0] * i.second.fr.at(ii).at(2).value
                         - par[1] * a
                         + par[2];
                 ofs << a << " ";
@@ -804,18 +800,17 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
 
                     points1.x.push_back(
                                ( par[3]
-                                - par[4] * par[0] * i.second.fr.at(ii).at(3).value
+                                - par[4] * par[0] * i.second.fr.at(ii).at(2).value
                                 - par[2] * par[4]
                                 - par[5] * i.second.fr.at(ii).at(1).value
-                                - par[6] * i.second.fr.at(ii).at(2).value )
+                                 )
                                / ( 1.0 - par[1] * par[4] )
                                 );
                     points1.y.push_back(i.second.chem.a.value());
                     auto xErr{
                         std::sqrt(
-                            std::pow(par[4] * par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                            std::pow(par[4] * par[0] * i.second.fr.at(ii).at(2).valueError, 2)
                             + std::pow(par[5] * i.second.fr.at(ii).at(1).valueError, 2)
-                            + std::pow(par[6] * i.second.fr.at(ii).at(2).valueError, 2)
                                 )
                     };
                     auto yErr{0.03 * i.second.chem.a.value()};
@@ -932,24 +927,24 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
         points1.l.push_back(i.first);
 
         auto a = (par[3]
-                - par[4] * par[0] * i.second.fr.at(ii).at(3).value
+                - par[4] * par[0] * i.second.fr.at(ii).at(2).value
                 - par[2] * par[4]
                 - par[5] * i.second.fr.at(ii).at(1).value
-                - par[6] * i.second.fr.at(ii).at(2).value )
+                 )
                / ( 1.0 - par[1] * par[4] );
         auto aErr = std::sqrt(
-                        std::pow(par[4] * par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                        std::pow(par[4] * par[0] * i.second.fr.at(ii).at(2).valueError, 2)
                         + std::pow(par[5] * i.second.fr.at(ii).at(1).valueError, 2)
-                        + std::pow(par[6] * i.second.fr.at(ii).at(2).valueError, 2)
+
                         );
         points1.x.push_back(
-                    par[0] * i.second.fr.at(ii).at(3).value
+                    par[0] * i.second.fr.at(ii).at(2).value
                     - par[1] * a
                     + par[2]
                     );
         points1.y.push_back(i.second.chem.w.value());
         auto xErr{std::sqrt(
-                        std::pow(par[0] * i.second.fr.at(ii).at(3).valueError, 2)
+                        std::pow(par[0] * i.second.fr.at(ii).at(2).valueError, 2)
                         + std::pow(par[1] * aErr, 2)
                     )
                  };
@@ -1085,10 +1080,11 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
+        { "pulp_rot_berez_6_w0", {15.5, 3.5} },// 17.5
         { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
         { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
         { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
+
 
         {"pulp_rot_berez_2_w0_", {15.6, 5.0}},
         {"pulp_rot_berez_2_w10_", {15.6, 10.0}},
@@ -1121,9 +1117,8 @@ int main()
     {
          {1, "Al"},
          {3, "C"},
-         {5, "N"},
-         {7, "O"},
-         {9, "Si"},
+         {5, "O"},
+         {7, "Si"},
     };
 
 //    const std::map<int, std::string> columnElement
@@ -1137,7 +1132,7 @@ int main()
 //    };
 
 
-    const auto fileName{"rea.elts.stroy.txt"};
+    const auto fileName{"rea.elts.stroy_wo_n.txt"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -1269,59 +1264,14 @@ int main()
 //        }
 
         FitFunction_3 fObj(mmn, dA);
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
-// par6 free old
-//        1  p0           1.47827e+00   2.12331e-02   6.09507e-06  -6.36787e-02
-//        2  p1           7.48264e-01   1.33882e-02   5.07337e-06   7.66778e-02
-//        3  p2          -1.08420e+01   4.12276e-01   6.48338e-06  -6.00355e-02
-//        4  p3           9.96211e+01   8.80069e+00   1.98367e-05  -6.53131e-03
-//        5  p4           6.55157e-01   9.83356e-02   1.00802e-04  -3.23001e-04
-//        6  p5           1.05471e+00   1.60176e-01   1.46443e-05   9.51756e-03
-//        7  p6           2.34298e+00   1.90737e+00   5.97416e-04  -1.11492e-04
-
-// par6 free new
-//        1  p0           1.55468e+00   2.91982e-02   5.12994e-06   4.88038e-02
-//        2  p1           7.55271e-01   1.62498e-02   4.57209e-06  -5.43493e-02
-//        3  p2          -1.22767e+01   6.36519e-01   1.07210e-04   2.25340e-03
-//        4  p3           1.00997e+02   9.86184e+00   9.84859e-04  -1.88231e-04
-//        5  p4           6.33645e-01   1.05930e-01   8.90741e-05  -2.98749e-03
-//        6  p5           1.06754e+00   1.85230e-01   1.44951e-05   1.24332e-02
-//        7  p6           2.73195e+00   3.61006e+00   7.23964e-04   1.59404e-04
-
-
-//        1  p0           1.55468e+00   2.91540e-02   1.66683e-05   5.16492e-02
-//        2  p1           7.55269e-01   1.62172e-02   3.05900e-05  -2.87101e-02
-//        3  p2          -1.22767e+01   6.29325e-01   4.41202e-05   1.94801e-02
-//        4  p3           1.05060e+02   7.34902e+00   4.77857e-05  -1.20692e-02
-//        5  p4           6.69100e-01   7.90779e-02   7.03439e-04   1.48682e-03
-//        6  p5           1.17662e+00   9.82829e-02   7.58199e-05   8.49716e-03
-//        7  p6           0.00000e+00     fixed
-
-
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 6)};
         const std::vector<double> parameters = {
-//            1.47827e+00,
-//            7.48264e-01,
-//           -1.08420e+01,
-//            9.96211e+01,
-//            6.55157e-01,
-//            1.05471e+00,
-//            2.34298e+00
-
             1.55468e+00,
             7.55271e-01,
             -1.22767e+01,
             1.00997e+02,
             6.33645e-01,
             1.06754e+00,
-            2.73195e+00
-
-//            1.55468e+00,
-//            7.55269e-01,
-//           -1.22767e+01,
-//            1.05060e+02,
-//            6.69100e-01,
-//            1.17662e+00,
-//            0.00000e+00
         };
 
         auto setInitialParameters = [&parameters](TF1 *f){
@@ -1344,7 +1294,6 @@ int main()
 
         setInitialParameters(f.get());
 //        setParametersLimits(f.get());
-        f.get()->FixParameter(6, 0.0);
 
 //        f.get()->SetParameter(0, 1.0);
 //        f.get()->SetParameter(1, 0.4);
@@ -1624,9 +1573,8 @@ void addMmnByValue(const std::map<std::string, Data1> &data,
             {
                 mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
                 mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // O
+                mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // Si
                 xx++;
             }
         }
