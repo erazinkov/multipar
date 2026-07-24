@@ -1085,10 +1085,10 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
-        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
-        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
-        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
+//        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
+//        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
+//        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
+//        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
 
         {"pulp_rot_berez_2_w0_", {15.6, 5.0}},
         {"pulp_rot_berez_2_w10_", {15.6, 10.0}},
@@ -1137,7 +1137,7 @@ int main()
 //    };
 
 
-    const auto fileName{"rea.elts.stroy.txt"};
+    const auto fileName{"rea.elts.stroy.check_3.txt"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -1188,7 +1188,10 @@ int main()
 
         // check 2
 //        std::regex m{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
-        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
+//        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
+
+        // check 3
+        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_6_w\d+_\d+)"};//!
 
 
@@ -1270,14 +1273,6 @@ int main()
 
         FitFunction_3 fObj(mmn, dA);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
-// par6 free old
-//        1  p0           1.47827e+00   2.12331e-02   6.09507e-06  -6.36787e-02
-//        2  p1           7.48264e-01   1.33882e-02   5.07337e-06   7.66778e-02
-//        3  p2          -1.08420e+01   4.12276e-01   6.48338e-06  -6.00355e-02
-//        4  p3           9.96211e+01   8.80069e+00   1.98367e-05  -6.53131e-03
-//        5  p4           6.55157e-01   9.83356e-02   1.00802e-04  -3.23001e-04
-//        6  p5           1.05471e+00   1.60176e-01   1.46443e-05   9.51756e-03
-//        7  p6           2.34298e+00   1.90737e+00   5.97416e-04  -1.11492e-04
 
 // par6 free new
 //        1  p0           1.55468e+00   2.91982e-02   5.12994e-06   4.88038e-02
@@ -1289,23 +1284,7 @@ int main()
 //        7  p6           2.73195e+00   3.61006e+00   7.23964e-04   1.59404e-04
 
 
-//        1  p0           1.55468e+00   2.91540e-02   1.66683e-05   5.16492e-02
-//        2  p1           7.55269e-01   1.62172e-02   3.05900e-05  -2.87101e-02
-//        3  p2          -1.22767e+01   6.29325e-01   4.41202e-05   1.94801e-02
-//        4  p3           1.05060e+02   7.34902e+00   4.77857e-05  -1.20692e-02
-//        5  p4           6.69100e-01   7.90779e-02   7.03439e-04   1.48682e-03
-//        6  p5           1.17662e+00   9.82829e-02   7.58199e-05   8.49716e-03
-//        7  p6           0.00000e+00     fixed
-
-
         const std::vector<double> parameters = {
-//            1.47827e+00,
-//            7.48264e-01,
-//           -1.08420e+01,
-//            9.96211e+01,
-//            6.55157e-01,
-//            1.05471e+00,
-//            2.34298e+00
 
             1.55468e+00,
             7.55271e-01,
@@ -1429,12 +1408,21 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|d+_sum|barz_blind|berez_blind|N12|pulp_rot_berez_6_w\d+_sum)"};//!
+        // check 3
+//        std::regex m_a{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
+
+        std::regex m_a{R"(barz_blind|berez_blind|N12_blind)"};//!
+
+//std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|d+_sum|barz_blind|berez_blind|N12|pulp_rot_berez_6_w\d+_sum)"};//!
         auto data2{getFitResults(fileName, columnElement, chem, m_a)};
 
         drawCorrGraphWr3_a(data2, f);
 
-        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
+
+        // check 3
+//        std::regex m_w{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
+        std::regex m_w{R"(barz_blind|berez_blind|N12_blind)"};//!
+//        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
 
         auto data3{getFitResults(fileName, columnElement, chem, m_w)};
         drawCorrGraphWr3_w(data3, f);
