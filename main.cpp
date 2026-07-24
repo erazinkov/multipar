@@ -1085,10 +1085,11 @@ int main()
 //        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
 //        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
-//        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
-//        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
-//        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
-//        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
+
+        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
+        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
+        { "pulp_rot_berez_6_w10_", {15.5, 14.0} },
+        { "pulp_rot_berez_6_w15_", {15.5, 19.1} },
 
         {"pulp_rot_berez_2_w0_", {15.6, 5.0}},
         {"pulp_rot_berez_2_w10_", {15.6, 10.0}},
@@ -1137,6 +1138,7 @@ int main()
 //    };
 
 
+//    const auto fileName{"rea.elts.txt.stroy.test"};
     const auto fileName{"rea.elts.stroy.check_3.txt"};
     std::cout << fileName << std::endl;
 
@@ -1183,7 +1185,7 @@ int main()
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
 
         // optimal
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
+        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
 //        std::regex m_{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
 
         // check 2
@@ -1191,7 +1193,7 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
 
         // check 3
-        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
+//        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_6_w\d+_\d+)"};//!
 
 
@@ -1411,8 +1413,8 @@ int main()
         // check 3
 //        std::regex m_a{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
 
-        std::regex m_a{R"(barz_blind|berez_blind|N12_blind)"};//!
-
+//        std::regex m_a{R"(barz_blind|berez_blind|N12_blind)"};//!
+        std::regex m_a{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
 //std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|d+_sum|barz_blind|berez_blind|N12|pulp_rot_berez_6_w\d+_sum)"};//!
         auto data2{getFitResults(fileName, columnElement, chem, m_a)};
 
@@ -1421,8 +1423,9 @@ int main()
 
         // check 3
 //        std::regex m_w{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
-        std::regex m_w{R"(barz_blind|berez_blind|N12_blind)"};//!
+//        std::regex m_w{R"(barz_blind|berez_blind|N12_blind)"};//!
 //        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
+        std::regex m_w{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
 
         auto data3{getFitResults(fileName, columnElement, chem, m_w)};
         drawCorrGraphWr3_w(data3, f);
