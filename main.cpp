@@ -212,6 +212,7 @@ struct Points {
     std::vector<double> xErr;
     std::vector<double> y;
     std::vector<double> yErr;
+    std::vector<double> d;
 };
 
 std::map<std::string, Data1> getFitResults(const std::string &fileName,
@@ -821,14 +822,13 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
                     auto yErr{0.03 * i.second.chem.a.value()};
                     points1.xErr.push_back(xErr);
                     points1.yErr.push_back(yErr);
+                    points1.d.push_back(i.second.chem.w.value());
 
         }
     }
 
     auto min = std::min((*std::min_element(points1.x.begin(), points1.x.end())), (*std::min_element(points1.y.begin(), points1.y.end())));
     auto max = std::max((*std::max_element(points1.x.begin(), points1.x.end())), (*std::max_element(points1.y.begin(), points1.y.end())));
-
-
 
     std::unique_ptr<TGraphErrors> gr1{new TGraphErrors(static_cast<int>(points1.x.size()), &points1.x[0], &points1.y[0], &points1.xErr[0], &points1.yErr[0])};
     gr1.get()->SetMarkerSize(1.5);
@@ -854,17 +854,21 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
     ss << std::setprecision(2);
     ss << "stdAbs=" << calculateStdAbsCon(points1) << ", " << "..." << ";A_{m}', %;A_{c}, %";
     h2dCorr.get()->SetTitle(ss.str().c_str());
+
     h2dCorr.get()->Draw();
     gr1.get()->Draw("SAME P");
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_6", kBlue), Points() },
-        { std::make_pair("berez_11", kGreen), Points() },
-        { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("berez_7", kMagenta), Points() },
-        { std::make_pair("barz_blind", kYellow), Points() },
+//        { std::make_pair("berez_6", kBlue), Points() },
+        { std::make_pair("berez_11_w", kGreen), Points() },
+//        { std::make_pair("N12_blind", kOrange), Points() },
+        { std::make_pair("berez_7_w", kMagenta), Points() },
+//        { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
-        { std::make_pair("berez_blind", kMagenta + 2), Points() },
+//        { std::make_pair("berez_blind", kMagenta + 2), Points() },
+        { std::make_pair("berez_11_1500g", kGreen + 2), Points() },
+        { std::make_pair("berez_7_1500g", kMagenta + 2), Points() },
+
         { std::make_pair("other", kBlack), Points() },
     };
 
@@ -882,19 +886,51 @@ void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::uni
                 item.second.l.push_back(points1.l.at(i));
                 item.second.x.push_back(points1.x.at(i));
                 item.second.y.push_back(points1.y.at(i));
+                item.second.d.push_back(points1.d.at(i));
 //                item.second.xErr.push_back(0.1);
 //                item.second.yErr.push_back(0.5);
 
             }
         }
     }
-    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
+
+    auto doubleToString = [](double value, int precision = 1) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(precision) << value;
+        return oss.str();
+    };
+
+    std::vector<TLatex> labels;
+
+    for (size_t i{0}; i < points1.x.size(); ++i) {
+
+        auto text{doubleToString(points1.d.at(i))};
+
+        TLatex l(points1.x.at(i), points1.y.at(i) + 1.25 * points1.yErr.at(i), text.c_str());
+        l.SetTextAngle(90);
+        l.SetTextAlign(12);
+        l.SetTextSize(0.02);
+        labels.push_back(l);
+    }
+
+    for (const auto &l : labels) {
+        l.DrawClone("SAME");
+    }
+
+    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.55, 0.9, "NDC")};
     pt.get()->SetFillColor(0);
     pt.get()->SetBorderSize(1);
 
     // Add entries from map keys
     for (const auto& entry : subPoints) {
-        const std::string& key = entry.first.first;
+        std::string key = entry.first.first;
+        for (size_t i{0}; i < entry.second.l.size(); i++) {
+            key.append("(");
+            key.append(doubleToString(entry.second.x.at(i)));
+            key.append(",");
+            key.append(doubleToString(entry.second.y.at(i)));
+            key.append(")");
+        }
         Color_t color = entry.first.second;
 
         TText *text = pt.get()->AddText(key.c_str());
@@ -992,13 +1028,16 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
     gr1.get()->Draw("SAME P");
     std::map<std::pair<std::string, Color_t>, Points> subPoints{
         { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_6", kBlue), Points() },
-        { std::make_pair("berez_11", kGreen), Points() },
-        { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("berez_7", kMagenta), Points() },
-        { std::make_pair("barz_blind", kYellow), Points() },
+//        { std::make_pair("berez_6", kBlue), Points() },
+        { std::make_pair("berez_11_w", kGreen), Points() },
+//        { std::make_pair("N12_blind", kOrange), Points() },
+        { std::make_pair("berez_7_w", kMagenta), Points() },
+//        { std::make_pair("barz_blind", kYellow), Points() },
         { std::make_pair("berez_2", kCyan), Points() },
-        { std::make_pair("berez_blind", kMagenta + 2), Points() },
+//        { std::make_pair("berez_blind", kMagenta + 2), Points() },
+        { std::make_pair("berez_11_1500g", kGreen + 2), Points() },
+        { std::make_pair("berez_7_1500g", kMagenta + 2), Points() },
+
         { std::make_pair("other", kBlack), Points() },
     };
 
@@ -1022,14 +1061,28 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
             }
         }
     }
-    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
+    auto doubleToString = [](double value, int precision = 1) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(precision) << value;
+        return oss.str();
+    };
+
+    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.6, 0.9, "NDC")};
     pt.get()->SetFillColor(0);
     pt.get()->SetBorderSize(1);
 
     // Add entries from map keys
     for (const auto& entry : subPoints) {
-        const std::string& key = entry.first.first;
+        std::string key = entry.first.first;
         Color_t color = entry.first.second;
+
+        for (size_t i{0}; i < entry.second.l.size(); i++) {
+            key.append("(");
+            key.append(doubleToString(entry.second.x.at(i)));
+            key.append(",");
+            key.append(doubleToString(entry.second.y.at(i)));
+            key.append(")");
+        }
 
         TText *text = pt.get()->AddText(key.c_str());
         text->SetTextColor(color);
@@ -1098,6 +1151,7 @@ int main()
         {"pulp_rot_berez_7_w5_", {19.8, 5.0}},
         {"pulp_rot_berez_7_w10_", {19.8, 10.0}},
         {"pulp_rot_berez_7_w15_", {19.8, 15.0}},
+        {"pulp_rot_berez_7_1500g_w0_", {19.8, 2.0} },
 
 //        {"pulp_rot_berez_11_w0_", {24.2, 1.4}},
 //        {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
@@ -1108,6 +1162,7 @@ int main()
         {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
         {"pulp_rot_berez_11_w10_", {24.2, 11.5} },
         {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
+        {"pulp_rot_berez_11_1500g_w0_", {24.2, 1.5} },
 
                 { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
                 { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
@@ -1137,7 +1192,7 @@ int main()
 //    };
 
 
-    const auto fileName{"rea.elts.stroy.check_3.txt"};
+    const auto fileName{"rea.elts.stroy.check_5.txt"};
     std::cout << fileName << std::endl;
 
 //    chem.insert(chemBlind.begin(), chemBlind.end());
@@ -1191,9 +1246,9 @@ int main()
 //        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
 
         // check 3
-        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
+//        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
 //        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_6_w\d+_\d+)"};//!
-
+        std::regex m{R"(pulp_rot_berez_71_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
 
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
@@ -1409,21 +1464,15 @@ int main()
         c.get()->Close();
 
         // check 3
-//        std::regex m_a{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
-
-        std::regex m_a{R"(barz_blind|berez_blind|N12_blind)"};//!
-
+//          std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_sum|pulp_rot_berez_7_1500g_w\d+_sum|N12)"};//sum
+           std::regex m_a{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+|N12_\d+_\d+)"};//3
 //std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|d+_sum|barz_blind|berez_blind|N12|pulp_rot_berez_6_w\d+_sum)"};//!
         auto data2{getFitResults(fileName, columnElement, chem, m_a)};
-
         drawCorrGraphWr3_a(data2, f);
-
-
         // check 3
-//        std::regex m_w{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
-        std::regex m_w{R"(barz_blind|berez_blind|N12_blind)"};//!
+//        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_sum|pulp_rot_berez_7_1500g_w\d+_sum)"};//sum
+        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+)"};//3
 //        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
-
         auto data3{getFitResults(fileName, columnElement, chem, m_w)};
         drawCorrGraphWr3_w(data3, f);
 
