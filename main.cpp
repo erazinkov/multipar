@@ -86,6 +86,15 @@ std::map<std::string, Data> getData(const std::string &fileName,
 
 
 
+struct Point  {
+    std::string sample;
+    ChemResult chemResult;
+    double x;
+    double xErr;
+    double y;
+    double yErr;
+};
+
 class FitFunction
 {
 public:
@@ -125,14 +134,47 @@ private:
     const std::map<int, double> dA_;
 };
 
-struct Point  {
-    std::string sample;
-    ChemResult chemResult;
-    double x;
-    double xErr;
-    double y;
-    double yErr;
+class FitFunction1
+{
+public:
+    FitFunction1(const std::vector<Point> &points)
+        : points_{points} {}
+
+    double operator() (double *x, double *par)
+    {
+        double arg{x[0]};
+        int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(points_.size() - 1)) };
+        auto val{0.0};
+        std::map<std::string, double> dm{
+            {"Al", d_.at(idx).at(0)},
+            {"C", d_.at(idx).at(1)},
+            {"N", d_.at(idx).at(2)},
+            {"O", d_.at(idx).at(3)},
+            {"Si", d_.at(idx).at(4)},
+//            {"A", dA_.at(idx - dA_.size())}
+        };
+
+        if (idx < static_cast<int>(dA_.size())) {
+            val = ( par[3]
+                  - par[4] * par[0] * dm.at("O")
+                  - par[2] * par[4]
+                  - par[5] * dm.at("C")
+                  - par[6] * dm.at("N") )
+                  / ( 1.0 - par[1] * par[4] );
+        } else {
+            val = ( par[0] * dm.at("O")
+                   - par[1] * dA_.at(idx - dA_.size())
+                   + par[2] );
+        }
+        return val;
+   }
+private:
+    const std::vector<Point> points_;
+//    const std::map<int, std::vector<double>> d_;
+//    const std::map<int, double> dA_;
 };
+
+
 
 struct Points {
     std::vector<std::string> l;
@@ -682,6 +724,9 @@ int main()
         for (const auto &p : points) {
             std::cout << p.sample << " " << p.x << " " << p.y << std::endl;
         }
+
+//        FitFunction fObj(mmn, dA);
+//        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
 
 //        auto data1{getFitResults(fileName, columnElement, chem, m)};
 
