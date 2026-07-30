@@ -26,15 +26,6 @@
 
 #include <regex>
 
-std::map<std::string, std::pair<double, double>> preGrad{
-    { "C", {-1.70467, 1.074623} },
-    { "Al", {0.785556, 1.088333} },
-    { "N", {-0.33024, 1.281688} },
-    { "O", {-6.21944, 1.068012} },
-    { "Si", {0.090895, 0.992175} },
-    { "UNKNOWN", {0.0, 1.0}},
-};
-
 class my_error: public std::exception
 {
 public:
@@ -90,81 +81,6 @@ struct Data1 {
             }
         }
     }
-};
-
-class FitFunction_1
-{
-public:
-    FitFunction_1(const std::map<int, std::vector<double>> &d, const std::map<int, double> &dA)
-        : _d{d}, _dA{dA} {}
-
-    double operator() (double *x, double *par)
-    {
-        double arg{x[0]};
-        int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
-        double val{0.0};
-
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
-
-        val = par[0] * _d.at(idx).at(3) // O
-              - par[1] * _dA.at(idx) // A
-              + par[2];
-
-        return val;
-   }
-private:
-    const std::map<int, std::vector<double>> _d;
-    const std::map<int, double> _dA;
-};
-
-class FitFunction_2
-{
-public:
-    FitFunction_2(const std::map<int, std::vector<double>> &d, const int &aNumber)
-        : _d{d}, _aNumber{aNumber} {}
-
-    double operator() (double *x, double *par)
-    {
-        double arg{x[0]};
-        int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(_d.size() - 1)) };
-        double val{0.0};
-
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-//        mmn[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
-
-        auto W{
-            par[3] * _d.at(idx).at(3) // O
-            - par[4] * _d.at(idx).at(4) // Si
-            - par[5] * _d.at(idx).at(0) // Al
-            - par[6] * _d.at(idx).at(2) // N
-            + par[7]
-        };
-
-        auto A{
-           (par[1] + par[0] * _d.at(idx).at(1)) // C
-            / (100.0 - par[2] * W) * 100.0
-        };
-
-        if (idx < _aNumber)
-        {
-            val = A;
-        }
-        else
-        {
-            val = W;
-        }
-        return val;
-   }
-private:
-    const std::map<int, std::vector<double>> _d;
-    const int _aNumber;
 };
 
 class FitFunction_3
@@ -431,321 +347,8 @@ void drawCorrGraphWr(const std::map<std::string, Data1> &data, double par = 0.0)
     c.get()->Print((psName + ']').c_str());
 }
 
-void drawCorrGraphWr1(const std::map<std::string, Data1> &data, double par = 0.0) {
-
-    Points points1;
-
-    std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
-    for (const auto &i : data) {
-//        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
-        std::stringstream ss;
-        ss << std::setprecision(3) << i.second.chem.a.value();
-        points1.l.push_back(i.first);
-        points1.x.push_back(i.second.fr.at(0).at(3).value + par * i.second.chem.a.value());
-        points1.y.push_back(i.second.chem.w.value());
-        points1.xErr.push_back(0.0);
-        points1.yErr.push_back(0.0);
-    }
-
-    Points points{getPredicatedPoints(points1)};
-
-    const std::string psName{"output_corr_grad.ps"};
-    std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
-    c.get()->SetGrid();
-    gStyle->SetOptFit(11111);
-    c.get()->Print((psName + '[').c_str());
-
-    auto min = std::min((*std::min_element(points.x.begin(), points.x.end())), (*std::min_element(points.y.begin(), points.y.end())));
-    auto max = std::max((*std::max_element(points.x.begin(), points.x.end())), (*std::max_element(points.y.begin(), points.y.end())));
-
-
-
-    std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
-                                           "h2dCorr",
-                                           static_cast<int>(points.y.size()),
-                                           0.75 * min,
-                                           1.25 * max,
-                                           static_cast<int>(points.y.size()),
-                                           0.75 * min,
-                                           1.25 * max)};
-    h2dCorr.get()->SetStats(0);
-    h2dCorr.get()->Draw();
-    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
-    gr.get()->SetMarkerSize(1.05);
-    gr.get()->SetMarkerStyle(21);
-    std::stringstream ss;
-    ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbsCon(points) << ", " << "mOxy'=mOxy+k#bulletAd," << " k=" << par << ";mOxyGrad,%;Wr,%";
-    h2dCorr.get()->SetTitle(ss.str().c_str());
-
-    std::unique_ptr<TF1> f{std::make_unique<TF1>("f", "pol1", 0.75 * min, 1.25 * max)};
-//    gr.get()->Fit(f.get(), "R");
-    gr.get()->Draw("SAME P");
-
-    std::unique_ptr<TLine> l{new TLine(0.75 * min,
-                                       0.75 * min,
-                                       1.25 * max,
-                                       1.25 * max)};
-    l.get()->Draw("SAME");
-
-
-    std::vector<TLatex> labels;
-    std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_blind_", kBlue), Points() },
-        { std::make_pair("berez_11_w", kGreen), Points() },
-        { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("barz_blind", kMagenta), Points() },
-//        { std::make_pair("berez_", kYellow), Points() },
-//        { std::make_pair("kuz_", kCyan), Points() },
-        { std::make_pair("other", kBlack), Points() },
-    };
-
-
-    for (size_t i{0}; i < points.x.size(); ++i)
-    {
-        for (auto &item : subPoints)
-        {
-            if (points.l.at(i).find(item.first.first) != std::string::npos)
-            {
-                TMarker m{points.x.at(i), points.y.at(i), 21};
-                m.SetMarkerSize(1.05);
-                m.SetMarkerColor(item.first.second);
-                m.DrawClone("SAME");
-                item.second.l.push_back(points.l.at(i));
-                item.second.x.push_back(points.x.at(i));
-                item.second.y.push_back(points.y.at(i));
-//                item.second.xErr.push_back(0.1);
-//                item.second.yErr.push_back(0.5);
-
-            }
-        }
-    }
-
-    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
-    pt.get()->SetFillColor(0);
-    pt.get()->SetBorderSize(1);
-
-    // Add entries from map keys
-    for (const auto& entry : subPoints) {
-        const std::string& key = entry.first.first;
-        Color_t color = entry.first.second;
-
-        TText *text = pt.get()->AddText(key.c_str());
-        text->SetTextColor(color);
-    }
-    pt.get()->Draw("SAME");
-    c.get()->Print(psName.c_str());
-    c.get()->Print((psName + ']').c_str());
-}
-
-
-void drawCorrGraphWr2(const std::map<std::string, Data1> &data) {
-
-    std::map<int, std::vector<double>> d;
-    std::map<int, double> dA;
-
-    int xx{static_cast<int>(d.size())};
-    for (auto it{data.begin()}; it != data.end(); ++it) {
-        for (size_t i{0}; i < it->second.fr.size(); ++i) {
-            std::string label{it->first + "_" + i};
-            std::optional<double> v;
-            v = (*it).second.chem.a;
-            if (v.has_value()) {
-                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-                d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
-                dA[xx] = v.value();
-                xx++;
-            }
-        }
-    }
-
-    Points points;
-    addPointsByValue(data, points, Data1::Value::W);
-
-    std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.x.size()), &points.x[0], &points.y[0], &points.xErr[0], &points.yErr[0])};
-    gr.get()->SetMarkerSize(1.5);
-    gr.get()->SetMarkerStyle(21);
-    gr.get()->SetTitle(";N_{probe};W, %");
-
-    std::vector<TLatex> labels;
-
-    for (size_t i{0}; i < points.x.size(); ++i) {
-        auto pos{points.l.at(i).find_last_of("_")};
-        auto text{points.l.at(i)};
-        if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
-        {
-            text = text.substr(0, pos);
-        }
-        TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
-        l.SetTextAngle(90);
-        l.SetTextAlign(12);
-        l.SetTextSize(0.02);
-        labels.push_back(l);
-    }
-
-    FitFunction_1 fObj(d, dA);
-    std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 3)};
-    f.get()->SetParameter(0, 1.0);
-    f.get()->SetParameter(1, 0.4);
-
-    f.get()->SetParameter(2, 0.0);
-    f.get()->SetParLimits(0, 0.0, 2.0);
-    f.get()->SetParLimits(1, 0.0, 2.0);
-
-    f.get()->SetParLimits(2, -20.0, 20.0);
-
-    f.get()->SetParName(0, "O");
-    f.get()->SetParName(1, "A");
-
-    f.get()->SetParName(2, "const");
-
-    f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
-
-    gr.get()->Fit(f.get(), "R");
-
-
-    Points points1;
-
-    std::cout << "Ad,%" << " " << "Wr,%" << " " << "Oxy,%" << std::endl;
-    for (const auto &i : data) {
-//        std::cout << i.second.chem.a.value() << " " << i.second.chem.w.value() << " " << i.second.fr.at(0).at(3).value << std::endl;
-        std::stringstream ss;
-        ss << std::setprecision(3) << i.second.chem.a.value();
-        points1.l.push_back(i.first);
-        points1.x.push_back(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).value
-                            - f.get()->GetParameter(1) * i.second.chem.a.value()
-                            + f.get()->GetParameter(2));
-        points1.y.push_back(i.second.chem.w.value());
-        auto xErr{std::sqrt(
-//                        std::pow(i.second.fr.at(0).at(3).value * f.get()->GetParError(0), 2)
-//                        + std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
-//                        + std::pow(-1.0 * i.second.chem.a.value() * f.get()->GetParError(1), 2)
-//                        + std::pow(-1.0 * f.get()->GetParameter(1) * (i.second.chem.a.value() * 0.1), 2)
-//                        + std::pow(f.get()->GetParError(2), 2)
-                        std::pow(f.get()->GetParameter(0) * i.second.fr.at(0).at(3).valueError, 2)
-                        + std::pow(-1.0 * f.get()->GetParameter(1) * (i.second.chem.a.value() * 0.1), 2)
-                        )
-        };
-        auto yErr{0.03 * i.second.chem.w.value()};
-        points1.xErr.push_back(xErr);
-        points1.yErr.push_back(yErr);
-    }
-
-    auto min = std::min((*std::min_element(points1.x.begin(), points1.x.end())), (*std::min_element(points1.y.begin(), points1.y.end())));
-    auto max = std::max((*std::max_element(points1.x.begin(), points1.x.end())), (*std::max_element(points1.y.begin(), points1.y.end())));
-
-
-
-    std::unique_ptr<TGraphErrors> gr1{new TGraphErrors(static_cast<int>(points1.x.size()), &points1.x[0], &points1.y[0], &points1.xErr[0], &points1.yErr[0])};
-    gr1.get()->SetMarkerSize(1.5);
-    gr1.get()->SetMarkerStyle(21);
-
-
-    const std::string psName{"output_corr_2.ps"};
-    std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
-    c.get()->SetGrid();
-    gStyle->SetOptFit(11111);
-    c.get()->Print((psName + '[').c_str());
-    gr.get()->Draw("APL");
-    for (const auto &item : labels)
-    {
-        item.DrawClone("SAME");
-    }
-    c.get()->Print(psName.c_str());
-    std::unique_ptr<TH2D> h2dCorr{new TH2D("h2dCorr",
-                                           "h2dCorr",
-                                           static_cast<int>(points1.y.size()),
-                                           0.75 * min,
-                                           1.25 * max,
-                                           static_cast<int>(points1.y.size()),
-                                           0.75 * min,
-                                           1.25 * max)};
-    h2dCorr.get()->SetStats(0);
-    std::stringstream ss;
-    ss << std::setprecision(2);
-    ss << "stdAbs=" << calculateStdAbsCon(points1) << ", " << "mOxy'=par_{0}O-par_{1}A+par_{2}" << ";mOxy', %;W, %";
-    h2dCorr.get()->SetTitle(ss.str().c_str());
-    h2dCorr.get()->Draw();
-    gr1.get()->Draw("SAME P");
-    std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("N12", kRed), Points() },
-        { std::make_pair("berez_6", kBlue), Points() },
-        { std::make_pair("berez_11", kGreen), Points() },
-        { std::make_pair("N12_blind", kOrange), Points() },
-        { std::make_pair("barz_blind", kMagenta), Points() },
-        { std::make_pair("berez_7", kYellow), Points() },
-        { std::make_pair("berez_2", kCyan), Points() },
-        { std::make_pair("other", kBlack), Points() },
-    };
-
-
-    for (size_t i{0}; i < points1.x.size(); ++i)
-    {
-        for (auto &item : subPoints)
-        {
-            if (points1.l.at(i).find(item.first.first) != std::string::npos)
-            {
-                TMarker m{points1.x.at(i), points1.y.at(i), 21};
-                m.SetMarkerSize(1.5);
-                m.SetMarkerColor(item.first.second);
-                m.DrawClone("SAME");
-                item.second.l.push_back(points1.l.at(i));
-                item.second.x.push_back(points1.x.at(i));
-                item.second.y.push_back(points1.y.at(i));
-//                item.second.xErr.push_back(0.1);
-//                item.second.yErr.push_back(0.5);
-
-            }
-        }
-    }
-    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.7, 0.3, 0.9, "NDC")};
-    pt.get()->SetFillColor(0);
-    pt.get()->SetBorderSize(1);
-
-    // Add entries from map keys
-    for (const auto& entry : subPoints) {
-        const std::string& key = entry.first.first;
-        Color_t color = entry.first.second;
-
-        TText *text = pt.get()->AddText(key.c_str());
-        text->SetTextColor(color);
-    }
-    pt.get()->Draw("SAME");
-
-    std::unique_ptr<TLine> l{new TLine(0.75 * min,
-                                       0.75 * min,
-                                       1.25 * max,
-                                       1.25 * max)};
-    l.get()->Draw("SAME");
-    c.get()->Print(psName.c_str());
-    c.get()->Print((psName + ']').c_str());
-}
-
-
-
-void set_plot_style() {
-    const Int_t NRGBs = 5;
-    const Int_t NCont = 50;
-    Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-    Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-    Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-    Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-    TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
-    gStyle->SetNumberContours(NCont);
-
-}
 
 void drawCorrGraphWr3_a(const std::map<std::string, Data1> &data, const std::unique_ptr<TF1> &f) {
-
-//    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(0)).value); // Al
-//    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(1)).value); // C
-//    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(2)).value); // N
-//    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(3)).value); // O
-//    d[xx].push_back(it->second.fr.at(i).at(static_cast<size_t>(4)).value); // Si
 
     Points points1;
 
@@ -1100,7 +703,7 @@ void drawCorrGraphWr3_w(const std::map<std::string, Data1> &data, const std::uni
 
 int main()
 {
-     TVirtualFitter::SetDefaultFitter("Minuit");
+    TVirtualFitter::SetDefaultFitter("Minuit");
     std::map<std::string, ChemResult> chem
     {
 
@@ -1116,27 +719,12 @@ int main()
         { "pulp_rot_N12_10_", { 30.4, 8.2 } },
         { "pulp_rot_N12_11_", { 32.9, 8.1 } },
 
-//        {"pulp_rot_berez_2_", {15.6, 0.9 + 3.0}},
-//        {"pulp_rot_berez_7_", {19.8, 0.8}},
-//        {"pulp_rot_berez_11_", {24.2, 0.8}},
-//        {"pulp_rot_berez_5_", {17.5, std::nullopt}},
-//        {"pulp_rot_berez_10_", {22.3, std::nullopt}},
         { "pulp_rot_barz_blind_a21p9_", {21.9, 1.6} },
         { "pulp_rot_barz_blind_a6p8_", {6.8, 1.4} },
         { "pulp_rot_berez_blind_a11p7_", {11.7, 3.0} },
         { "pulp_rot_berez_blind_a17p9_", {17.9, 2.8} },
         { "pulp_rot_N12_blind_a8p6_", {8.6, 2.4} },
         { "pulp_rot_N12_blind_a13p6_", {13.6, 2.1} },
-
-//{ "pulp_rot_berez_6_w0p8_", {15.5, 0.8} },
-//{ "pulp_rot_berez_6_w5_", {15.5, 5.0} },
-//{ "pulp_rot_berez_6_w10_", {15.5, 10.0} },
-//{ "pulp_rot_berez_6_w15_", {15.5, 15.0} },
-
-
-//        {"pulp_rot_berez_11_w5_", {24.2, 5.0}},
-//        {"pulp_rot_berez_11_w10_", {24.2, 10.0}},
-//        {"pulp_rot_berez_11_w15_", {24.2, 15.0}},
 
 //        { "pulp_rot_berez_6_w0", {15.5, 3.5} },
 //        { "pulp_rot_berez_6_w5_", {15.5, 8.8} },
@@ -1153,22 +741,11 @@ int main()
         {"pulp_rot_berez_7_w15_", {19.8, 15.0}},
         {"pulp_rot_berez_7_1500g_w0_", {19.8, 2.0} },
 
-//        {"pulp_rot_berez_11_w0_", {24.2, 1.4}},
-//        {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
-//        {"pulp_rot_berez_11_w10_", {24.2, 11.6} },
-//        {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
-
         {"pulp_rot_berez_11_w0_", {24.2, 1.5}},
         {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
         {"pulp_rot_berez_11_w10_", {24.2, 11.5} },
         {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
         {"pulp_rot_berez_11_1500g_w0_", {24.2, 1.5} },
-
-                { "pulp_rot_kuz_1_a7p85_", { 7.85, 0.5 } },
-                { "pulp_rot_kuz_6_a18p48_", { 18.48, 0.5 } },
-                { "pulp_rot_kuz_7_a27p12_", { 27.12, 0.5 } },
-                { "pulp_rot_kuz_8_a5p89_", { 5.89, 0.5 } },
-                { "pulp_rot_kuz_9_a5p76_", { 5.76, 0.5 } },
 
     };
 
@@ -1181,102 +758,28 @@ int main()
          {9, "Si"},
     };
 
-//    const std::map<int, std::string> columnElement
-//    {
-//        {1, "Al"}, //0
-//        {3, "C"},  //1
-//        {5, "Ca"}, //2
-//        {7, "Fe"}, //3
-//        {9, "O"},  //4
-//        {11, "Si"},//5
-//    };
-
 
     const auto fileName{"rea.elts.stroy.check_5.txt"};
     std::cout << fileName << std::endl;
 
-//    chem.insert(chemBlind.begin(), chemBlind.end());
 
-    try
-    {
-//        std::regex m{"\\d+_\\d\\."};
-        // std::regex m{"\\d+_(s|t)"};
-        // std::regex m{"\\d+"};
-//        std::regex m{"(pulp_rot_berez_6_w\\d+_\\d+)"};
-//        std::regex m{"(check_bereza_8)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
-//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_6_w\d+p\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum)"}; // used to get optimal par
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
-
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_berez_7_w\d+_sum)"};//!
-//        std::regex m{"(pulp_rot_berez_\\d+_\\d+)"};
-//        std::regex m{"(pulp_rot_berez_111_w5_|pulp_rot_berez_111_w10_|pulp_rot_berez_111_w15_)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+|_blind_a\\d+p\\d+_\\d+)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+|pulp_rot_berez_\\d+_\\d+)"};
-//        std::regex m{"(pulp_rot_N12_\\d+_\\d+)"};
-//        std::regex m{"(pulp_rot_N12_\\d*[02468]_\\d+)"};
-
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum|pulp_rot_berez_[27]_sum|pulp_rot_kuz_\d+_a\d+p\d+_sum)"};
-
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_11_w\d+p\d+_sum|pulp_rot_N12_\d+_sum|_blind_a\d+p\d+_sum)"};
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};
-
-
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_sum)"};//!
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_\d+)"};//!
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum)"};//!
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
-//        std::regex m_{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
-
-        // check 1
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_\d+)"};//!
-//        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
-
-        // optimal
-//        std::regex m{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
-//        std::regex m_{R"(pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum)"};//!
-
-        // check 2
-//        std::regex m{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+)"};//!
-//        std::regex m{R"(pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};//!
-
-        // check 3
-//        std::regex m{R"(pulp_rot_berez_\d+_w\d+_sum|pulp_rot_N12_\d+_sum)"};//!
-//        std::regex m_{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_\d+|pulp_rot_berez_6_w\d+_\d+)"};//!
-        std::regex m{R"(pulp_rot_berez_71_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
+    try {
+        std::regex m{R"(pulp_rot_berez_71_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};
 
 
         auto data1{getFitResults(fileName, columnElement, chem, m)};
 
         Points points;
 
-        auto value{Data1::Value::A};
-
         addPointsByValue(data1, points, Data1::Value::A);
         addPointsByValue(data1, points, Data1::Value::W);
-//        auto wNumber{points.x.size() - aNumber};
+
         std::map<int, std::vector<double>> mmn;
-//        size_t idx{ static_cast<size_t>(std::round(points.x.front())) };
 
         addMmnByValue(data1, mmn, Data1::Value::A);
         addMmnByValue(data1, mmn, Data1::Value::W);
 
         std::cout << data1.size() << std::endl;
-
-//        auto par{getOptimalPar(data1)};
-
-//        drawCorrGraphWr(data1, par);
-//        drawCorrGraphWr2(data1);
-//        drawCorrGraphWr1(data1, -0.39);
-
-//        drawCorrGraphs(data1);
-
-//        return 0;
 
         std::cout << points.x.size() << " " << mmn.size() << std::endl;
 
@@ -1315,16 +818,6 @@ int main()
                 }
             }
         }
-
-//        int xx{0};
-//        for (auto it{data1.begin()}; it != data1.end(); ++it) {
-//            std::optional<double> v;
-//            v = (*it).second.chem.a;
-//            if (v.has_value()) {
-//                dA[xx] = v.value();
-//                xx++;
-//            }
-//        }
 
         FitFunction_3 fObj(mmn, dA);
         std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
@@ -1378,28 +871,6 @@ int main()
 
         setInitialParameters(f.get());
 //        setParametersLimits(f.get());
-//        f.get()->FixParameter(6, 0.0);
-
-//        f.get()->SetParameter(0, 1.0);
-//        f.get()->SetParameter(1, 0.4);
-//        f.get()->SetParameter(2, 1.0);
-
-//        f.get()->SetParameter(3, 100.0);
-//        f.get()->SetParameter(4, 1.0);
-//        f.get()->SetParameter(5, 1.0);
-//        f.get()->SetParameter(6, 1.0);
-
-//        f.get()->SetParLimits(0, 0.0, 2.0);
-//        f.get()->SetParLimits(1, 0.0, 2.0);
-//        f.get()->SetParLimits(2, -20.0, 20.0);
-
-//        f.get()->SetParLimits(3, 50.0, 150.0);
-//        f.get()->SetParLimits(4, 0.0, 2.0);
-//        f.get()->SetParLimits(5, 0.0, 2.0);
-//        f.get()->SetParLimits(6, 0.0, 3.0);
-
-//        f.get()->FixParameter(6, 0.0);
-
 
         f.get()->SetNpx(10 * static_cast<int>(points.x.size()));
 
@@ -1521,8 +992,7 @@ double strToDouble(std::string str)
     double d;
     std::stringstream ss(str);
     ss >> d;
-    if (ss.fail())
-    {
+    if (ss.fail()) {
         throw my_error("Can\'t convert: " + str);
     }
     return d;
