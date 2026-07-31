@@ -58,6 +58,10 @@ struct FitResult {
 };
 
 struct ChemResult {
+    enum class Type {
+        A,
+        W
+    };
     std::optional<double> a;
     std::optional<double> w;
     void print() const {
@@ -89,6 +93,7 @@ std::map<std::string, Data> getData(const std::string &fileName,
 struct Point  {
     std::string sample;
     ChemResult chemResult;
+    FitResult fitResult;
     double x;
     double xErr;
     double y;
@@ -137,41 +142,39 @@ private:
 class FitFunction1
 {
 public:
-    FitFunction1(const std::vector<Point> &points)
-        : points_{points} {}
+    FitFunction1(const std::vector<Point> &points, const size_t s)
+        : points_{points}, s_{s} {}
 
     double operator() (double *x, double *par)
     {
         double arg{x[0]};
         int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(points_.size() - 1)) };
         auto val{0.0};
-        std::map<std::string, double> dm{
-            {"Al", d_.at(idx).at(0)},
-            {"C", d_.at(idx).at(1)},
-            {"N", d_.at(idx).at(2)},
-            {"O", d_.at(idx).at(3)},
-            {"Si", d_.at(idx).at(4)},
-//            {"A", dA_.at(idx - dA_.size())}
-        };
-
-        if (idx < static_cast<int>(dA_.size())) {
+        if (idx < static_cast<int>(s_)) {
             val = ( par[3]
-                  - par[4] * par[0] * dm.at("O")
+                  - par[4] * par[0] * getElementResultValue_("O", points_.at(idx)).value_or(0.0)
                   - par[2] * par[4]
-                  - par[5] * dm.at("C")
-                  - par[6] * dm.at("N") )
+                  - par[5] * getElementResultValue_("C", points_.at(idx)).value_or(0.0)
+                  - par[6] * getElementResultValue_("N", points_.at(idx)).value_or(0.0) )
                   / ( 1.0 - par[1] * par[4] );
         } else {
-            val = ( par[0] * dm.at("O")
-                   - par[1] * dA_.at(idx - dA_.size())
+            val = ( par[0] * getElementResultValue_("O", points_.at(idx)).value_or(0.0)
+                   - par[1] * points_.at(idx - s_).chemResult.a.value()
                    + par[2] );
         }
         return val;
    }
 private:
+    std::optional<double> getElementResultValue_(const std::string &element, const Point &point) {
+        for (const auto& e : point.fitResult.fitResult) {
+            if (e.e == element) {
+                return e.value;
+            }
+        }
+        return std::nullopt;
+    }
     const std::vector<Point> points_;
-//    const std::map<int, std::vector<double>> d_;
-//    const std::map<int, double> dA_;
+    const size_t s_;
 };
 
 
@@ -607,6 +610,7 @@ Points getPredicatedPoints(const Points& points) {
 //    c.get()->Print((psName + ']').c_str());
 //}
 
+
 int main()
 {
     TVirtualFitter::SetDefaultFitter("Minuit");
@@ -668,10 +672,8 @@ int main()
     const auto fileName{"rea.elts.stroy.check_5.txt"};
     std::cout << fileName << std::endl;
 
-
     try {
-        std::regex m{R"(pulp_rot_berez_71_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};
-
+        std::regex m{R"(pulp_rot_berez_71_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_sum)"};
 
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
@@ -680,50 +682,167 @@ int main()
             std::cout << std::endl;
         }
 
-        auto getPoints = [](const std::map<std::string, Data> &data) {
 
-            std::vector<Point> points_a;
-            std::vector<Point> points_w;
-
-            for (const auto &[key, value] : data) {
-                const auto a{value.chemResult.a};
-                const auto w{value.chemResult.w};
-                if (a.has_value()) {
-                    Point point;
-                    point.sample = key;
-                    point.chemResult = value.chemResult;
-                    point.x = points_a.size();
-                    point.xErr = 0.1;
-                    point.y = a.value();
-                    point.yErr = 0.1 * a.value();
-                    points_a.push_back(point);
-                }
-                if (w.has_value()) {
-                    Point point;
-                    point.sample = key;
-                    point.chemResult = value.chemResult;
-                    point.x = points_w.size();
-                    point.xErr = 0.1;
-                    point.y = w.value();
-                    point.yErr = 0.03 * w.value();
-                    points_w.push_back(point);
-                }
-            }
-
-            for (auto &p : points_w) {
-                p.x  = p.x + points_a.size();
-            }
+        auto getPoints = [](const std::map<std::string, Data> &data, const ChemResult::Type &type) {
             std::vector<Point> points;
-            points.insert(points.end(), points_a.cbegin(), points_a.cend());
-            points.insert(points.end(), points_w.cbegin(), points_w.cend());
+            for (const auto &[key, value] : data) {
+                for (const auto &fr : value.fitResults) {
+                    std::optional<double> v;
+                    double err{0.0};
+                    switch (type) {
+                        case (ChemResult::Type::A):
+                            v = value.chemResult.a;
+                            err = 0.1;
+                        break;
+                        case (ChemResult::Type::W):
+                            v = value.chemResult.w;
+                            err = 0.03;
+                        break;
+                    }
+                    if (v.has_value()) {
+                        Point point;
+                        point.sample = key;
+                        point.chemResult = value.chemResult;
+                        point.x = points.size();
+                        point.xErr = 0.0;
+                        point.y = v.value();
+                        point.yErr = err * v.value();
+                        point.fitResult = fr;
+                        points.push_back(point);
+                    }
+                }
+            }
             return points;
         };
 
-        auto points{getPoints(data)};
+        std::vector<Point> points_a{getPoints(data, ChemResult::Type::A)};
+        std::vector<Point> points_w{getPoints(data, ChemResult::Type::W)};
+        for (auto &p : points_w) {
+            p.x  = p.x + points_a.size();
+        }
+
+        std::vector<Point> points;
+        points.insert(points.end(), points_a.cbegin(), points_a.cend());
+        points.insert(points.end(), points_w.cbegin(), points_w.cend());
+
+        std::vector<double> xx, xxErr;
+        std::vector<double> yy, yyErr;
 
         for (const auto &p : points) {
-            std::cout << p.sample << " " << p.x << " " << p.y << std::endl;
+            xx.push_back(p.x);
+            yy.push_back(p.y);
+            xxErr.push_back(p.xErr);
+            yyErr.push_back(p.yErr);
+            std::cout << p.sample << " " << p.x << " " << p.y;
+            p.fitResult.print();
+            std::cout << std::endl;
         }
+
+//        FitFunction1 fObj(points, points_a.size());
+//        std::unique_ptr<TF1> f{new TF1("f", fObj, xx.front(), xx.back(), 7)};
+
+
+//        const std::vector<double> parameters = {
+//              1.55468e+00,
+//              7.55269e-01,
+//             -1.22767e+01,
+//              1.05060e+02,
+//              6.69100e-01,
+//              1.17662e+00,
+//              0.00000e+00
+//        };
+
+//        auto setInitialParameters = [&parameters](TF1 *f){
+//            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
+//                f->SetParameter(std::distance(parameters.begin(), it), *it);
+//            }
+//        };
+//        setInitialParameters(f.get());
+
+        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.size()), &xx[0], &yy[0], &xxErr[0], &yyErr[0])};
+        gr.get()->SetMarkerSize(1.5);
+        gr.get()->SetMarkerStyle(21);
+        gr.get()->SetTitle(";N_{probe};[...A, ...W]");
+
+//        f.get()->SetNpx(10 * static_cast<int>(points.size()));
+
+//        gr.get()->Fit(f.get(), "R");
+
+        const std::string psName{"output.ps"};
+        std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+        c.get()->Print((psName + '[').c_str());
+        gr.get()->Draw("APL");
+        c.get()->Print(psName.c_str());
+        c.get()->Print((psName + ']').c_str());
+        c.get()->Close();
+
+
+        //++++
+//        std::vector<TLatex> labels;
+
+//        for (size_t i{0}; i < points.size(); ++i) {
+//            auto pos{points.l.at(i).find_last_of("_")};
+//            auto text{points.l.at(i)};
+//            if (pos != std::string::npos && pos == points.l.at(i).length() - 1)
+//            {
+//                text = text.substr(0, pos);
+//            }
+//            TLatex l(points.x.at(i), points.y.at(i) + 1.25 * points.yErr.at(i), text.c_str());
+//            l.SetTextAngle(90);
+//            l.SetTextAlign(12);
+//            l.SetTextSize(0.02);
+//            labels.push_back(l);
+//        }
+
+
+
+//            std::vector<Point> points_w;
+
+//            for (const auto &[key, value] : data) {
+//                for (const auto &fr : value.fitResults) {
+//                    const auto a{value.chemResult.a};
+//                    const auto w{value.chemResult.w};
+//                    if (a.has_value()) {
+//                        Point point;
+//                        point.sample = key;
+//                        point.chemResult = value.chemResult;
+//                        point.x = points_a.size();
+//                        point.xErr = 0.1;
+//                        point.y = a.value();
+//                        point.yErr = 0.1 * a.value();
+//                        point.fitResult = fr;
+//                        points_a.push_back(point);
+//                    }
+//                    if (w.has_value()) {
+//                        Point point;
+//                        point.sample = key;
+//                        point.chemResult = value.chemResult;
+//                        point.x = points_w.size();
+//                        point.xErr = 0.1;
+//                        point.y = w.value();
+//                        point.yErr = 0.03 * w.value();
+//                        point.fitResult = fr;
+//                        points_w.push_back(point);
+//                    }
+//                }
+//            }
+
+//            for (auto &p : points_w) {
+//                p.x  = p.x + points_a.size();
+//            }
+//            std::vector<Point> points;
+//            points.insert(points.end(), points_a.cbegin(), points_a.cend());
+//            points.insert(points.end(), points_w.cbegin(), points_w.cend());
+//            return points;
+//        };
+
+//        auto points{getPoints(data)};
+
+//        for (const auto &p : points) {
+//            std::cout << p.sample << " " << p.x << " " << p.y;
+//            p.fitResult.print();
+//            std::cout << std::endl;
+//        }
 
 //        FitFunction fObj(mmn, dA);
 //        std::unique_ptr<TF1> f{new TF1("f", fObj, points.x.front(), points.x.back(), 7)};
