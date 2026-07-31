@@ -673,7 +673,7 @@ int main()
     std::cout << fileName << std::endl;
 
     try {
-        std::regex m{R"(pulp_rot_berez_71_w\d+_\d+|pulp_rot_berez_2_w\d+_\d+|pulp_rot_berez_11_w\d+_sum)"};
+        std::regex m{R"(pulp_rot_berez_71_w\d+_\d+|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum)"};
 
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
@@ -738,40 +738,50 @@ int main()
             std::cout << std::endl;
         }
 
-//        FitFunction1 fObj(points, points_a.size());
-//        std::unique_ptr<TF1> f{new TF1("f", fObj, xx.front(), xx.back(), 7)};
+        FitFunction1 fObj(points, points_a.size());
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 7)};
+        const std::vector<double> parameters = {
+              1.55468e+00,
+              7.55269e-01,
+             -1.22767e+01,
+              1.05060e+02,
+              6.69100e-01,
+              1.17662e+00,
+              0.00000e+00
+        };
+
+        auto setInitialParameters = [&parameters](TF1 *f){
+            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
+                f->SetParameter(std::distance(parameters.begin(), it), *it);
+            }
+        };
+        setInitialParameters(f.get());
+
+        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(points.size())};
 
 
-//        const std::vector<double> parameters = {
-//              1.55468e+00,
-//              7.55269e-01,
-//             -1.22767e+01,
-//              1.05060e+02,
-//              6.69100e-01,
-//              1.17662e+00,
-//              0.00000e+00
-//        };
+        for (size_t i{0}; i < points.size(); i++) {
+            gr.get()->SetPoint(i, points.at(i).x, points.at(i).y);
+            gr.get()->SetPointError(i, points.at(i).xErr, points.at(i).yErr);
+        }
 
-//        auto setInitialParameters = [&parameters](TF1 *f){
-//            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
-//                f->SetParameter(std::distance(parameters.begin(), it), *it);
-//            }
-//        };
-//        setInitialParameters(f.get());
-
-        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(static_cast<int>(points.size()), &xx[0], &yy[0], &xxErr[0], &yyErr[0])};
         gr.get()->SetMarkerSize(1.5);
         gr.get()->SetMarkerStyle(21);
         gr.get()->SetTitle(";N_{probe};[...A, ...W]");
 
-//        f.get()->SetNpx(10 * static_cast<int>(points.size()));
+        f.get()->SetNpx(10 * static_cast<int>(points.size()));
 
-//        gr.get()->Fit(f.get(), "R");
+        gr.get()->Fit(f.get(), "R");
 
+        TMarker bM{points_a.back().x + 0.5, TMath::MinElement(gr.get()->GetN(), gr.get()->GetY()) + 5.0, 20};
+        bM.SetMarkerSize(5.5);
         const std::string psName{"output.ps"};
         std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+        gPad->SetGrid();
         c.get()->Print((psName + '[').c_str());
         gr.get()->Draw("APL");
+
+        bM.DrawClone("SAME");
         c.get()->Print(psName.c_str());
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
