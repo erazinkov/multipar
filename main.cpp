@@ -828,18 +828,18 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        auto getPredicatedValueByType = [](const FitResult &fr, const ChemResult::Type &type, const TF1 &f){
+        auto getPredicatedValueByType = [](const FitResult &fr, const ChemResult::Type &type, TF1 *f){
             auto val_a{0.0};
             auto val_w{0.0};
-            val_a = ( f.GetParameter(3)
-                     - f.GetParameter(4) * f.GetParameter(0) * fr.getElementResultByName("O").value
-                     - f.GetParameter(2) * f.GetParameter(4)
-                     - f.GetParameter(5) * fr.getElementResultByName("C").value
-                     - f.GetParameter(6) * fr.getElementResultByName("N").value )
-                    / ( 1.0 - f.GetParameter(1) * f.GetParameter(4) );
-            val_w = ( f.GetParameter(0) * fr.getElementResultByName("O").value
-                     - f.GetParameter(1) * val_a
-                     + f.GetParameter(2) );
+            val_a = ( f->GetParameter(3)
+                     - f->GetParameter(4) * f->GetParameter(0) * fr.getElementResultByName("O").value
+                     - f->GetParameter(2) * f->GetParameter(4)
+                     - f->GetParameter(5) * fr.getElementResultByName("C").value
+                     - f->GetParameter(6) * fr.getElementResultByName("N").value )
+                    / ( 1.0 - f->GetParameter(1) * f->GetParameter(4) );
+            val_w = ( f->GetParameter(0) * fr.getElementResultByName("O").value
+                     - f->GetParameter(1) * val_a
+                     + f->GetParameter(2) );
 
             auto val{0.0};
             switch (type) {
@@ -854,7 +854,7 @@ int main()
         };
 
 
-        auto getPredicatedPointsByType = [&](const std::map<std::string, Data> &data, const ChemResult::Type &type, const TF1 &f) {
+        auto getPredicatedPointsByType = [&](const std::map<std::string, Data> &data, const ChemResult::Type &type, TF1 *f) {
             std::vector<Point> points;
             for (const auto &[key, value] : data) {
                 for (const auto &fr : value.fitResults) {
@@ -885,6 +885,35 @@ int main()
             }
             return points;
         };
+
+        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
+        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
+
+        std::vector<Point> points_p;
+        points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
+        points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
+
+        std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
+
+
+        for (size_t i{0}; i < points_p.size(); i++) {
+            gr_p.get()->SetPoint(i, points_p.at(i).x, points_p.at(i).y);
+            gr_p.get()->SetPointError(i, points_p.at(i).xErr, points_p.at(i).yErr);
+        }
+
+        gr_p.get()->SetMarkerSize(1.5);
+        gr_p.get()->SetMarkerStyle(21);
+        gr_p.get()->SetTitle(";N_{probe};[...A, ...W]");
+
+        const std::string psName_p{"output_p.ps"};
+        std::unique_ptr<TCanvas> c_p{new TCanvas("c_p", "c_p", 1024, 960)};
+        gPad->SetGrid();
+        c_p.get()->Print((psName_p + '[').c_str());
+        gr_p.get()->Draw("APL");
+
+        c_p.get()->Print(psName_p.c_str());
+        c_p.get()->Print((psName_p + ']').c_str());
+        c_p.get()->Close();
 
         // std::regex m_a_c{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+|N12_\d+_\d+)"};//3
         // auto data_c{getData(fileName, columnElement, chem, m_a_c)};
