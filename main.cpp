@@ -49,9 +49,9 @@ struct ElementResult {
 };
 
 struct FitResult {
-    std::vector<ElementResult> fitResult;
+    std::vector<ElementResult> elementResults;
     void print() const {
-        for (const auto &er : fitResult) {
+        for (const auto &er : elementResults) {
             er.print();
         }
     }
@@ -164,9 +164,10 @@ public:
         }
         return val;
    }
+
 private:
     std::optional<double> getElementResultValue_(const std::string &element, const Point &point) {
-        for (const auto& e : point.fitResult.fitResult) {
+        for (const auto& e : point.fitResult.elementResults) {
             if (e.e == element) {
                 return e.value;
             }
@@ -610,6 +611,66 @@ Points getPredicatedPoints(const Points& points) {
 //    c.get()->Print((psName + ']').c_str());
 //}
 
+/**
+* @brief Извлекает точки данных (Point) из мапы с данными по указанному типу химического результата.
+*
+* Функция перебирает все записи в data, для каждой записи обходит все fitResults,
+* и для каждого fitResult проверяет наличие значения указанного типа (A или W).
+* Если значение найдено, создаётся Point с соответствующими данными.
+*
+* @param data Ссылка на константную мапу, где ключ - идентификатор образца (std::string),
+* значение - структура Data, содержащая fitResults и chemResult.
+* @param type Тип химического результата (ChemResult::Type), определяющий,
+* какое поле использовать: A (зольность) или W (влажность).
+*
+* @return std::vector<Point> Вектор объектов Point, каждый из которых содержит:
+* - sample: идентификатор образца (ключ из data)
+* - chemResult: полная структура химического результата
+* - x: порядковый номер точки в векторе (начиная с 0)
+* - xErr: всегда 0.0 (погрешность по оси X отсутствует)
+* - y: значение выбранного параметра (A или W)
+* - yErr: погрешность по оси Y (рассчитывается как err * value)
+* - fitResult: соответствующий результат фитирования
+*
+* @note Погрешность по Y вычисляется по формуле: yErr = err * value,
+* где err - константа для данного типа (0.1 для A, 0.03 для W).
+* @note Порядковый номер точки (x) определяется как текущий размер вектора,
+* поэтому нумерация начинается с 0 и идёт по порядку добавления.
+* @warning Если значение для указанного типа отсутствует (std::nullopt),
+* точка не создаётся и пропускается.
+* @see Data, Point, ChemResult::Type
+*/
+std::vector<Point> getPointsByType(const std::map<std::string, Data> &data, const ChemResult::Type &type) {
+    std::vector<Point> points;
+    for (const auto &[key, value] : data) {
+        for (const auto &fr : value.fitResults) {
+            std::optional<double> v;
+            double err{0.0};
+            switch (type) {
+            case (ChemResult::Type::A):
+                v = value.chemResult.a;
+                err = 0.1;
+                break;
+            case (ChemResult::Type::W):
+                v = value.chemResult.w;
+                err = 0.03;
+                break;
+            }
+            if (v.has_value()) {
+                Point point;
+                point.sample = key;
+                point.chemResult = value.chemResult;
+                point.x = points.size();
+                point.xErr = 0.0;
+                point.y = v.value();
+                point.yErr = err * v.value();
+                point.fitResult = fr;
+                points.push_back(point);
+            }
+        }
+    }
+    return points;
+};
 
 int main()
 {
@@ -683,40 +744,10 @@ int main()
         }
 
 
-        auto getPoints = [](const std::map<std::string, Data> &data, const ChemResult::Type &type) {
-            std::vector<Point> points;
-            for (const auto &[key, value] : data) {
-                for (const auto &fr : value.fitResults) {
-                    std::optional<double> v;
-                    double err{0.0};
-                    switch (type) {
-                        case (ChemResult::Type::A):
-                            v = value.chemResult.a;
-                            err = 0.1;
-                        break;
-                        case (ChemResult::Type::W):
-                            v = value.chemResult.w;
-                            err = 0.03;
-                        break;
-                    }
-                    if (v.has_value()) {
-                        Point point;
-                        point.sample = key;
-                        point.chemResult = value.chemResult;
-                        point.x = points.size();
-                        point.xErr = 0.0;
-                        point.y = v.value();
-                        point.yErr = err * v.value();
-                        point.fitResult = fr;
-                        points.push_back(point);
-                    }
-                }
-            }
-            return points;
-        };
 
-        std::vector<Point> points_a{getPoints(data, ChemResult::Type::A)};
-        std::vector<Point> points_w{getPoints(data, ChemResult::Type::W)};
+
+        std::vector<Point> points_a{getPointsByType(data, ChemResult::Type::A)};
+        std::vector<Point> points_w{getPointsByType(data, ChemResult::Type::W)};
         for (auto &p : points_w) {
             p.x  = p.x + points_a.size();
         }
@@ -786,6 +817,56 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
+        // auto getPredicatedPointsByType = [](const std::map<std::string, Data> &data, const ChemResult::Type &type, const TF1 &f) {
+        //     std::vector<Point> points;
+        //     for (const auto &[key, value] : data) {
+        //         for (const auto &fr : value.fitResults) {
+        //             std::optional<double> v;
+        //             double err{0.0};
+        //             switch (type) {
+        //             case (ChemResult::Type::A):
+        //                 v = value.chemResult.a;
+        //                 err = 0.1;
+        //                 break;
+        //             case (ChemResult::Type::W):
+        //                 v = value.chemResult.w;
+        //                 err = 0.03;
+        //                 break;
+        //             }
+        //             if (v.has_value()) {
+        //                 Point point;
+        //                 point.sample = key;
+        //                 point.chemResult = value.chemResult;
+
+        //                 point.y = v.value();
+        //                 point.yErr = err * v.value();
+        //                 point.fitResult = fr;
+        //                 points.push_back(point);
+        //             }
+        //         }
+        //     }
+        //     return points;
+        // };
+
+        // std::regex m_a_c{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+|N12_\d+_\d+)"};//3
+        // auto data_c{getData(fileName, columnElement, chem, m_a_c)};
+        // std::vector<Point> points_a_c{getPointsByType(data, ChemResult::Type::A)};
+
+
+               // check 3
+        //          std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_sum|pulp_rot_berez_7_1500g_w\d+_sum|N12)"};//sum
+                  // std::regex m_a{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+|N12_\d+_\d+)"};//3
+        //std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|d+_sum|barz_blind|berez_blind|N12|pulp_rot_berez_6_w\d+_sum)"};//!
+               // auto data2{getFitResults(fileName, columnElement, chem, m_a)};
+               // drawCorrGraphWr3_a(data2, f);
+        //        // check 3
+        ////        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_sum|pulp_rot_berez_7_1500g_w\d+_sum)"};//sum
+        //        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+)"};//3
+        ////        std::regex m_w{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_6_w\d+_sum)"};//!
+        //        auto data3{getFitResults(fileName, columnElement, chem, m_w)};
+        //        drawCorrGraphWr3_w(data3, f);
+
+        //        return 0;
 
         //++++
 //        std::vector<TLatex> labels;
@@ -1124,7 +1205,7 @@ std::map<std::string, Data> getData(const std::string &fileName,
                 FitResult fR;
                 for (const auto &[key, value] : columnElement)
                 {
-                    fR.fitResult.push_back({value,
+                    fR.elementResults.push_back({value,
                                             strToDouble(strs.at(static_cast<unsigned int>(key))),
                                             strToDouble(strs.at(static_cast<unsigned int>(key + 1)))
                                            });
