@@ -40,11 +40,11 @@ private:
 };
 
 struct ElementResult {
-    std::string e;
+    std::string name;
     double value;
     double valueError;
     void print() const {
-        std::cout << e << " " << value << "\u00B1" << valueError << " ";
+        std::cout << name << " " << value << "\u00B1" << valueError << " ";
     }
 };
 
@@ -54,6 +54,17 @@ struct FitResult {
         for (const auto &er : elementResults) {
             er.print();
         }
+    }
+    const ElementResult& getElementResultByName(const std::string& name) const {
+        auto it = std::find_if(
+            elementResults.begin(),
+            elementResults.end(),
+            [&](const ElementResult& er) { return er.name == name; }
+            );
+        if (it == elementResults.end()) {
+            throw std::runtime_error("Element '" + name + "' not found");
+        }
+        return *it;
     }
 };
 
@@ -168,7 +179,7 @@ public:
 private:
     std::optional<double> getElementResultValue_(const std::string &element, const Point &point) {
         for (const auto& e : point.fitResult.elementResults) {
-            if (e.e == element) {
+            if (e.name == element) {
                 return e.value;
             }
         }
@@ -817,36 +828,63 @@ int main()
         c.get()->Print((psName + ']').c_str());
         c.get()->Close();
 
-        // auto getPredicatedPointsByType = [](const std::map<std::string, Data> &data, const ChemResult::Type &type, const TF1 &f) {
-        //     std::vector<Point> points;
-        //     for (const auto &[key, value] : data) {
-        //         for (const auto &fr : value.fitResults) {
-        //             std::optional<double> v;
-        //             double err{0.0};
-        //             switch (type) {
-        //             case (ChemResult::Type::A):
-        //                 v = value.chemResult.a;
-        //                 err = 0.1;
-        //                 break;
-        //             case (ChemResult::Type::W):
-        //                 v = value.chemResult.w;
-        //                 err = 0.03;
-        //                 break;
-        //             }
-        //             if (v.has_value()) {
-        //                 Point point;
-        //                 point.sample = key;
-        //                 point.chemResult = value.chemResult;
+        auto getPredicatedValueByType = [](const FitResult &fr, const ChemResult::Type &type, const TF1 &f){
+            auto val_a{0.0};
+            auto val_w{0.0};
+            val_a = ( f.GetParameter(3)
+                     - f.GetParameter(4) * f.GetParameter(0) * fr.getElementResultByName("O").value
+                     - f.GetParameter(2) * f.GetParameter(4)
+                     - f.GetParameter(5) * fr.getElementResultByName("C").value
+                     - f.GetParameter(6) * fr.getElementResultByName("N").value )
+                    / ( 1.0 - f.GetParameter(1) * f.GetParameter(4) );
+            val_w = ( f.GetParameter(0) * fr.getElementResultByName("O").value
+                     - f.GetParameter(1) * val_a
+                     + f.GetParameter(2) );
 
-        //                 point.y = v.value();
-        //                 point.yErr = err * v.value();
-        //                 point.fitResult = fr;
-        //                 points.push_back(point);
-        //             }
-        //         }
-        //     }
-        //     return points;
-        // };
+            auto val{0.0};
+            switch (type) {
+            case (ChemResult::Type::A):
+                val = val_a;
+                break;
+            case (ChemResult::Type::W):
+                val = val_w;
+                break;
+            }
+            return val;
+        };
+
+
+        auto getPredicatedPointsByType = [&](const std::map<std::string, Data> &data, const ChemResult::Type &type, const TF1 &f) {
+            std::vector<Point> points;
+            for (const auto &[key, value] : data) {
+                for (const auto &fr : value.fitResults) {
+                    std::optional<double> v;
+                    double err{0.0};
+                    switch (type) {
+                    case (ChemResult::Type::A):
+                        v = value.chemResult.a;
+                        err = 0.1;
+                        break;
+                    case (ChemResult::Type::W):
+                        v = value.chemResult.w;
+                        err = 0.03;
+                        break;
+                    }
+                    if (v.has_value()) {
+                        Point point;
+                        point.sample = key;
+                        point.chemResult = value.chemResult;
+                        point.x = getPredicatedValueByType(fr, type, f);
+                        point.xErr = getPredicatedValueByType(fr, type, f) * 0.01;
+                        point.y = v.value();
+                        point.yErr = err * v.value();
+                        point.fitResult = fr;
+                        points.push_back(point);
+                    }
+                }
+            }
+            return points;
+        };
 
         // std::regex m_a_c{R"(pulp_rot_berez_7_w\d+_\d+|pulp_rot_berez_11_1500g_w\d+_\d+|pulp_rot_berez_7_1500g_w\d+_\d+|N12_\d+_\d+)"};//3
         // auto data_c{getData(fileName, columnElement, chem, m_a_c)};
