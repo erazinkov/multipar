@@ -922,11 +922,11 @@ int main()
         std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p",
                                                "h2d_p",
                                                100,
-                                               10.0,
-                                               30.0,
+                                               00.0,
+                                               50.0,
                                                100,
-                                               10.0,
-                                               30.0)};
+                                               0.0,
+                                               50.0)};
         h2d_p.get()->SetStats(0);
         h2d_p.get()->SetTitle(";A_{m}', %;A_{c}, %");
 
