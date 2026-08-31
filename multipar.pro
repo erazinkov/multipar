@@ -10,4 +10,5 @@ SOURCES += \
         main.cpp
 
 HEADERS += \
-    data.h
+    data.h \
+    structs.h
