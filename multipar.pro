@@ -8,3 +8,6 @@ LIBS += $$system(root-config --libs) -lMinuit -lSpectrum -lMathCore
 
 SOURCES += \
         main.cpp
+
+HEADERS += \
+    data.h

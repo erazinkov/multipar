@@ -721,15 +721,27 @@ int main()
         {"pulp_rot_berez_7_w5_", {19.8, 5.0}},
         {"pulp_rot_berez_7_w10_", {19.8, 10.0}},
         {"pulp_rot_berez_7_w15_", {19.8, 15.0}},
-        {"pulp_rot_berez_7_1500g_w0_", {19.8, 2.0} },
+        // {"pulp_rot_berez_7_1500g_w0_", {19.8, 2.0} },
 
         {"pulp_rot_berez_11_w0_", {24.2, 1.5}},
         {"pulp_rot_berez_11_w5_", {24.2, 6.5} },
         {"pulp_rot_berez_11_w10_", {24.2, 11.5} },
         {"pulp_rot_berez_11_w15_", {24.2, 16.6} },
         {"pulp_rot_berez_11_1500g_w0_", {24.2, 1.5} },
-
     };
+
+    for (auto i{20}; i <= 150; i+=5) {
+        double w = i / 10.0;
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1) << w;
+        auto str = oss.str();
+        auto pos = str.find('.');
+        if (pos != std::string::npos) {
+            str[pos] = 'p';
+        }
+        chem.insert({ "pulp_rot_berez_7_w" + str + "_", {19.8, w} });
+    }
+
 
     const std::map<int, std::string> columnElement
     {
@@ -741,7 +753,7 @@ int main()
     };
 
 
-    const auto fileName{"rea.elts.stroy.check_5.txt"};
+    const auto fileName{"rea.elts.stroy.check_4.txt"};
     std::cout << fileName << std::endl;
 
     try {
@@ -754,9 +766,6 @@ int main()
             std::cout << std::endl;
         }
 
-
-
-
         std::vector<Point> points_a{getPointsByType(data, ChemResult::Type::A)};
         std::vector<Point> points_w{getPointsByType(data, ChemResult::Type::W)};
         for (auto &p : points_w) {
@@ -767,14 +776,14 @@ int main()
         points.insert(points.end(), points_a.cbegin(), points_a.cend());
         points.insert(points.end(), points_w.cbegin(), points_w.cend());
 
-        std::vector<double> xx, xxErr;
-        std::vector<double> yy, yyErr;
+        // std::vector<double> xx, xxErr;
+        // std::vector<double> yy, yyErr;
 
         for (const auto &p : points) {
-            xx.push_back(p.x);
-            yy.push_back(p.y);
-            xxErr.push_back(p.xErr);
-            yyErr.push_back(p.yErr);
+            // xx.push_back(p.x);
+            // yy.push_back(p.y);
+            // xxErr.push_back(p.xErr);
+            // yyErr.push_back(p.yErr);
             std::cout << p.sample << " " << p.x << " " << p.y;
             p.fitResult.print();
             std::cout << std::endl;
@@ -886,12 +895,17 @@ int main()
             return points;
         };
 
-        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
-        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
+        std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+p\d+_sum)"};
+        // std::regex m_a{R"(pulp_rot_berez_7_w\d+p\d+_sum)"};
+
+        auto data_a{getData(fileName, columnElement, chem, m_a)};
+
+        std::vector<Point> points_p_a{getPredicatedPointsByType(data_a, ChemResult::Type::A, f.get())};
+        std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         std::vector<Point> points_p;
         points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
-        points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
+        // points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
 
         std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
 
@@ -903,13 +917,81 @@ int main()
 
         gr_p.get()->SetMarkerSize(1.5);
         gr_p.get()->SetMarkerStyle(21);
-        gr_p.get()->SetTitle(";N_{probe};[...A, ...W]");
+
+
+        std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p",
+                                               "h2d_p",
+                                               100,
+                                               10.0,
+                                               30.0,
+                                               100,
+                                               10.0,
+                                               30.0)};
+        h2d_p.get()->SetStats(0);
+        h2d_p.get()->SetTitle(";A_{m}', %;A_{c}, %");
 
         const std::string psName_p{"output_p.ps"};
         std::unique_ptr<TCanvas> c_p{new TCanvas("c_p", "c_p", 1024, 960)};
         gPad->SetGrid();
         c_p.get()->Print((psName_p + '[').c_str());
-        gr_p.get()->Draw("APL");
+        h2d_p.get()->Draw();
+        gr_p.get()->Draw("P");
+
+        std::map<std::pair<std::string, Color_t>, Points> subPoints{
+
+        { std::make_pair("berez_7_w", kOrange), Points() },
+        { std::make_pair("berez_11", kRed), Points() },
+        { std::make_pair("berez_2", kBlue), Points() },
+        { std::make_pair("berez_7_w0_", kGreen), Points() },
+        { std::make_pair("berez_7_w5_", kGreen), Points() },
+        { std::make_pair("berez_7_w10_", kGreen), Points() },
+        { std::make_pair("berez_7_w15_", kGreen), Points() },
+        };
+
+
+        for (size_t i{0}; i < points_p.size(); ++i) {
+            for (auto &item : subPoints) {
+                if (points_p.at(i).sample.find(item.first.first) != std::string::npos) {
+                    TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
+                    m.SetMarkerSize(1.5);
+                    if (item.first.second == kGreen) {
+                        m.SetMarkerSize(1.75);
+                    }
+
+                    m.SetMarkerColor(item.first.second);
+                    m.DrawClone("SAME");
+
+                }
+            }
+        }
+
+        std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.6, 0.9, "NDC")};
+        pt.get()->SetFillColor(0);
+        pt.get()->SetBorderSize(1);
+
+        auto doubleToString = [](double value, int precision = 1) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(precision) << value;
+            return oss.str();
+        };
+
+        // Add entries from map keys
+        for (const auto& entry : subPoints) {
+            std::string key = entry.first.first;
+            Color_t color = entry.first.second;
+
+            for (size_t i{0}; i < entry.second.l.size(); i++) {
+                key.append("(");
+                key.append(doubleToString(entry.second.x.at(i)));
+                key.append(",");
+                key.append(doubleToString(entry.second.y.at(i)));
+                key.append(")");
+            }
+
+            TText *text = pt.get()->AddText(key.c_str());
+            text->SetTextColor(color);
+        }
+        pt.get()->Draw("SAME");
 
         c_p.get()->Print(psName_p.c_str());
         c_p.get()->Print((psName_p + ']').c_str());
