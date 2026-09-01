@@ -262,7 +262,7 @@ int main()
     std::cout << fileName << std::endl;
 
     try {
-        std::regex m{R"(sample\d+)"};
+        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"};
 
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
@@ -410,8 +410,8 @@ int main()
         std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         std::vector<Point> points_p;
-        points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
-        // points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
+        // points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
+        points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
 
         std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
 
@@ -424,11 +424,11 @@ int main()
         gr_p.get()->SetMarkerSize(1.5);
         gr_p.get()->SetMarkerStyle(21);
 
-        auto itMin = std::max_element(points.begin(), points.end(),
+        auto itMin = std::max_element(points_p.begin(), points_p.end(),
                                       [](const Point& a, const Point& b) {
                                     return a.y > b.y;
                                       });
-        auto itMax = std::max_element(points.begin(), points.end(),
+        auto itMax = std::max_element(points_p.begin(), points_p.end(),
                                    [](const Point& a, const Point& b) {
                                     return a.y < b.y;
                                    });
@@ -439,14 +439,14 @@ int main()
                                                "h2d_p",
                                                100,
                                                0.25 * min,
-                                               max,
+                                               1.25 * max,
                                                100,
                                                0.25 * min,
-                                               max)};
+                                               1.25 * max)};
         h2d_p.get()->SetStats(0);
         std::ostringstream ss;
         ss.str("");ss.clear();
-        ss << "stdAbsCon=" << calculateStdAbsCon(points_p) << ";W_{m}', %;W_{c}, %";
+        ss << "stdAbsCon=" << calculateStdAbsCon(points_p) << ";A_{m}', %;A_{c}, %";
         h2d_p.get()->SetTitle(ss.str().c_str());
 
         const std::string psName_p{"output_p.ps"};
@@ -454,24 +454,21 @@ int main()
         gPad->SetGrid();
         c_p.get()->Print((psName_p + '[').c_str());
         h2d_p.get()->Draw();
-        std::unique_ptr<TLine> dLine{new TLine(0.25 * min, 0.25 * min, max, max)};
+        std::unique_ptr<TLine> dLine{new TLine(0.25 * min, 0.25 * min, 1.25 * max, 1.25 * max)};
         dLine.get()->Draw("SAME");
         gr_p.get()->Draw("P");
 
-        std::map<std::pair<std::string, Color_t>, Points> subPoints{
-        { std::make_pair("berez_7_w", kOrange), Points() },
-        { std::make_pair("berez_11", kRed), Points() },
-        { std::make_pair("berez_2", kBlue), Points() },
-        { std::make_pair("berez_7_w0_", kGreen), Points() },
-        { std::make_pair("berez_7_w5_", kGreen), Points() },
-        { std::make_pair("berez_7_w10_", kGreen), Points() },
-        { std::make_pair("berez_7_w15_", kGreen), Points() },
-        };
 
+
+
+        std::map<std::pair<std::string, Color_t>, Points> subPoints{
+            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kOrange), Points() },
+        };
 
         for (size_t i{0}; i < points_p.size(); ++i) {
             for (auto &item : subPoints) {
-                if (points_p.at(i).sample.find(item.first.first) != std::string::npos) {
+                std::regex pattern(item.first.first);
+                if (std::regex_search(points_p.at(i).sample, pattern)) {
                     TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                     m.SetMarkerSize(1.5);
                     m.SetMarkerColor(item.first.second);
@@ -480,32 +477,54 @@ int main()
             }
         }
 
-        std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.6, 0.9, "NDC")};
-        pt.get()->SetFillColor(0);
-        pt.get()->SetBorderSize(1);
+        // std::map<std::pair<std::string, Color_t>, Points> subPoints{
+        // { std::make_pair("berez_7_w", kOrange), Points() },
+        // { std::make_pair("berez_11", kRed), Points() },
+        // { std::make_pair("berez_2", kBlue), Points() },
+        // { std::make_pair("berez_7_w0_", kGreen), Points() },
+        // { std::make_pair("berez_7_w5_", kGreen), Points() },
+        // { std::make_pair("berez_7_w10_", kGreen), Points() },
+        // { std::make_pair("berez_7_w15_", kGreen), Points() },
+        // };
 
-        auto doubleToString = [](double value, int precision = 1) {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(precision) << value;
-            return oss.str();
-        };
 
-        // Add entries from map keys
-        for (const auto& entry : subPoints) {
-            std::string key = entry.first.first;
-            Color_t color = entry.first.second;
+        // for (size_t i{0}; i < points_p.size(); ++i) {
+        //     for (auto &item : subPoints) {
+        //         if (points_p.at(i).sample.find(item.first.first) != std::string::npos) {
+        //             TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
+        //             m.SetMarkerSize(1.5);
+        //             m.SetMarkerColor(item.first.second);
+        //             m.DrawClone("SAME");
+        //         }
+        //     }
+        // }
 
-            for (size_t i{0}; i < entry.second.l.size(); i++) {
-                key.append("(");
-                key.append(doubleToString(entry.second.x.at(i)));
-                key.append(",");
-                key.append(doubleToString(entry.second.y.at(i)));
-                key.append(")");
-            }
+        // std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.6, 0.9, "NDC")};
+        // pt.get()->SetFillColor(0);
+        // pt.get()->SetBorderSize(1);
 
-            TText *text = pt.get()->AddText(key.c_str());
-            text->SetTextColor(color);
-        }
+        // auto doubleToString = [](double value, int precision = 1) {
+        //     std::ostringstream oss;
+        //     oss << std::fixed << std::setprecision(precision) << value;
+        //     return oss.str();
+        // };
+
+        // // Add entries from map keys
+        // for (const auto& entry : subPoints) {
+        //     std::string key = entry.first.first;
+        //     Color_t color = entry.first.second;
+
+        //     for (size_t i{0}; i < entry.second.l.size(); i++) {
+        //         key.append("(");
+        //         key.append(doubleToString(entry.second.x.at(i)));
+        //         key.append(",");
+        //         key.append(doubleToString(entry.second.y.at(i)));
+        //         key.append(")");
+        //     }
+
+        //     TText *text = pt.get()->AddText(key.c_str());
+        //     text->SetTextColor(color);
+        // }
         // pt.get()->Draw("SAME");
 
         c_p.get()->Print(psName_p.c_str());
