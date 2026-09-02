@@ -11,7 +11,7 @@ const std::map<std::string, ChemResult> data_chem{
     { "sample3.sub", {8.1,  7.6 } },
     { "sample4.sub", {8.9,  8.4 } },
     { "sample5.sub", {8.8, 13.9 } },
-    { "sample6.sub", {70.1, 0.0} }, // 0.0
+//    { "sample6.sub", {70.1, 0.0} }, // 0.0
     { "sample7.sub", {9.6, 17.8 } },
     { "sample8.sub", {73.6, 35.8 } }, // 35.8
     { "sample9.sub",  {9.3,  9.4 } },

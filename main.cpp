@@ -48,46 +48,6 @@ std::map<std::string, Data> getData(const std::string &fileName,
                           const std::map<std::string, ChemResult> &chem,
                           const std::regex &pattern);
 
-
-class FitFunction
-{
-public:
-    FitFunction(const std::map<int, std::vector<double>> &d, const std::map<int, double> &dA)
-        : d_{d}, dA_{dA} {}
-
-    double operator() (double *x, double *par)
-    {
-        double arg{x[0]};
-        int idx{ std::min(static_cast<int>(std::round(arg)), static_cast<int>(d_.size() - 1)) };
-        auto val{0.0};
-        std::map<std::string, double> dm{
-            {"Al", d_.at(idx).at(0)},
-            {"C", d_.at(idx).at(1)},
-            {"N", d_.at(idx).at(2)},
-            {"O", d_.at(idx).at(3)},
-            {"Si", d_.at(idx).at(4)},
-//            {"A", dA_.at(idx - dA_.size())}
-        };
-
-        if (idx < static_cast<int>(dA_.size())) {
-            val = ( par[3]
-                  - par[4] * par[0] * dm.at("O")
-                  - par[2] * par[4]
-                  - par[5] * dm.at("C")
-                  - par[6] * dm.at("N") )
-                  / ( 1.0 - par[1] * par[4] );
-        } else {
-            val = ( par[0] * dm.at("O")
-                   - par[1] * dA_.at(idx - dA_.size())
-                   + par[2] );
-        }
-        return val;
-   }
-private:
-    const std::map<int, std::vector<double>> d_;
-    const std::map<int, double> dA_;
-};
-
 class FitFunction1
 {
 public:
@@ -281,14 +241,7 @@ int main()
         points.insert(points.end(), points_a.cbegin(), points_a.cend());
         points.insert(points.end(), points_w.cbegin(), points_w.cend());
 
-        // std::vector<double> xx, xxErr;
-        // std::vector<double> yy, yyErr;
-
         for (const auto &p : points) {
-            // xx.push_back(p.x);
-            // yy.push_back(p.y);
-            // xxErr.push_back(p.xErr);
-            // yyErr.push_back(p.yErr);
             std::cout << p.sample << " " << p.x << " " << p.y;
             p.fitResult.print();
             std::cout << std::endl;
@@ -410,7 +363,7 @@ int main()
         std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         std::vector<Point> points_p;
-        // points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
+//         points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
         points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
 
         std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
@@ -444,9 +397,17 @@ int main()
                                                0.25 * min,
                                                1.25 * max)};
         h2d_p.get()->SetStats(0);
+
+
+        auto doubleToString = [](double value, int precision = 1) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(precision) << value;
+            return oss.str();
+        };
+
         std::ostringstream ss;
         ss.str("");ss.clear();
-        ss << "stdAbsCon=" << calculateStdAbsCon(points_p) << ";A_{m}', %;A_{c}, %";
+        ss << "stdAbs=" << doubleToString(calculateStdAbsCon(points_p)) << ";W_{m}', %;W_{c}, %";
         h2d_p.get()->SetTitle(ss.str().c_str());
 
         const std::string psName_p{"output_p.ps"};
@@ -461,8 +422,9 @@ int main()
 
 
 
-        std::map<std::pair<std::string, Color_t>, Points> subPoints{
-            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kOrange), Points() },
+        std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
+            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kGreen), {} },
+            { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
         };
 
         for (size_t i{0}; i < points_p.size(); ++i) {
@@ -473,9 +435,49 @@ int main()
                     m.SetMarkerSize(1.5);
                     m.SetMarkerColor(item.first.second);
                     m.DrawClone("SAME");
+                    item.second.push_back(points_p.at(i));
                 }
             }
         }
+
+        std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subPointsStats;
+        for (auto &item : subPoints) {
+            subPointsStats[item.first] = {};
+            subPointsStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
+        }
+
+        std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.5, 0.9, "NDC")};
+        pt.get()->SetFillColor(0);
+        pt.get()->SetBorderSize(1);
+
+
+
+        // Add items from map keys
+        for (const auto& item : subPointsStats) {
+            std::string key = "";
+            Color_t color = item.first.second;
+            std::map<std::string, double> stats = item.second;
+            for (const auto &statsItem : stats) {
+                key.append(statsItem.first);
+                key.append("=");
+                key.append(doubleToString(statsItem.second));
+                key.append(" ");
+            }
+
+            size_t pos = key.find_last_not_of(" \t\n\r\f\v");
+            if (pos != std::string::npos) {
+                key.erase(pos + 1);
+            } else {
+                key.clear();
+            }
+            if (color == kGreen) {
+                key.append("(grad)");
+            }
+            TText *text = pt.get()->AddText(key.c_str());
+            text->SetTextColor(color);
+        }
+        pt.get()->Draw("SAME");
+
 
         // std::map<std::pair<std::string, Color_t>, Points> subPoints{
         // { std::make_pair("berez_7_w", kOrange), Points() },
