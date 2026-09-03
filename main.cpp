@@ -206,7 +206,8 @@ int main()
 {
     TVirtualFitter::SetDefaultFitter("Minuit");
 
-    std::map<std::string, ChemResult> chem = data_chem;
+    std::map<std::string, ChemResult> chem{};
+    chem.insert(data_chem_cat_4.begin(), data_chem_cat_4.end());
 
     const std::map<int, std::string> columnElement
     {
@@ -222,8 +223,9 @@ int main()
     std::cout << fileName << std::endl;
 
     try {
-        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"};
-
+//        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
+        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))"}; // data_chem_cat_4_grad
+//        std::regex m{R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))"}; // data_chem_cat_4_check
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
             std::cout << key << " ";
@@ -423,8 +425,11 @@ int main()
 
 
         std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
-            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kGreen), {} },
-            { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
+//            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kGreen), {} },
+//            { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
+
+            { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))", kGreen), {} }, // data_chem_cat_4_grad
+            { std::make_pair(R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))", kRed), {} }, // data_chem_cat_4_check
         };
 
         for (size_t i{0}; i < points_p.size(); ++i) {
