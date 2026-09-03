@@ -224,8 +224,9 @@ int main()
 
     try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
-        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))"}; // data_chem_cat_4_grad
+//        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))"}; // data_chem_cat_4_grad
 //        std::regex m{R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))"}; // data_chem_cat_4_check
+        std::regex m{R"((sample\d+\.sub))"}; // data_chem_cat_4_grad
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
             std::cout << key << " ";
@@ -333,11 +334,11 @@ int main()
                     switch (type) {
                     case (ChemResult::Type::A):
                         v = value.chemResult.a;
-                        err = 0.1;
+                        err = 0.01;
                         break;
                     case (ChemResult::Type::W):
                         v = value.chemResult.w;
-                        err = 0.03;
+                        err = 0.01;
                         break;
                     }
                     if (v.has_value()) {
@@ -365,7 +366,7 @@ int main()
         std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         std::vector<Point> points_p;
-//         points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
+//        points_p.insert(points_p.end(), points_p_a.cbegin(), points_p_a.cend());
         points_p.insert(points_p.end(), points_p_w.cbegin(), points_p_w.cend());
 
         std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
@@ -393,11 +394,11 @@ int main()
         std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p",
                                                "h2d_p",
                                                100,
-                                               0.25 * min,
-                                               1.25 * max,
+                                               0.95 * min,
+                                               1.05 * max,
                                                100,
-                                               0.25 * min,
-                                               1.25 * max)};
+                                               0.95 * min,
+                                               1.05 * max)};
         h2d_p.get()->SetStats(0);
 
 
@@ -417,7 +418,7 @@ int main()
         gPad->SetGrid();
         c_p.get()->Print((psName_p + '[').c_str());
         h2d_p.get()->Draw();
-        std::unique_ptr<TLine> dLine{new TLine(0.25 * min, 0.25 * min, 1.25 * max, 1.25 * max)};
+        std::unique_ptr<TLine> dLine{new TLine(0.95 * min, 0.95 * min, 1.05 * max, 1.05 * max)};
         dLine.get()->Draw("SAME");
         gr_p.get()->Draw("P");
 
@@ -425,17 +426,55 @@ int main()
 
 
         std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
-//            { std::make_pair(R"(\bsample([1-9]|[12][0-9]|30)\b)", kGreen), {} },
+            { std::make_pair(R"(\bsample\d+\b)", kBlack), {} },
 //            { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
-
-            { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))", kGreen), {} }, // data_chem_cat_4_grad
-            { std::make_pair(R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))", kRed), {} }, // data_chem_cat_4_check
+//            { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))", kGreen), {} }, // data_chem_cat_4_grad
+//            { std::make_pair(R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))", kRed), {} }, // data_chem_cat_4_check
         };
+
+        auto sampleToLabel = [](const std::string &sample){
+            auto pos{sample.find_first_of(".")};
+            auto label{sample};
+            if (pos != std::string::npos) {
+                label = label.substr(0, pos);
+            }
+            return label;
+        };
+
+        struct ExcludedPoint : Point {
+            double d;
+        };
+
+        std::vector<ExcludedPoint> excludedPoints{};
+        for (size_t i{0}; i < points_p.size(); ++i) {
+            excludedPoints.push_back(ExcludedPoint{points_p.at(i), std::abs(points_p.at(i).x - points_p.at(i).y)});
+        }
+
+        std::sort(excludedPoints.begin(), excludedPoints.end(), [](const ExcludedPoint& a, const ExcludedPoint& b){
+                return a.d > b.d;
+        });
+
+        const size_t excludedNumber{10};
+
+        if (excludedPoints.size() >= excludedNumber) {
+
+            excludedPoints.erase(excludedPoints.begin() + 10, excludedPoints.end());
+            for (const auto &item : excludedPoints) {
+                std::cout << item.sample << std::endl;
+            }
+        } else {
+            std::cout << "Can'\t exclude points" << std::endl;
+        }
 
         for (size_t i{0}; i < points_p.size(); ++i) {
             for (auto &item : subPoints) {
                 std::regex pattern(item.first.first);
                 if (std::regex_search(points_p.at(i).sample, pattern)) {
+                    TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
+                    l.SetTextAngle(90);
+                    l.SetTextAlign(12);
+                    l.SetTextSize(0.02);
+//                    l.DrawClone("SAME");
                     TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                     m.SetMarkerSize(1.5);
                     m.SetMarkerColor(item.first.second);
@@ -481,7 +520,7 @@ int main()
             TText *text = pt.get()->AddText(key.c_str());
             text->SetTextColor(color);
         }
-        pt.get()->Draw("SAME");
+//        pt.get()->Draw("SAME");
 
 
         // std::map<std::pair<std::string, Color_t>, Points> subPoints{
