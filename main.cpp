@@ -255,7 +255,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         gr_p.get()->SetPointError(i, points_p.at(i).xErr, points_p.at(i).yErr);
     }
 
-    gr_p.get()->SetMarkerSize(1.5);
+    gr_p.get()->SetMarkerSize(1.0);
     gr_p.get()->SetMarkerStyle(21);
 
     auto itMin = std::max_element(points_p.begin(), points_p.end(),
@@ -266,7 +266,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.95};
+    auto min{(*itMin).y * 0.75};
     auto max{(*itMax).y * 1.5};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
@@ -301,6 +301,52 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
 //    findExcludedPoints(points_p, 1.0);
 
+    std::map<std::pair<std::string, Color_t>, std::vector<Point>> subRanks{
+        { std::make_pair(R"(Ш12)", kGreen), {} }, // Ш12
+        { std::make_pair(R"(Т,ТС)", kRed), {} }, // Т-ТС
+        { std::make_pair(R"((КС|К).*ОС)", kBlue), {} }, // КС-ОС, К-ОС
+    };
+
+    for (size_t i{0}; i < points_p.size(); ++i) {
+        auto it = data_sample_rank.find(points_p.at(i).sample);
+        if (it != data_sample_rank.end()) {
+            for (auto &item : subRanks) {
+                std::regex pattern(item.first.first);
+                if (std::regex_search(it->second, pattern)) {
+                    TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
+                    m.SetMarkerSize(1.5);
+                    m.SetMarkerColor(item.first.second);
+                    m.DrawClone("SAME");
+                    item.second.push_back(points_p.at(i));
+                }
+            }
+        }
+    }
+
+
+
+    auto saveRanksToFile = [&](){
+        const auto fileName{"ranks.txt"};
+        std::ofstream ofs(fileName, std::ios::out);
+        if (ofs.is_open()) {
+            for (const auto &[key, value] : subRanks) {
+                ofs << key.first << " ";
+                for (const auto &item : value) {
+                    ofs << item.sample << " ";
+                }
+                ofs << std::endl;
+            }
+            ofs.close();
+        }
+    };
+
+    saveRanksToFile();
+
+
+    for (const auto &[key, value] : subRanks) {
+        std::cout << key.first << " " << value.size() << std::endl;
+    }
+
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
 
         { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))", kGreen), {} }, // grad
@@ -325,10 +371,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
      };
 
      for (size_t i{0}; i < points_p.size(); ++i) {
-         auto it = data_sample_rank.find(points_p.at(i).sample);
-         if (it != data_sample_rank.end()) {
-             std::cout << it->second << std::endl;
-         }
+//         auto it = data_sample_rank.find(points_p.at(i).sample);
+//         if (it != data_sample_rank.end()) {
+//             std::cout << it->second << std::endl;
+//         }
          for (auto &item : subPoints) {
              std::regex pattern(item.first.first);
              if (std::regex_search(points_p.at(i).sample, pattern)) {
@@ -340,17 +386,17 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                  TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                  m.SetMarkerSize(1.5);
                  m.SetMarkerColor(item.first.second);
-                 m.DrawClone("SAME");
+//                 m.DrawClone("SAME");
                  item.second.push_back(points_p.at(i));
              }
          }
      }
 
 
-    std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subPointsStats;
-    for (auto &item : subPoints) {
-        subPointsStats[item.first] = {};
-        subPointsStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
+    std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subStats;
+    for (auto &item : subRanks) {
+        subStats[item.first] = {};
+        subStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
     }
 
     std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.5, 0.9, "NDC")};
@@ -360,7 +406,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
 
     // Add items from map keys
-    for (const auto& item : subPointsStats) {
+    for (const auto& item : subStats) {
         std::string key = "";
         Color_t color = item.first.second;
         std::map<std::string, double> stats = item.second;
@@ -376,9 +422,6 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
             key.erase(pos + 1);
         } else {
             key.clear();
-        }
-        if (color == kGreen) {
-            key.append("(grad)");
         }
         TText *text = pt.get()->AddText(key.c_str());
         text->SetTextColor(color);
@@ -474,15 +517,15 @@ int main()
     };
 
 
-    const auto fileName{"rea.elts.stroy.work.flow.wo_n_w_sub.txt"};
-//    const auto fileName{"rea.elts.stroy.work.flow.wo_n_wo_sub.txt"};
+//    const auto fileName{"rea.elts.stroy.work.flow.wo_n_w_sub.txt"};
+    const auto fileName{"rea.elts.stroy.work.flow.wo_n_wo_sub.txt"};
     std::cout << fileName << std::endl;
 
     try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
-//        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
+        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
 //        std::regex m(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))"); // check
-        std::regex m{R"(sample\d+\.)"};
+//        std::regex m{R"(sample\d+\.)"};
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
             std::cout << key << " ";
@@ -558,7 +601,8 @@ int main()
         c.get()->Close();
 
         // std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+p\d+_sum)"};
-        std::regex m_a{R"(sample\d+)"};
+        std::regex m_a{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"};
+//        std::regex m_a{R"(sample\d+)"};
 
         auto data_a{getData(fileName, columnElement, chem, m_a)};
 
@@ -566,7 +610,7 @@ int main()
         std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         process(points_p_a, ChemResult::Type::A);
-//        process(points_p_w, ChemResult::Type::W);
+        process(points_p_w, ChemResult::Type::W);
 
 //        std::regex m_r{R"(sample(115|115_\d+))"};
 
