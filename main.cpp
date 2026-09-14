@@ -149,7 +149,6 @@ double calculateStdAbsRep(const std::vector<Point>& points) {
         const double diff = item.x - avg;
         sumSquaredDiff += diff * diff;
     }
-
     return std::sqrt(sumSquaredDiff / points.size());
 }
 
@@ -266,8 +265,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.75};
-    auto max{(*itMax).y * 1.5};
+    auto min{(*itMin).y * 0.95};
+    auto max{(*itMax).y * 1.05};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
     h2d_p.get()->SetStats(0);
@@ -302,9 +301,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 //    findExcludedPoints(points_p, 1.0);
 
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subRanks{
-        { std::make_pair(R"(Ш12)", kGreen), {} }, // Ш12
-        { std::make_pair(R"(Т,ТС)", kRed), {} }, // Т-ТС
-        { std::make_pair(R"((КС|К).*ОС)", kBlue), {} }, // КС-ОС, К-ОС
+        { std::make_pair(R"(ГБФ)", kBlue), {} }, // ГБФ
+        { std::make_pair(R"(СКВП)", kOrange), {} }, // СКВП
+        { std::make_pair(R"(ТИМАКС)", kGreen), {} }, // ТИМАКС
+        { std::make_pair(R"(ТСГЦ)", kRed), {} }, // ТСГЦ
     };
 
     for (size_t i{0}; i < points_p.size(); ++i) {
@@ -316,7 +316,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                     TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                     m.SetMarkerSize(1.5);
                     m.SetMarkerColor(item.first.second);
-                    m.DrawClone("SAME");
+//                    m.DrawClone("SAME");
                     item.second.push_back(points_p.at(i));
                 }
             }
@@ -340,7 +340,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         }
     };
 
-    saveRanksToFile();
+//    saveRanksToFile();
 
 
     for (const auto &[key, value] : subRanks) {
@@ -349,8 +349,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
 
-        { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))", kGreen), {} }, // grad
-        { std::make_pair(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))", kRed), {} }, // check
+        { std::make_pair(R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)", kGreen), {} }, // grad
+        { std::make_pair(R"(sample(2(69|7[0-9]|8[0-9]|9[0-9])|3([0-3][0-9]|4[0-4]))\.)", kRed), {} }, // check
        // { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
 //            { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))", kGreen), {} }, // data_chem_cat_4_grad
 //            { std::make_pair(R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))", kRed), {} }, // data_chem_cat_4_check
@@ -386,7 +386,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                  TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                  m.SetMarkerSize(1.5);
                  m.SetMarkerColor(item.first.second);
-//                 m.DrawClone("SAME");
+                 m.DrawClone("SAME");
                  item.second.push_back(points_p.at(i));
              }
          }
@@ -394,7 +394,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
 
     std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subStats;
-    for (auto &item : subRanks) {
+    for (auto &item : subPoints) {
         subStats[item.first] = {};
         subStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
     }
@@ -440,7 +440,7 @@ double getPredicatedValueByType(const FitResult &fr, const ChemResult::Type &typ
              - f->GetParameter(4) * f->GetParameter(0) * fr.getElementResultByName("O").value
              - f->GetParameter(2) * f->GetParameter(4)
              - f->GetParameter(5) * fr.getElementResultByName("C").value
-//             - f->GetParameter(6) * fr.getElementResultByName("N").value
+             - f->GetParameter(6) * fr.getElementResultByName("N").value
             )
             / ( 1.0 - f->GetParameter(1) * f->GetParameter(4) );
     val_w = ( f->GetParameter(0) * fr.getElementResultByName("O").value
@@ -497,35 +497,40 @@ int main()
     TVirtualFitter::SetDefaultFitter("Minuit");
 
     std::map<std::string, ChemResult> chem{};
+//    chem.insert(data_chem_cat_1.begin(), data_chem_cat_1.end());
+//    chem.insert(data_chem_cat_3.begin(), data_chem_cat_3.end());
     chem.insert(data_chem_cat_4.begin(), data_chem_cat_4.end());
-
-//    const std::map<int, std::string> columnElement
-//    {
-//         {1, "Al"},
-//         {3, "C"},
-//         {5, "N"},
-//         {7, "O"},
-//         {9, "Si"},
-//    };
+//    chem.insert(data_chem_cat_5.begin(), data_chem_cat_5.end());
+//    chem.insert(data_chem_cat_6.begin(), data_chem_cat_6.end());
 
     const std::map<int, std::string> columnElement
     {
          {1, "Al"},
          {3, "C"},
-         {5, "O"},
-         {7, "Si"},
+         {5, "N"},
+         {7, "O"},
+         {9, "Si"},
     };
 
+//    const std::map<int, std::string> columnElement
+//    {
+//         {1, "Al"},
+//         {3, "C"},
+//         {5, "O"},
+//         {7, "Si"},
+//    };
 
-//    const auto fileName{"rea.elts.stroy.work.flow.wo_n_w_sub.txt"};
-    const auto fileName{"rea.elts.stroy.work.flow.wo_n_wo_sub.txt"};
+
+    const auto fileName{"rea.elts.stroy.work.flow.txt"};
+
     std::cout << fileName << std::endl;
 
     try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
-        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
+//        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
 //        std::regex m(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))"); // check
 //        std::regex m{R"(sample\d+\.)"};
+        std::regex m{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)"};
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
             std::cout << key << " ";
@@ -568,7 +573,7 @@ int main()
         };
         setInitialParameters(f.get());
 
-        f.get()->FixParameter(6, 0.0);
+//        f.get()->FixParameter(6, 0.0);
 
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(points.size())};
 
@@ -601,8 +606,9 @@ int main()
         c.get()->Close();
 
         // std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+p\d+_sum)"};
-        std::regex m_a{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"};
+//        std::regex m_a{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"};
 //        std::regex m_a{R"(sample\d+)"};
+        std::regex m_a{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-9][0-9])|3([0-3][0-9]|4[0-4]))\.)"};
 
         auto data_a{getData(fileName, columnElement, chem, m_a)};
 
