@@ -135,6 +135,52 @@ double calculateAvg(const std::vector<double>& values) {
     return std::accumulate(values.begin(), values.end(), 0.0) / values.size();
 }
 
+double calculateCorr(const std::vector<Point>& points) {
+    const size_t n{points.size()};
+    if (n < 2) {
+        throw std::invalid_argument("Need at least 2 points to calculate correlation");
+    }
+
+    double sumX{0.0};
+    double sumY{0.0};
+    for (const auto& p : points) {
+        sumX += p.x;
+        sumY += p.y;
+    }
+    const double meanX = sumX / n;
+    const double meanY = sumY / n;
+
+    double cov{0.0};
+    double varX{0.0};
+    double varY{0.0};
+    for (const auto& p : points) {
+        const double dx = p.x - meanX;
+        const double dy = p.y - meanY;
+        cov  += dx * dy;
+        varX += dx * dx;
+        varY += dy * dy;
+    }
+
+    const double denom{std::sqrt(varX * varY)};
+    if (denom == 0.0) {
+        throw std::runtime_error("Cannot compute correlation: zero variance");
+    }
+    return cov / denom;
+}
+
+std::pair<double, double> calculateAvgXY(const std::vector<Point>& points) {
+    if (points.empty()) return {0.0, 0.0};
+    auto avgX{0.0};
+    auto avgY{0.0};
+    for (const auto &item : points) {
+        avgX += item.x;
+        avgY += item.y;
+    }
+    avgX /= points.size();
+    avgY /= points.size();
+    return {avgX, avgY};
+}
+
 double calculateStdAbsRep(const std::vector<Point>& points) {
     if (points.empty()) return 0.0;
     auto avg = 0.0;
@@ -282,7 +328,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
     ss << "stdAbs=" << doubleToString(calculateStdAbsCon(points_p)) << ";" + valueStr + "_{m}', %;" + valueStr + "_{c}, %";
     h2d_p.get()->SetTitle(ss.str().c_str());
 
-    const std::string psName_p{"output_p_" + valueStr + ".ps"};
+    const std::string psName_p{"output_p_" + valueStr + ".pdf"};
     std::unique_ptr<TCanvas> c_p{new TCanvas("c_p", "c_p", 1024, 960)};
     gPad->SetGrid();
     c_p.get()->Print((psName_p + '[').c_str());
@@ -349,11 +395,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
 
-        { std::make_pair(R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)", kGreen), {} }, // grad
-        { std::make_pair(R"(sample(2(69|7[0-9]|8[0-9]|9[0-9])|3([0-3][0-9]|4[0-4]))\.)", kRed), {} }, // check
-       // { std::make_pair(R"(\bsample(3[1-9]|[4-9][0-9]|[1-9][0-9]{2,})\b)", kRed), {} },
-//            { std::make_pair(R"((sample(?:[1-4]|9|10|3[7-9]|4[0-7])\.sub))", kGreen), {} }, // data_chem_cat_4_grad
-//            { std::make_pair(R"((sample(?:4[8-9]|5[0-3]|7[6-9]|8[0-5])\.sub))", kRed), {} }, // data_chem_cat_4_check
+        { std::make_pair(R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)", kGreen), {} }, // grad
+        { std::make_pair(R"(sample(27[4-9]|28[0-3]|287|290|293|29[6-9]|30[0-5]|308|311|313|31[5-6]|318|32[1-3]|32[5-9]|33[0-1]|334|336|33[8-9]|34[1-4]|34[8-9]|35[0-4]|357|363|36[5-6]|369|371|38[1-9]|39[0-5]|39[8-9]|40[0-1])\.)", kRed), {} },
     };
 
      auto sampleToLabel = [](const std::string &sample){
@@ -397,36 +440,110 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
     for (auto &item : subPoints) {
         subStats[item.first] = {};
         subStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
+        auto avgXY{calculateAvgXY(item.second)};
+        subStats.at(item.first).insert({"avgX", avgXY.first});
+        subStats.at(item.first).insert({"avgY", avgXY.second});
+        subStats.at(item.first).insert({"r", calculateCorr(item.second)});
+    }
+    if (!subStats.empty()) {
+        double yRow = 0.85;
+        double xCol = 0.15;
+        double colWidth = 0.1;
+        auto it = subStats.begin();
+        for (const auto &statsItem : (*it).second) {
+            TLatex *t = new TLatex(xCol, yRow, statsItem.first.c_str());
+            t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
+            t->SetTextSize(0.03);
+            t->SetNDC();
+            t->Draw();
+            xCol += colWidth;
+        }
+        yRow -= 0.1;
+        for (const auto& item : subStats) {
+            double xCol = 0.15;
+            Color_t color = item.first.second;
+            std::map<std::string, double> stats = item.second;
+            for (const auto &statsItem : stats) {
+                TLatex *t = new TLatex(xCol, yRow, doubleToString(statsItem.second).c_str());
+                t->SetTextColor(color);
+                t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
+                t->SetTextSize(0.03);
+                t->SetNDC();
+                t->Draw();
+                xCol += colWidth;
+            }
+            yRow -= 0.1;
+        }
     }
 
-    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.5, 0.9, "NDC")};
-    pt.get()->SetFillColor(0);
-    pt.get()->SetBorderSize(1);
+
+//    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.5, 0.9, "NDC")};
+//    pt.get()->SetFillColor(0);
+//    pt.get()->SetBorderSize(1);
+
+//    if (!subStats.empty()) {
+//        std::ostringstream oss;
+//        auto it = subStats.begin();
+//        for (const auto &statsItem : (*it).second) {
+//            oss << std::left << std::setw(8) << statsItem.first;
+//        }
+//        pt->AddText(oss.str().c_str());
+//    }
+
+//        for (const auto& item : subStats) {
+//            std::string key = "";
+//            Color_t color = item.first.second;
+//            std::map<std::string, double> stats = item.second;
+//            for (const auto &statsItem : stats) {
+//    //            key.append(statsItem.first);
+//    //            key.append("=");
+//                key.append(doubleToString(statsItem.second));
+//                key.append(" ");
+//            }
+
+//            size_t pos = key.find_last_not_of(" \t\n\r\f\v");
+//            if (pos != std::string::npos) {
+//                key.erase(pos + 1);
+//            } else {
+//                key.clear();
+//            }
+//            TText *text = pt.get()->AddText(key.c_str());
+//            text->SetTextColor(color);
+//        }
+
+//    if (!subStats.empty()) {
+//        std::string key = "";
+//        auto it = subStats.begin();
+//        std::map<std::string, double> stats = (*it).second;
+//        for (const auto &statsItem : stats) {
+//            key.append(statsItem.first);
+//            key.append(";");
+//        }
+//        pt.get()->AddText(key.c_str());
+//    }
 
 
+//    for (const auto& item : subStats) {
+//        std::string key = "";
+//        Color_t color = item.first.second;
+//        std::map<std::string, double> stats = item.second;
+//        for (const auto &statsItem : stats) {
+////            key.append(statsItem.first);
+////            key.append("=");
+//            key.append(doubleToString(statsItem.second));
+//            key.append(" ");
+//        }
 
-    // Add items from map keys
-    for (const auto& item : subStats) {
-        std::string key = "";
-        Color_t color = item.first.second;
-        std::map<std::string, double> stats = item.second;
-        for (const auto &statsItem : stats) {
-            key.append(statsItem.first);
-            key.append("=");
-            key.append(doubleToString(statsItem.second));
-            key.append(" ");
-        }
-
-        size_t pos = key.find_last_not_of(" \t\n\r\f\v");
-        if (pos != std::string::npos) {
-            key.erase(pos + 1);
-        } else {
-            key.clear();
-        }
-        TText *text = pt.get()->AddText(key.c_str());
-        text->SetTextColor(color);
-    }
-    pt.get()->Draw("SAME");
+//        size_t pos = key.find_last_not_of(" \t\n\r\f\v");
+//        if (pos != std::string::npos) {
+//            key.erase(pos + 1);
+//        } else {
+//            key.clear();
+//        }
+//        TText *text = pt.get()->AddText(key.c_str());
+//        text->SetTextColor(color);
+//    }
+//    pt.get()->Draw("SAME");
 
     c_p.get()->Print(psName_p.c_str());
     c_p.get()->Print((psName_p + ']').c_str());
@@ -530,7 +647,8 @@ int main()
 //        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
 //        std::regex m(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))"); // check
 //        std::regex m{R"(sample\d+\.)"};
-        std::regex m{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)"};
+//        std::regex m{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)"};
+        std::regex m{R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)"};
         auto data{getData(fileName, columnElement, chem, m)};
         for (const auto &[key, value] : data) {
             std::cout << key << " ";
@@ -607,8 +725,8 @@ int main()
 
         // std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+p\d+_sum)"};
 //        std::regex m_a{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"};
-//        std::regex m_a{R"(sample\d+)"};
-        std::regex m_a{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-9][0-9])|3([0-3][0-9]|4[0-4]))\.)"};
+        std::regex m_a{R"(sample\d+)"};
+//        std::regex m_a{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-9][0-9])|3([0-3][0-9]|4[0-4]))\.)"};
 
         auto data_a{getData(fileName, columnElement, chem, m_a)};
 
