@@ -402,9 +402,9 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
      auto sampleToLabel = [](const std::string &sample){
          auto pos{sample.find_first_of(".")};
          auto label{sample};
-//         if (pos != std::string::npos) {
-//             label = label.substr(0, pos);
-//         }
+         if (pos != std::string::npos) {
+             label.erase(pos, 1);
+         }
          const std::string subStr{"sample"};
          pos = label.find(subStr);
          if (pos != std::string::npos) {
@@ -458,7 +458,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
             t->Draw();
             xCol += colWidth;
         }
-        yRow -= 0.1;
+        yRow -= 0.05;
         for (const auto& item : subStats) {
             double xCol = 0.15;
             Color_t color = item.first.second;
@@ -472,7 +472,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                 t->Draw();
                 xCol += colWidth;
             }
-            yRow -= 0.1;
+            yRow -= 0.05;
         }
     }
 
