@@ -446,7 +446,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     for (size_t i{0}; i < points_p.size(); ++i) {
         auto color{kBlack};
-        if (points_p.at(i).idx < points_p.size() / 2) {
+        if (points_p.at(i).idx <= points_p.size() / 2) {
             subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
             color = kGreen;
         } else {
@@ -462,6 +462,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         m.SetMarkerSize(1.5);
         m.SetMarkerColor(color);
         m.DrawClone("SAME");
+    }
+
+    for (const auto& [key, value] : subPoints_) {
+        std::cout << key.first << " " << value.size() << std::endl;
     }
 
 
@@ -692,8 +696,9 @@ int main()
 
     // exclude
     std::vector<std::string> excludeSamples{
-//        R"(sample28(0|1|2)\.)",
-//        R"(sample447_\d\.)",
+        R"(sample28(0|1|2)\.)",
+        R"(sample446\.)",
+        R"(sample447_\d\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
