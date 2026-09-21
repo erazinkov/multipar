@@ -50,6 +50,10 @@ struct ChemResult {
 };
 
 struct Data {
+    uint idx;
+    std::string sample;
+    uint category;
+    uint subCategory;
     ChemResult chemResult;
     std::vector<FitResult> fitResults;
     void print() const {
@@ -62,6 +66,7 @@ struct Data {
 };
 
 struct Point  {
+    uint idx;
     std::string sample;
     ChemResult chemResult;
     FitResult fitResult;

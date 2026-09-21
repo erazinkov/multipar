@@ -393,6 +393,9 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         std::cout << key.first << " " << value.size() << std::endl;
     }
 
+
+
+
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
 
         { std::make_pair(R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)", kGreen), {} }, // grad
@@ -435,9 +438,35 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
          }
      }
 
+    // choose points by idx
+    std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints_{
+        {std::make_pair("grad", kGreen), {} },
+        {std::make_pair("check", kRed), {} }
+    };
+
+    for (size_t i{0}; i < points_p.size(); ++i) {
+        auto color{kBlack};
+        if (points_p.at(i).idx < points_p.size() / 2) {
+            subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
+            color = kGreen;
+        } else {
+            subPoints_.at({"check", kRed}).push_back(points_p.at(i));
+            color = kRed;
+        }
+        TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
+        l.SetTextAngle(90);
+        l.SetTextAlign(12);
+        l.SetTextSize(0.02);
+//        l.DrawClone("SAME");
+        TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
+        m.SetMarkerSize(1.5);
+        m.SetMarkerColor(color);
+        m.DrawClone("SAME");
+    }
+
 
     std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subStats;
-    for (auto &item : subPoints) {
+    for (auto &item : subPoints_) {
         subStats[item.first] = {};
         subStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
         auto avgXY{calculateAvgXY(item.second)};
@@ -595,6 +624,7 @@ std::vector<Point> getPredicatedPointsByType(const std::map<std::string, Data> &
             }
             if (v.has_value()) {
                 Point point;
+                point.idx = value.idx;
                 point.sample = key;
                 point.chemResult = value.chemResult;
                 point.x = getPredicatedValueByType(fr, type, f);
@@ -608,6 +638,9 @@ std::vector<Point> getPredicatedPointsByType(const std::map<std::string, Data> &
     }
     return points;
 };
+
+std::vector<std::string>splitLineToStrs(const std::string &line);
+double strToDouble(std::string str);
 
 int main()
 {
@@ -623,10 +656,10 @@ int main()
     const std::map<int, std::string> columnElement
     {
          {1, "Al"},
-         {3, "C"},
-         {5, "N"},
-         {7, "O"},
-         {9, "Si"},
+         {2, "C"},
+         {3, "N"},
+         {4, "O"},
+         {5, "Si"},
     };
 
 //    const std::map<int, std::string> columnElement
@@ -638,26 +671,122 @@ int main()
 //    };
 
 
-    const auto fileName{"rea.elts.stroy.work.flow.txt"};
+    const auto fileName{"OF_data.subcat.csv"};
 
     std::cout << fileName << std::endl;
 
-    try {
+    auto splitLineToStrs_ = [](const std::string& line) {
+        std::vector<std::string> result;
+        std::stringstream ss(line);
+        std::string field;
+        while (std::getline(ss, field, '\t')) {
+            result.push_back(field);
+        }
+
+        if (!line.empty() && line.back() == '\t') {
+            result.push_back("");
+        }
+
+        return result;
+    };
+
+    // exclude
+    std::vector<std::string> excludeSamples{
+//        R"(sample28(0|1|2)\.)",
+//        R"(sample447_\d\.)",
+    };
+
+    auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
+        bool exclude{false};
+        for (auto &eS : excludeSamples) {
+            std::regex pattern(eS);
+            if (std::regex_search(sample, pattern)) {
+                exclude = true;
+            }
+        }
+        return exclude;
+    };
+
+
+    auto getData_ = [&](const std::string &fileName, const std::map<int, std::string> &columnElement) {
+        std::ifstream ifs(fileName);
+        if (!ifs.is_open()) {
+            throw my_error("Can't open file \"" + fileName + "\"");
+        }
+        std::string line;
+
+        std::vector<Data> data;
+        try {
+            getline(ifs, line);
+            while (getline(ifs, line)) {
+                auto strs{splitLineToStrs_(line)};
+                if (isExclude(strs.at(0), excludeSamples)) {
+                    continue;
+                }
+                Data d;
+                FitResult fR;
+                for (const auto &[key, value] : columnElement)
+                {
+                    fR.elementResults.push_back({value,
+                                            strToDouble(strs.at(static_cast<unsigned int>(key))),
+                                            strToDouble(strs.at(static_cast<unsigned int>(key + 1)))
+                                           });
+                }
+                d.sample = strs.at(0);
+                d.category = static_cast<uint>(std::stoul(strs.at(9)));
+                auto str_a{strs.at(10)};
+                d.chemResult.a = !str_a.empty() ? std::optional<double>(strToDouble(str_a)) : std::nullopt;
+                auto str_w{strs.at(11)};
+                d.chemResult.w = !str_w.empty() ? std::optional<double>(strToDouble(str_w)) : std::nullopt;
+                d.subCategory = static_cast<uint>(std::stoul(strs.at(12)));
+                d.fitResults.push_back(fR);
+                data.push_back(d);
+            }
+
+        }  catch (...) {
+            std::cout << "Error reading data from " << fileName;
+        }
+        ifs.close();
+        return data;
+    };
+
+
+    auto data_{getData_(fileName, columnElement)};
+
+    // category
+    std::map<std::string, Data> data;
+    uint idx{0};
+    for (const auto& d : data_) {
+        if (d.subCategory == 41) {
+            data[d.sample] = d;
+            data[d.sample].idx = idx;
+            idx++;
+        }
+    }
+    // choose grad by idx
+    std::map<std::string, Data> data_grad;
+    for (const auto& [key, value] : data) {
+        if (value.idx < data.size() / 2) {
+            data_grad[key] = value;
+        }
+    }
+
+//    try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
 //        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
 //        std::regex m(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))"); // check
 //        std::regex m{R"(sample\d+\.)"};
 //        std::regex m{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)"};
         std::regex m{R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)"};
-        auto data{getData(fileName, columnElement, chem, m)};
-        for (const auto &[key, value] : data) {
-            std::cout << key << " ";
-            value.print();
-            std::cout << std::endl;
-        }
+//        auto data{getData(fileName, columnElement, chem, m)};
+//        for (const auto &[key, value] : data_grad) {
+//            std::cout << key << " ";
+//            value.print();
+//            std::cout << std::endl;
+//        }
 
-        std::vector<Point> points_a{getPointsByType(data, ChemResult::Type::A)};
-        std::vector<Point> points_w{getPointsByType(data, ChemResult::Type::W)};
+        std::vector<Point> points_a{getPointsByType(data_grad, ChemResult::Type::A)};
+        std::vector<Point> points_w{getPointsByType(data_grad, ChemResult::Type::W)};
         for (auto &p : points_w) {
             p.x  = p.x + points_a.size();
         }
@@ -728,10 +857,14 @@ int main()
         std::regex m_a{R"(sample\d+)"};
 //        std::regex m_a{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-9][0-9])|3([0-3][0-9]|4[0-4]))\.)"};
 
-        auto data_a{getData(fileName, columnElement, chem, m_a)};
 
-        std::vector<Point> points_p_a{getPredicatedPointsByType(data_a, ChemResult::Type::A, f.get())};
-        std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
+        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
+        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
+
+//        auto data_a{getData(fileName, columnElement, chem, m_a)};
+
+//        std::vector<Point> points_p_a{getPredicatedPointsByType(data_a, ChemResult::Type::A, f.get())};
+//        std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         process(points_p_a, ChemResult::Type::A);
         process(points_p_w, ChemResult::Type::W);
@@ -752,15 +885,15 @@ int main()
 //        std::cout << "RepA=" << calculateStdAbsRep(points_r_a) << ::std::endl;
 //        std::cout << "RepW=" << calculateStdAbsRep(points_r_w) << ::std::endl;
 
-    }
-    catch (const my_error& err)
-    {
-        std::cout << "Error: " << err.what() << std::endl;
-    }
-    catch (const std::exception& err)
-    {
-        std::cout << "Error: " << err.what() << std::endl;
-    }
+//    }
+//    catch (const my_error& err)
+//    {
+//        std::cout << "Error: " << err.what() << std::endl;
+//    }
+//    catch (const std::exception& err)
+//    {
+//        std::cout << "Error: " << err.what() << std::endl;
+//    }
     return 0;
 }
 
