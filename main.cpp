@@ -311,8 +311,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.95};
-    auto max{(*itMax).y * 1.05};
+    auto min{(*itMin).y * 0.85};
+    auto max{(*itMax).y * 1.11};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
     h2d_p.get()->SetStats(0);
@@ -446,7 +446,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     for (size_t i{0}; i < points_p.size(); ++i) {
         auto color{kBlack};
-        if (points_p.at(i).idx <= points_p.size() / 2) {
+        if (points_p.at(i).idx < points_p.size() / 2) {
             subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
             color = kGreen;
         } else {
@@ -486,7 +486,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         for (const auto &statsItem : (*it).second) {
             TLatex *t = new TLatex(xCol, yRow, statsItem.first.c_str());
             t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-            t->SetTextSize(0.03);
+            t->SetTextSize(0.04);
             t->SetNDC();
             t->Draw();
             xCol += colWidth;
@@ -500,7 +500,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                 TLatex *t = new TLatex(xCol, yRow, doubleToString(statsItem.second).c_str());
                 t->SetTextColor(color);
                 t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-                t->SetTextSize(0.03);
+                t->SetTextSize(0.04);
                 t->SetNDC();
                 t->Draw();
                 xCol += colWidth;
@@ -696,6 +696,10 @@ int main()
 
     // exclude
     std::vector<std::string> excludeSamples{
+        R"(sample108\.)",
+        R"(sample22[5-9]\.)",
+        R"(sample23(0|1)\.)",
+        R"(sample230_1\.)",
         R"(sample28(0|1|2)\.)",
         R"(sample446\.)",
         R"(sample447_\d\.)",
