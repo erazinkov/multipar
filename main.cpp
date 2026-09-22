@@ -297,7 +297,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
     std::unique_ptr<TGraphErrors> gr_p{new TGraphErrors(points_p.size())};
     for (size_t i{0}; i < points_p.size(); i++) {
         gr_p.get()->SetPoint(i, points_p.at(i).x, points_p.at(i).y);
-        gr_p.get()->SetPointError(i, points_p.at(i).xErr, points_p.at(i).yErr);
+        // gr_p.get()->SetPointError(i, points_p.at(i).xErr, points_p.at(i).yErr);
     }
 
     gr_p.get()->SetMarkerSize(1.0);
@@ -325,7 +325,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     std::ostringstream ss;
     ss.str("");ss.clear();
-    ss << "stdAbs=" << doubleToString(calculateStdAbsCon(points_p)) << ";" + valueStr + "_{m}', %;" + valueStr + "_{c}, %";
+    // ss << "stdAbs=" << doubleToString(calculateStdAbsCon(points_p)) << ";" + valueStr + "_{m}', %;" + valueStr + "_{c}, %";
+    ss << ";" + valueStr + "_{m}', %;" + valueStr + "_{c}, %";
     h2d_p.get()->SetTitle(ss.str().c_str());
 
     const std::string psName_p{"output_p_" + valueStr + ".pdf"};
@@ -440,19 +441,20 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
     // choose points by idx
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints_{
-        {std::make_pair("grad", kGreen), {} },
+        {std::make_pair("all", kBlack), {} },
         {std::make_pair("check", kRed), {} }
     };
 
     for (size_t i{0}; i < points_p.size(); ++i) {
         auto color{kBlack};
         if (points_p.at(i).idx < points_p.size() / 2) {
-            subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
-            color = kGreen;
+            // subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
+            // color = kGreen;
         } else {
             subPoints_.at({"check", kRed}).push_back(points_p.at(i));
             color = kRed;
         }
+        subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
         TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
         l.SetTextAngle(90);
         l.SetTextAlign(12);
@@ -469,14 +471,15 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
     }
 
 
-    std::map<std::pair<std::string, Color_t>, std::map<std::string, double>> subStats;
+    std::map<std::pair<std::string, Color_t>, std::map<std::string, std::string>> subStats;
     for (auto &item : subPoints_) {
         subStats[item.first] = {};
-        subStats.at(item.first).insert({"stdAbs", calculateStdAbsCon(item.second)});
+        subStats.at(item.first).insert({"stdAbs", doubleToString(calculateStdAbsCon(item.second))});
         auto avgXY{calculateAvgXY(item.second)};
-        subStats.at(item.first).insert({"avgX", avgXY.first});
-        subStats.at(item.first).insert({"avgY", avgXY.second});
-        subStats.at(item.first).insert({"r", calculateCorr(item.second)});
+        subStats.at(item.first).insert({"avgX", doubleToString(avgXY.first)});
+        subStats.at(item.first).insert({"avgY", doubleToString(avgXY.second)});
+        subStats.at(item.first).insert({"r", doubleToString(calculateCorr(item.second))});
+        subStats.at(item.first).insert({"n", doubleToString(item.second.size(), 0)});
     }
     if (!subStats.empty()) {
         double yRow = 0.85;
@@ -495,9 +498,9 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         for (const auto& item : subStats) {
             double xCol = 0.15;
             Color_t color = item.first.second;
-            std::map<std::string, double> stats = item.second;
+            std::map<std::string, std::string> stats = item.second;
             for (const auto &statsItem : stats) {
-                TLatex *t = new TLatex(xCol, yRow, doubleToString(statsItem.second).c_str());
+                TLatex *t = new TLatex(xCol, yRow, statsItem.second.c_str());
                 t->SetTextColor(color);
                 t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
                 t->SetTextSize(0.04);
@@ -675,7 +678,8 @@ int main()
 //    };
 
 
-    const auto fileName{"OF_data.subcat.csv"};
+    const auto fileName{"OF_data.cat53.csv"};
+    // const auto fileName{"OF_data.cat44.csv"};
 
     std::cout << fileName << std::endl;
 
@@ -694,15 +698,11 @@ int main()
         return result;
     };
 
-    // exclude
+    // exclude for cat53
     std::vector<std::string> excludeSamples{
-        R"(sample108\.)",
-        R"(sample22[5-9]\.)",
-        R"(sample23(0|1)\.)",
-        R"(sample230_1\.)",
-        R"(sample28(0|1|2)\.)",
-        R"(sample446\.)",
-        R"(sample447_\d\.)",
+        R"(sample20[4-7]\.)",
+        R"(sample317\.)",
+        R"(sample37[6-9]\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
@@ -766,11 +766,11 @@ int main()
     std::map<std::string, Data> data;
     uint idx{0};
     for (const auto& d : data_) {
-        if (d.subCategory == 41) {
+        // if (d.subCategory == 41) {
             data[d.sample] = d;
             data[d.sample].idx = idx;
             idx++;
-        }
+        // }
     }
     // choose grad by idx
     std::map<std::string, Data> data_grad;
