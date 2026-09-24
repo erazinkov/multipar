@@ -678,8 +678,9 @@ int main()
 //    };
 
 
-    const auto fileName{"OF_data.cat53.csv"};
-    // const auto fileName{"OF_data.cat44.csv"};
+//    const auto fileName{"OF_data.cat53.csv"};
+//    const auto fileName{"OF_data.cat41.csv"};
+     const auto fileName{"OF_data.cat44.csv"};
 
     std::cout << fileName << std::endl;
 
@@ -699,10 +700,20 @@ int main()
     };
 
     // exclude for cat53
+//    std::vector<std::string> excludeSamples{
+//        R"(sample20[4-7]\.)",
+//        R"(sample317\.)",
+//        R"(sample37[6-9]\.)",
+//    };
+    // exclude for cat41
+//    std::vector<std::string> excludeSamples{
+//        R"(sample276\.)",
+//        R"(sample28(0|1|2||3|4)\.)",
+//        R"(sample446\.)",
+//        R"(sample447_[1-5]\.)",
+//    };
+    // exclude for cat44
     std::vector<std::string> excludeSamples{
-        R"(sample20[4-7]\.)",
-        R"(sample317\.)",
-        R"(sample37[6-9]\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
@@ -779,6 +790,9 @@ int main()
             data_grad[key] = value;
         }
     }
+
+    std::cout << "!" << data_grad.size() << std::endl;
+
 
 //    try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
