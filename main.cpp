@@ -442,18 +442,18 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
     // choose points by idx
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints_{
         {std::make_pair("all", kBlack), {} },
-        {std::make_pair("check", kRed), {} }
+//        {std::make_pair("check", kRed), {} }
     };
 
     for (size_t i{0}; i < points_p.size(); ++i) {
         auto color{kBlack};
-        if (points_p.at(i).idx < points_p.size() / 2) {
-            // subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
-            // color = kGreen;
-        } else {
-            subPoints_.at({"check", kRed}).push_back(points_p.at(i));
-            color = kRed;
-        }
+//        if (points_p.at(i).idx < points_p.size() / 2) {
+//            // subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
+//            // color = kGreen;
+//        } else {
+//            subPoints_.at({"check", kRed}).push_back(points_p.at(i));
+//            color = kRed;
+//        }
         subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
         TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
         l.SetTextAngle(90);
@@ -681,9 +681,12 @@ int main()
 //    const auto fileName{"OF_data.cat53.csv"};
 //    const auto fileName{"OF_data.cat41.csv"};
 //     const auto fileName{"OF_data.cat44.csv"};
-//     const auto fileName{"OF_data.cat1.csv"};
-     const auto fileName{"OF_data.cat3.csv"};
-
+//     const auto fileName{"stroy/OF_data.cat1.csv"};
+//     const auto fileName{"stroy/OF_data.cat3.csv"};
+    const auto fileName{"stroy/OF_data.cat40_43.csv"};
+//    const auto fileName{"stroy/OF_data.cat41.csv"};
+//    const auto fileName{"stroy/OF_data.cat42.csv"};
+//    const auto fileName{"stroy/OF_data.cat44.csv"};
     std::cout << fileName << std::endl;
 
     auto splitLineToStrs_ = [](const std::string& line) {
@@ -701,19 +704,6 @@ int main()
         return result;
     };
 
-    // exclude for cat53
-//    std::vector<std::string> excludeSamples{
-//        R"(sample20[4-7]\.)",
-//        R"(sample317\.)",
-//        R"(sample37[6-9]\.)",
-//    };
-    // exclude for cat41
-//    std::vector<std::string> excludeSamples{
-//        R"(sample276\.)",
-//        R"(sample28(0|1|2||3|4)\.)",
-//        R"(sample446\.)",
-//        R"(sample447_[1-5]\.)",
-//    };
     // exclude
     std::vector<std::string> excludeSamples{
         // cat 1
@@ -721,9 +711,26 @@ int main()
         R"(sample15(0|1)\.)",
         R"(sample170\.)",
         // cat 3
+        R"(sample31\.)",
         R"(sample129\.)",
         R"(sample13(1|2|5)\.)",
         R"(sample154\.)",
+        // cat 40_43
+        R"(sample179\.)",
+        R"(sample18(0|2|3)\.)",
+        R"(sample418\.)",
+        R"(sample530\.)",
+        R"(sample537_(1|2|4|5)\.)",
+//        // cat 41
+//        R"(sample276\.)",
+//        R"(sample28[1-4]\.)",
+//        R"(sample447_[1-5]\.)",
+//        // cat 42
+//        R"(sample350\.)",
+//        R"(sample35[2-4]\.)",
+//        R"(sample408\.)",
+//        R"(sample465\.)",
+//        // cat 44
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
