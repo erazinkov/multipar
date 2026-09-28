@@ -680,7 +680,9 @@ int main()
 
 //    const auto fileName{"OF_data.cat53.csv"};
 //    const auto fileName{"OF_data.cat41.csv"};
-     const auto fileName{"OF_data.cat44.csv"};
+//     const auto fileName{"OF_data.cat44.csv"};
+//     const auto fileName{"OF_data.cat1.csv"};
+     const auto fileName{"OF_data.cat3.csv"};
 
     std::cout << fileName << std::endl;
 
@@ -712,8 +714,16 @@ int main()
 //        R"(sample446\.)",
 //        R"(sample447_[1-5]\.)",
 //    };
-    // exclude for cat44
+    // exclude
     std::vector<std::string> excludeSamples{
+        // cat 1
+        R"(sample14(7|8|9)\.)",
+        R"(sample15(0|1)\.)",
+        R"(sample170\.)",
+        // cat 3
+        R"(sample129\.)",
+        R"(sample13(1|2|5)\.)",
+        R"(sample154\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
@@ -786,9 +796,9 @@ int main()
     // choose grad by idx
     std::map<std::string, Data> data_grad;
     for (const auto& [key, value] : data) {
-        if (value.idx < data.size() / 2) {
+//        if (value.idx < data.size() / 2) {
             data_grad[key] = value;
-        }
+//        }
     }
 
     std::cout << "!" << data_grad.size() << std::endl;

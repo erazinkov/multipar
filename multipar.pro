@@ -7,8 +7,10 @@ INCLUDEPATH += $$system(root-config --incdir)
 LIBS += $$system(root-config --libs) -lMinuit -lSpectrum -lMathCore
 
 SOURCES += \
+        calculationsaw.cpp \
         main.cpp
 
 HEADERS += \
+    calculationsaw.h \
     data.h \
     structs.h
