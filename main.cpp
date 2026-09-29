@@ -463,16 +463,18 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                                           {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
                                                           {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
                                                           {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "A", "cat53");
+                                                      }, "A", "cat54");
         auto w = CalculationsAW::calculateValueByType({
                                                           {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
                                                           {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
                                                           {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
                                                           {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
                                                           {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "W", "cat53");
+                                                      }, "W", "cat54");
+        if (points_p.at(i).sample.find("sample560") != std::string::npos) {
         std::cout << points_p.at(i).sample << " " << points_p.at(i).y << " " << points_p.at(i).x << " - "
                   << " " << "A=" << a << " " << "W=" << w << std::endl;
+        }
         subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
         TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
         l.SetTextAngle(90);
@@ -707,9 +709,10 @@ int main()
 //    const auto fileName{"stroy/OF_data.cat42.csv"};
 //    const auto fileName{"stroy/OF_data.cat44.csv"};
 //    const auto fileName{"stroy/OF_data.cat51.csv"};
-    const auto fileName{"stroy/OF_data.cat52.csv"};
+//    const auto fileName{"stroy/OF_data.cat52.csv"};
 //    const auto fileName{"stroy/OF_data.cat53.csv"};
-//    const auto fileName{"stroy/OF_data.cat54.csv"};
+    const auto fileName{"stroy/OF_data.cat54.csv"};
+//    const auto fileName{"stroy/OF_data.cat6.csv"};
     std::cout << fileName << std::endl;
 
     auto splitLineToStrs_ = [](const std::string& line) {
@@ -778,6 +781,8 @@ int main()
         // cat 54
         R"(sample201\.)",
         R"(sample428\.)",
+        // cat 6
+        R"(sample1(1|2|3|5)\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
