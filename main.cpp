@@ -706,7 +706,10 @@ int main()
 //    const auto fileName{"stroy/OF_data.cat41.csv"};
 //    const auto fileName{"stroy/OF_data.cat42.csv"};
 //    const auto fileName{"stroy/OF_data.cat44.csv"};
-    const auto fileName{"stroy/OF_data.cat53.csv"};
+//    const auto fileName{"stroy/OF_data.cat51.csv"};
+    const auto fileName{"stroy/OF_data.cat52.csv"};
+//    const auto fileName{"stroy/OF_data.cat53.csv"};
+//    const auto fileName{"stroy/OF_data.cat54.csv"};
     std::cout << fileName << std::endl;
 
     auto splitLineToStrs_ = [](const std::string& line) {
@@ -753,6 +756,17 @@ int main()
         R"(sample465\.)",
         // cat 44
         R"(sample455\.)",
+        // cat 51
+        R"(sample1\.)",
+        R"(sample222\.)",
+        R"(sample24(7|8|9)\.)",
+        R"(sample250\.)",
+        R"(sample268\.)",
+        R"(sample410\.)",
+        // cat 52
+        R"(sample115\.)",
+        R"(sample115_(2|4|5)\.)",
+        R"(sample314\.)",
         // cat 53
         R"(sample5\.)",
         R"(sample20[4-7]\.)",
@@ -761,6 +775,9 @@ int main()
         R"(sample532\.)",
         R"(sample562_[2-5]\.)",
         R"(sample601\.)",
+        // cat 54
+        R"(sample201\.)",
+        R"(sample428\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
