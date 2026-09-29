@@ -29,6 +29,8 @@
 
 #include "data.h"
 
+#include "calculationsaw.h"
+
 class my_error: public std::exception
 {
 public:
@@ -390,9 +392,9 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 //    saveRanksToFile();
 
 
-    for (const auto &[key, value] : subRanks) {
-        std::cout << key.first << " " << value.size() << std::endl;
-    }
+//    for (const auto &[key, value] : subRanks) {
+//        std::cout << key.first << " " << value.size() << std::endl;
+//    }
 
 
 
@@ -425,6 +427,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
          for (auto &item : subPoints) {
              std::regex pattern(item.first.first);
              if (std::regex_search(points_p.at(i).sample, pattern)) {
+
                  TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
                  l.SetTextAngle(90);
                  l.SetTextAlign(12);
@@ -454,6 +457,22 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 //            subPoints_.at({"check", kRed}).push_back(points_p.at(i));
 //            color = kRed;
 //        }
+        auto a = CalculationsAW::calculateValueByType({
+                                                          {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
+                                                          {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
+                                                          {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
+                                                          {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
+                                                          {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
+                                                      }, "A", "cat53");
+        auto w = CalculationsAW::calculateValueByType({
+                                                          {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
+                                                          {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
+                                                          {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
+                                                          {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
+                                                          {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
+                                                      }, "W", "cat53");
+        std::cout << points_p.at(i).sample << " " << points_p.at(i).y << " " << points_p.at(i).x << " - "
+                  << " " << "A=" << a << " " << "W=" << w << std::endl;
         subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
         TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
         l.SetTextAngle(90);
@@ -681,12 +700,13 @@ int main()
 //    const auto fileName{"OF_data.cat53.csv"};
 //    const auto fileName{"OF_data.cat41.csv"};
 //     const auto fileName{"OF_data.cat44.csv"};
-//     const auto fileName{"stroy/OF_data.cat1.csv"};
+//    const auto fileName{"stroy/OF_data.cat1.csv"};
 //     const auto fileName{"stroy/OF_data.cat3.csv"};
-    const auto fileName{"stroy/OF_data.cat40_43.csv"};
+//    const auto fileName{"stroy/OF_data.cat40_43.csv"};
 //    const auto fileName{"stroy/OF_data.cat41.csv"};
 //    const auto fileName{"stroy/OF_data.cat42.csv"};
 //    const auto fileName{"stroy/OF_data.cat44.csv"};
+    const auto fileName{"stroy/OF_data.cat53.csv"};
     std::cout << fileName << std::endl;
 
     auto splitLineToStrs_ = [](const std::string& line) {
@@ -715,22 +735,32 @@ int main()
         R"(sample129\.)",
         R"(sample13(1|2|5)\.)",
         R"(sample154\.)",
-        // cat 40_43
-        R"(sample179\.)",
-        R"(sample18(0|2|3)\.)",
-        R"(sample418\.)",
-        R"(sample530\.)",
-        R"(sample537_(1|2|4|5)\.)",
-//        // cat 41
-//        R"(sample276\.)",
-//        R"(sample28[1-4]\.)",
-//        R"(sample447_[1-5]\.)",
-//        // cat 42
-//        R"(sample350\.)",
-//        R"(sample35[2-4]\.)",
-//        R"(sample408\.)",
-//        R"(sample465\.)",
-//        // cat 44
+//        // cat 40_43
+//        R"(sample179\.)",
+//        R"(sample18(0|2|3)\.)",
+//        R"(sample418\.)",
+//        R"(sample530\.)",
+//        R"(sample537_(1|2|4|5)\.)",
+//        R"(sample582_(1|2|3|5)\.)",
+        // cat 41
+        R"(sample276\.)",
+        R"(sample28[1-4]\.)",
+        R"(sample447_[1-5]\.)",
+        // cat 42
+        R"(sample350\.)",
+        R"(sample35[2-4]\.)",
+        R"(sample408\.)",
+        R"(sample465\.)",
+        // cat 44
+        R"(sample455\.)",
+        // cat 53
+        R"(sample5\.)",
+        R"(sample20[4-7]\.)",
+        R"(sample37[6-9]\.)",
+        R"(sample489\.)",
+        R"(sample532\.)",
+        R"(sample562_[2-5]\.)",
+        R"(sample601\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
@@ -766,7 +796,8 @@ int main()
                 {
                     fR.elementResults.push_back({value,
                                             strToDouble(strs.at(static_cast<unsigned int>(key))),
-                                            strToDouble(strs.at(static_cast<unsigned int>(key + 1)))
+                                            strToDouble(strs.at(static_cast<unsigned int>(key))) * 0.01
+//                                            strToDouble(strs.at(static_cast<unsigned int>(key + 1)))
                                            });
                 }
                 d.sample = strs.at(0);
