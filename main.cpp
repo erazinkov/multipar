@@ -400,9 +400,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
 
     std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints{
-
-        { std::make_pair(R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)", kGreen), {} }, // grad
-        { std::make_pair(R"(sample(27[4-9]|28[0-3]|287|290|293|29[6-9]|30[0-5]|308|311|313|31[5-6]|318|32[1-3]|32[5-9]|33[0-1]|334|336|33[8-9]|34[1-4]|34[8-9]|35[0-4]|357|363|36[5-6]|369|371|38[1-9]|39[0-5]|39[8-9]|40[0-1])\.)", kRed), {} },
+        { std::make_pair(R"(^\s*sample(?:1|2|172|173|174|175|184|185|186|187|224|264|267|329|331|334|336|338|339|455|469|471|472|473|476|478)\.\s*$)", kGreen), {} },
+        { std::make_pair(R"(^\s*sample(?:37|38|39|40|63|64|65|66|77|78|79|80|81|82|109|116|117|118|119|232|237|238|239|252|253|254|255|287|290|293|327|382|386|389|391|392|414|415|416|417|419|423|500|501|502|503|505|508|510|512|514|515|536|537_\d+|539|542|551|565|566)\.\s*$)", kRed) , {} }
+//        { std::make_pair(R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)", kGreen), {} }, // grad
+//        { std::make_pair(R"(sample(27[4-9]|28[0-3]|287|290|293|29[6-9]|30[0-5]|308|311|313|31[5-6]|318|32[1-3]|32[5-9]|33[0-1]|334|336|33[8-9]|34[1-4]|34[8-9]|35[0-4]|357|363|36[5-6]|369|371|38[1-9]|39[0-5]|39[8-9]|40[0-1])\.)", kRed), {} },
     };
 
      auto sampleToLabel = [](const std::string &sample){
@@ -463,18 +464,20 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                                           {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
                                                           {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
                                                           {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "A", "cat54");
+                                                      }, "A", "cat44");
         auto w = CalculationsAW::calculateValueByType({
                                                           {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
                                                           {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
                                                           {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
                                                           {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
                                                           {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "W", "cat54");
-        if (points_p.at(i).sample.find("sample560") != std::string::npos) {
-        std::cout << points_p.at(i).sample << " " << points_p.at(i).y << " " << points_p.at(i).x << " - "
-                  << " " << "A=" << a << " " << "W=" << w << std::endl;
-        }
+                                                      }, "W", "cat44");
+//        points_p[i].x = a;
+
+//        if (points_p.at(i).sample.find("sample560") != std::string::npos) {
+//        std::cout << points_p.at(i).sample << " " << points_p.at(i).y << " " << points_p.at(i).x << " - "
+//                  << " " << "A=" << a << " " << "W=" << w << std::endl;
+//        }
         subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
         TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
         l.SetTextAngle(90);
@@ -484,7 +487,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
         m.SetMarkerSize(1.5);
         m.SetMarkerColor(color);
-        m.DrawClone("SAME");
+//        m.DrawClone("SAME");
     }
 
     for (const auto& [key, value] : subPoints_) {
@@ -708,10 +711,12 @@ int main()
 //    const auto fileName{"stroy/OF_data.cat41.csv"};
 //    const auto fileName{"stroy/OF_data.cat42.csv"};
 //    const auto fileName{"stroy/OF_data.cat44.csv"};
+//    const auto fileName{"stroy/OF_data.cat45.csv"};
+    const auto fileName{"stroy/OF_data.cat44_45.csv"};
 //    const auto fileName{"stroy/OF_data.cat51.csv"};
 //    const auto fileName{"stroy/OF_data.cat52.csv"};
 //    const auto fileName{"stroy/OF_data.cat53.csv"};
-    const auto fileName{"stroy/OF_data.cat54.csv"};
+//    const auto fileName{"stroy/OF_data.cat54.csv"};
 //    const auto fileName{"stroy/OF_data.cat6.csv"};
     std::cout << fileName << std::endl;
 
@@ -732,57 +737,59 @@ int main()
 
     // exclude
     std::vector<std::string> excludeSamples{
-        // cat 1
-        R"(sample14(7|8|9)\.)",
-        R"(sample15(0|1)\.)",
-        R"(sample170\.)",
-        // cat 3
-        R"(sample31\.)",
-        R"(sample129\.)",
-        R"(sample13(1|2|5)\.)",
-        R"(sample154\.)",
-//        // cat 40_43
-//        R"(sample179\.)",
-//        R"(sample18(0|2|3)\.)",
-//        R"(sample418\.)",
-//        R"(sample530\.)",
-//        R"(sample537_(1|2|4|5)\.)",
-//        R"(sample582_(1|2|3|5)\.)",
-        // cat 41
-        R"(sample276\.)",
-        R"(sample28[1-4]\.)",
-        R"(sample447_[1-5]\.)",
-        // cat 42
-        R"(sample350\.)",
-        R"(sample35[2-4]\.)",
-        R"(sample408\.)",
-        R"(sample465\.)",
-        // cat 44
+//        // cat 1
+//        R"(sample14(7|8|9)\.)",
+//        R"(sample15(0|1)\.)",
+//        R"(sample170\.)",
+//        // cat 3
+//        R"(sample31\.)",
+//        R"(sample129\.)",
+//        R"(sample13(1|2|5)\.)",
+//        R"(sample154\.)",
+////        // cat 40_43
+////        R"(sample179\.)",
+////        R"(sample18(0|2|3)\.)",
+////        R"(sample418\.)",
+////        R"(sample530\.)",
+////        R"(sample537_(1|2|4|5)\.)",
+////        R"(sample582_(1|2|3|5)\.)",
+//        // cat 41
+//        R"(sample276\.)",
+//        R"(sample28[1-4]\.)",
+//        R"(sample447_[1-5]\.)",
+//        // cat 42
+//        R"(sample350\.)",
+//        R"(sample35[2-4]\.)",
+//        R"(sample408\.)",
+//        R"(sample465\.)",
+//        // cat 44
         R"(sample455\.)",
-        // cat 51
-        R"(sample1\.)",
-        R"(sample222\.)",
-        R"(sample24(7|8|9)\.)",
-        R"(sample250\.)",
-        R"(sample268\.)",
-        R"(sample410\.)",
-        // cat 52
-        R"(sample115\.)",
-        R"(sample115_(2|4|5)\.)",
-        R"(sample314\.)",
-        // cat 53
-        R"(sample5\.)",
-        R"(sample20[4-7]\.)",
-        R"(sample37[6-9]\.)",
-        R"(sample489\.)",
-        R"(sample532\.)",
-        R"(sample562_[2-5]\.)",
-        R"(sample601\.)",
-        // cat 54
-        R"(sample201\.)",
-        R"(sample428\.)",
-        // cat 6
-        R"(sample1(1|2|3|5)\.)",
+          // cat 45
+          R"(sample537_[1-5]\.)",
+//        // cat 51
+//        R"(sample1\.)",
+//        R"(sample222\.)",
+//        R"(sample24(7|8|9)\.)",
+//        R"(sample250\.)",
+//        R"(sample268\.)",
+//        R"(sample410\.)",
+//        // cat 52
+//        R"(sample115\.)",
+//        R"(sample115_(2|4|5)\.)",
+//        R"(sample314\.)",
+//        // cat 53
+//        R"(sample5\.)",
+//        R"(sample20[4-7]\.)",
+//        R"(sample37[6-9]\.)",
+//        R"(sample489\.)",
+//        R"(sample532\.)",
+//        R"(sample562_[2-5]\.)",
+//        R"(sample601\.)",
+//        // cat 54
+//        R"(sample201\.)",
+//        R"(sample428\.)",
+//        // cat 6
+//        R"(sample1(1|2|3|5)\.)",
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
@@ -1056,3 +1063,4 @@ std::map<std::string, Data> getData(const std::string &fileName,
     ifs.close();
     return d;
 }
+
