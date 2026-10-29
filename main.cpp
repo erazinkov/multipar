@@ -529,10 +529,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         s.values.push_back({"#", subCategoriesItem.title});
         s.values.push_back({"n", doubleToString(subCategoriesItem.points.size(), 0)});
         auto avgXY{calculateAvgXY(subCategoriesItem.points)};
-        s.values.push_back({"avgX", doubleToString(avgXY.first)});
-        s.values.push_back({"avgY", doubleToString(avgXY.second)});
-        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points))});
-        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points))});
+        s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
+        s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
         statistics.emplace_back(s);
     }
