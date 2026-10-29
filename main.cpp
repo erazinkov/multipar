@@ -66,12 +66,14 @@ public:
                   - par[4] * par[0] * getElementResultValue_("O", points_.at(idx)).value_or(0.0)
                   - par[2] * par[4]
                   - par[5] * getElementResultValue_("C", points_.at(idx)).value_or(0.0)
-                  - par[6] * getElementResultValue_("N", points_.at(idx)).value_or(0.0) )
+                  - par[6] * getElementResultValue_("N", points_.at(idx)).value_or(0.0)
+                  - par[7] * getElementResultValue_("O", points_.at(idx)).value_or(0.0))
                   / ( 1.0 - par[1] * par[4] );
         } else {
             val = ( par[0] * getElementResultValue_("O", points_.at(idx)).value_or(0.0)
                    - par[1] * points_.at(idx - s_).chemResult.a.value()
-                   + par[2] );
+                   + par[2]
+                   - par[7] * getElementResultValue_("O", points_.at(idx)).value_or(0.0));
         }
         return val;
    }
@@ -618,11 +620,14 @@ double getPredicatedValueByType(const FitResult &fr, const ChemResult::Type &typ
              - f->GetParameter(2) * f->GetParameter(4)
              - f->GetParameter(5) * fr.getElementResultByName("C").value
              - f->GetParameter(6) * fr.getElementResultByName("N").value
+             - f->GetParameter(7) * fr.getElementResultByName("O").value
             )
             / ( 1.0 - f->GetParameter(1) * f->GetParameter(4) );
     val_w = ( f->GetParameter(0) * fr.getElementResultByName("O").value
              - f->GetParameter(1) * val_a
-             + f->GetParameter(2) );
+             + f->GetParameter(2)
+             - f->GetParameter(7) * fr.getElementResultByName("O").value
+            );
 
     auto val{0.0};
     switch (type) {
@@ -635,7 +640,33 @@ double getPredicatedValueByType(const FitResult &fr, const ChemResult::Type &typ
     }
     return val;
 };
+//  EXT PARAMETER                                   STEP         FIRST
+//  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE
+//1  p0           9.85052e-01   1.56034e-02   1.29051e-05  -8.39699e-02
+//2  p1           3.97805e-01   1.63273e-02   2.66540e-05   4.17382e-02
+//3  p2          -5.51137e+00   2.33920e-01   2.27741e-04  -4.51786e-03
+//4  p3           1.09383e+02   3.06925e+00   4.99192e-04   5.53287e-03
+//5  p4           1.01718e+00   5.66890e-02   5.78286e-05  -4.98701e-02
+//6  p5           1.15147e+00   3.35696e-02   6.28781e-06  -4.37979e-01
+//7  p6           1.04205e+00   1.53262e-01   5.03699e-04  -5.09921e-03
 
+//1  p0           9.85052e-01   7.63771e-03   2.58103e-06   7.41572e-01
+//2  p1           3.97805e-01   1.07971e-02   5.33085e-06  -3.49872e-01
+//3  p2          -5.28024e+00   1.39654e-01   4.55487e-05   4.20201e-02
+//4  p3           1.09849e+02   3.32470e-01   9.98413e-05   2.40988e-03
+//5  p4           1.01719e+00   2.66194e-02   1.12662e-05  -2.13716e-02
+//6  p5           1.15147e+00   3.95626e-03   1.25760e-06  -1.87354e-01
+//7  p6           1.04207e+00   1.28512e-01   1.00743e-04  -6.91751e-04
+//8  p7           2.31140e-01   1.84265e-01   3.61596e-04   5.91485e-03
+
+//1  p0           1.07490e+00   3.04124e-02  -4.92857e-05  -1.35637e+00
+//2  p1           3.97806e-01   1.59243e-02  -1.25629e-05   6.77570e-01
+//3  p2          -5.51141e+00   2.36322e-01   9.15804e-06  -7.66068e-02
+//4  p3           1.17939e+02   1.31518e+00   2.30505e-03   2.28027e-02
+//5  p4           9.13275e-01   8.17277e-02   1.44719e-04  -2.50796e-01
+//6  p5           1.23141e+00   1.61769e-02   2.85117e-05  -1.77141e+00
+//7  p6           1.11435e+00   1.61046e-01   2.20901e-05  -2.44575e-02
+//8  p7           8.98496e-02   2.58478e-02  -2.22166e-04   1.02946e-01
 
 std::vector<Point> getPredicatedPointsByType(const std::map<std::string, Data> &data, const ChemResult::Type &type, TF1 *f) {
     std::vector<Point> points;
@@ -928,7 +959,7 @@ int main()
         }
 
         FitFunction1 fObj(points, points_a.size());
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 7)};
+        std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 8)};
         const std::vector<double> parameters = {
               1.55468e+00,
               7.55269e-01,
@@ -936,7 +967,8 @@ int main()
               1.05060e+02,
               6.69100e-01,
               1.17662e+00,
-              0.00000e+00
+              0.00000e+00,
+              0.30000e+00
         };
 
         auto setInitialParameters = [&parameters](TF1 *f){
@@ -946,11 +978,9 @@ int main()
         };
         setInitialParameters(f.get());
 
-//        f.get()->FixParameter(6, 0.0);
+        f.get()->SetParLimits(7, 0.0, 0.5);
 
         std::unique_ptr<TGraphErrors> gr{new TGraphErrors(points.size())};
-
-
         for (size_t i{0}; i < points.size(); i++) {
             gr.get()->SetPoint(i, points.at(i).x, points.at(i).y);
             gr.get()->SetPointError(i, points.at(i).xErr, points.at(i).yErr);
