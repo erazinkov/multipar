@@ -313,8 +313,8 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.85};
-    auto max{(*itMax).y * 1.11};
+    auto min{(*itMin).y * 0.75};
+    auto max{(*itMax).y * 1.25};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
     h2d_p.get()->SetStats(0);
@@ -435,7 +435,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                  l.SetTextSize(0.02);
 //                 l.DrawClone("SAME");
                  TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
-                 m.SetMarkerSize(1.5);
+                 m.SetMarkerSize(1.25);
                  m.SetMarkerColor(item.first.second);
                  m.DrawClone("SAME");
                  item.second.push_back(points_p.at(i));
@@ -443,166 +443,167 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
          }
      }
 
-    // choose points by idx
-    std::map<std::pair<std::string, Color_t>, std::vector<Point>> subPoints_{
-        {std::make_pair("all", kBlack), {} },
-//        {std::make_pair("check", kRed), {} }
+    struct SubCategory {
+        std::string title;
+        std::vector<uint> flags;
+        Color_t color;
+        std::vector<Point> points;
     };
 
-    for (size_t i{0}; i < points_p.size(); ++i) {
-        auto color{kBlack};
-//        if (points_p.at(i).idx < points_p.size() / 2) {
-//            // subPoints_.at({"grad", kGreen}).push_back(points_p.at(i));
-//            // color = kGreen;
-//        } else {
-//            subPoints_.at({"check", kRed}).push_back(points_p.at(i));
-//            color = kRed;
-//        }
-        auto a = CalculationsAW::calculateValueByType({
-                                                          {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
-                                                          {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
-                                                          {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
-                                                          {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
-                                                          {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "A", "cat44");
-        auto w = CalculationsAW::calculateValueByType({
-                                                          {"Al", points_p.at(i).fitResult.getElementResultByName("Al").value},
-                                                          {"C", points_p.at(i).fitResult.getElementResultByName("C").value},
-                                                          {"O", points_p.at(i).fitResult.getElementResultByName("O").value},
-                                                          {"N", points_p.at(i).fitResult.getElementResultByName("N").value},
-                                                          {"Si", points_p.at(i).fitResult.getElementResultByName("Si").value}
-                                                      }, "W", "cat44");
-
-        if (points_p.at(i).sample.find("sample560") != std::string::npos) {
-        std::cout << points_p.at(i).sample << " " << points_p.at(i).y << " " << points_p.at(i).x << " - "
-                  << " " << "A=" << a << " " << "W=" << w << std::endl;
+    std::vector<SubCategory> subCategories
+    {
+        {
+            "all",
+            {41, 42, 44, 45, 40, 43},
+            kBlack,
+            {}
+        },
+        {
+            "K12",
+            {41},
+            kBlue,
+            {}
+        },
+        {
+            "T,TC",
+            {42},
+            kOrange,
+            {}
+        },
+        {
+            "K+KC+OC",
+            {44, 45},
+            kGreen,
+            {}
+        },
+        {
+            "other",
+            {40, 43},
+            kRed,
+            {}
         }
-        subPoints_.at({"all", kBlack}).push_back(points_p.at(i));
-        TLatex l(points_p.at(i).x, points_p.at(i).y + 1.25 * points_p.at(i).xErr, sampleToLabel(points_p.at(i).sample).c_str());
-        l.SetTextAngle(90);
-        l.SetTextAlign(12);
-        l.SetTextSize(0.02);
-//        l.DrawClone("SAME");
-        TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
-        m.SetMarkerSize(1.5);
-        m.SetMarkerColor(color);
-//        m.DrawClone("SAME");
+    };
+
+    for (size_t i{0}; i < subCategories.size(); i++) {
+        for (size_t j{0}; j < points_p.size(); ++j) {
+            if (std::find(subCategories.at(i).flags.begin(), subCategories.at(i).flags.end(), points_p.at(j).subCategory) != subCategories.at(i).flags.end()) {
+                subCategories.at(i).points.emplace_back(points_p.at(j));
+            }
+        }
     }
 
-    for (const auto& [key, value] : subPoints_) {
-        std::cout << key.first << " " << value.size() << std::endl;
+    for (const auto &subCategoriesItem : subCategories) {
+        std::cout << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
+
+        for (const auto &pointsItem : subCategoriesItem.points) {
+            TLatex l(pointsItem.x, pointsItem.y + 1.25 * pointsItem.xErr, sampleToLabel(pointsItem.sample).c_str());
+            l.SetTextAngle(90);
+            l.SetTextAlign(12);
+            l.SetTextSize(0.02);
+    //        l.DrawClone("SAME");
+            TMarker m{pointsItem.x, pointsItem.y, 21};
+            m.SetMarkerSize(1.5);
+            m.SetMarkerColor(subCategoriesItem.color);
+            m.DrawClone("SAME");
+        }
     }
 
+    struct StatisticsValue {
+        std::string title;
+        std::string value;
+    };
 
-    std::map<std::pair<std::string, Color_t>, std::map<std::string, std::string>> subStats;
-    for (auto &item : subPoints_) {
-        subStats[item.first] = {};
-        subStats.at(item.first).insert({"stdAbs", doubleToString(calculateStdAbsCon(item.second))});
-        auto avgXY{calculateAvgXY(item.second)};
-        subStats.at(item.first).insert({"avgX", doubleToString(avgXY.first)});
-        subStats.at(item.first).insert({"avgY", doubleToString(avgXY.second)});
-        subStats.at(item.first).insert({"r", doubleToString(calculateCorr(item.second))});
-        subStats.at(item.first).insert({"n", doubleToString(item.second.size(), 0)});
+    struct Statistics {
+        std::string title;
+        Color_t color;
+        std::vector<StatisticsValue> values;
+    };
+
+    std::vector<Statistics> statistics;
+    for (const auto &subCategoriesItem : subCategories) {
+        Statistics s;
+        s.title = subCategoriesItem.title;
+        s.color = subCategoriesItem.color;
+        s.values.push_back({"#", subCategoriesItem.title});
+        s.values.push_back({"n", doubleToString(subCategoriesItem.points.size(), 0)});
+        auto avgXY{calculateAvgXY(subCategoriesItem.points)};
+        s.values.push_back({"avgX", doubleToString(avgXY.first)});
+        s.values.push_back({"avgY", doubleToString(avgXY.second)});
+        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points))});
+        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points))});
+
+        statistics.emplace_back(s);
     }
-    if (!subStats.empty()) {
+    if (!statistics.empty()) {
         double yRow = 0.85;
         double xCol = 0.15;
         double colWidth = 0.1;
-        auto it = subStats.begin();
-        for (const auto &statsItem : (*it).second) {
-            TLatex *t = new TLatex(xCol, yRow, statsItem.first.c_str());
+        for (const auto &statisticsValuesItem : statistics.front().values) {
+            TLatex *t = new TLatex(xCol, yRow, statisticsValuesItem.title.c_str());
             t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-            t->SetTextSize(0.04);
+            t->SetTextSize(0.02);
             t->SetNDC();
             t->Draw();
             xCol += colWidth;
         }
-        yRow -= 0.05;
-        for (const auto& item : subStats) {
+        yRow -= 0.025;
+        for (const auto& statisticsItem : statistics) {
             double xCol = 0.15;
-            Color_t color = item.first.second;
-            std::map<std::string, std::string> stats = item.second;
-            for (const auto &statsItem : stats) {
-                TLatex *t = new TLatex(xCol, yRow, statsItem.second.c_str());
-                t->SetTextColor(color);
+            for (const auto &statisticsValuesItem : statisticsItem.values) {
+                TLatex *t = new TLatex(xCol, yRow, statisticsValuesItem.value.c_str());
+                t->SetTextColor(statisticsItem.color);
                 t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-                t->SetTextSize(0.04);
+                t->SetTextSize(0.02);
                 t->SetNDC();
                 t->Draw();
                 xCol += colWidth;
             }
-            yRow -= 0.05;
+            yRow -= 0.025;
         }
     }
 
 
-//    std::unique_ptr<TPaveText> pt{new TPaveText(0.1, 0.65, 0.5, 0.9, "NDC")};
-//    pt.get()->SetFillColor(0);
-//    pt.get()->SetBorderSize(1);
-
+//    std::map<std::pair<std::string, Color_t>, std::map<std::string, std::string>> subStats;
+//    for (auto &subCategoriesItem : subCategories) {
+//        subStats[{subCategoriesItem.title, subCategoriesItem.color}] = {};
+//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points))});
+//        auto avgXY{calculateAvgXY(subCategoriesItem.points)};
+//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"avgX", doubleToString(avgXY.first)});
+//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"avgY", doubleToString(avgXY.second)});
+//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"r", doubleToString(calculateCorr(subCategoriesItem.points))});
+//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"n", doubleToString(subCategoriesItem.points.size(), 0)});
+//    }
 //    if (!subStats.empty()) {
-//        std::ostringstream oss;
+//        double yRow = 0.85;
+//        double xCol = 0.15;
+//        double colWidth = 0.1;
 //        auto it = subStats.begin();
 //        for (const auto &statsItem : (*it).second) {
-//            oss << std::left << std::setw(8) << statsItem.first;
+//            TLatex *t = new TLatex(xCol, yRow, statsItem.first.c_str());
+//            t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
+//            t->SetTextSize(0.04);
+//            t->SetNDC();
+//            t->Draw();
+//            xCol += colWidth;
 //        }
-//        pt->AddText(oss.str().c_str());
-//    }
-
+//        yRow -= 0.05;
 //        for (const auto& item : subStats) {
-//            std::string key = "";
+//            double xCol = 0.15;
 //            Color_t color = item.first.second;
-//            std::map<std::string, double> stats = item.second;
+//            std::map<std::string, std::string> stats = item.second;
 //            for (const auto &statsItem : stats) {
-//    //            key.append(statsItem.first);
-//    //            key.append("=");
-//                key.append(doubleToString(statsItem.second));
-//                key.append(" ");
+//                TLatex *t = new TLatex(xCol, yRow, statsItem.second.c_str());
+//                t->SetTextColor(color);
+//                t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
+//                t->SetTextSize(0.04);
+//                t->SetNDC();
+//                t->Draw();
+//                xCol += colWidth;
 //            }
-
-//            size_t pos = key.find_last_not_of(" \t\n\r\f\v");
-//            if (pos != std::string::npos) {
-//                key.erase(pos + 1);
-//            } else {
-//                key.clear();
-//            }
-//            TText *text = pt.get()->AddText(key.c_str());
-//            text->SetTextColor(color);
+//            yRow -= 0.05;
 //        }
-
-//    if (!subStats.empty()) {
-//        std::string key = "";
-//        auto it = subStats.begin();
-//        std::map<std::string, double> stats = (*it).second;
-//        for (const auto &statsItem : stats) {
-//            key.append(statsItem.first);
-//            key.append(";");
-//        }
-//        pt.get()->AddText(key.c_str());
 //    }
 
-
-//    for (const auto& item : subStats) {
-//        std::string key = "";
-//        Color_t color = item.first.second;
-//        std::map<std::string, double> stats = item.second;
-//        for (const auto &statsItem : stats) {
-////            key.append(statsItem.first);
-////            key.append("=");
-//            key.append(doubleToString(statsItem.second));
-//            key.append(" ");
-//        }
-
-//        size_t pos = key.find_last_not_of(" \t\n\r\f\v");
-//        if (pos != std::string::npos) {
-//            key.erase(pos + 1);
-//        } else {
-//            key.clear();
-//        }
-//        TText *text = pt.get()->AddText(key.c_str());
-//        text->SetTextColor(color);
-//    }
-//    pt.get()->Draw("SAME");
 
     c_p.get()->Print(psName_p.c_str());
     c_p.get()->Print((psName_p + ']').c_str());
@@ -656,6 +657,8 @@ std::vector<Point> getPredicatedPointsByType(const std::map<std::string, Data> &
                 Point point;
                 point.idx = value.idx;
                 point.sample = key;
+                point.category = value.category;
+                point.subCategory = value.subCategory;
                 point.chemResult = value.chemResult;
                 point.x = getPredicatedValueByType(fr, type, f);
                 point.xErr = getPredicatedValueByType(fr, type, f) * 0.01;
@@ -715,8 +718,9 @@ int main()
 //    const auto fileName{"stroy/OF_data.cat51.csv"};
 //    const auto fileName{"stroy/OF_data.cat52.csv"};
 //    const auto fileName{"stroy/OF_data.cat53.csv"};
-    const auto fileName{"stroy/OF_data.cat54.csv"};
+//    const auto fileName{"stroy/OF_data.cat54.csv"};
 //    const auto fileName{"stroy/OF_data.cat6.csv"};
+    const auto fileName{"stroy/OF_data.cat4.csv"};
     std::cout << fileName << std::endl;
 
     auto splitLineToStrs_ = [](const std::string& line) {
@@ -745,13 +749,13 @@ int main()
 //        R"(sample129\.)",
 //        R"(sample13(1|2|5)\.)",
 //        R"(sample154\.)",
-////        // cat 40_43
-////        R"(sample179\.)",
-////        R"(sample18(0|2|3)\.)",
-////        R"(sample418\.)",
-////        R"(sample530\.)",
-////        R"(sample537_(1|2|4|5)\.)",
-////        R"(sample582_(1|2|3|5)\.)",
+//        // cat 40_43
+//        R"(sample179\.)",
+//        R"(sample18(0|2|3)\.)",
+//        R"(sample418\.)",
+//        R"(sample530\.)",
+//        R"(sample537_(1|2|4|5)\.)",
+//        R"(sample582_(1|2|3|5)\.)",
 //        // cat 41
 //        R"(sample276\.)",
 //        R"(sample28[1-4]\.)",
@@ -762,9 +766,9 @@ int main()
 //        R"(sample408\.)",
 //        R"(sample465\.)",
 //        // cat 44
-        R"(sample455\.)",
-          // cat 45
-          R"(sample537_[1-5]\.)",
+//        R"(sample455\.)",
+//        // cat 45
+//        R"(sample537_[1-5]\.)",
 //        // cat 51
 //        R"(sample1\.)",
 //        R"(sample222\.)",
@@ -789,6 +793,29 @@ int main()
 //        R"(sample428\.)",
 //        // cat 6
 //        R"(sample1(1|2|3|5)\.)",
+
+        // cat 4
+        // cat 40_43
+        R"(sample179\.)",
+        R"(sample18(0|2|3)\.)",
+        R"(sample418\.)",
+        R"(sample530\.)",
+        R"(sample537_(1|2|4|5)\.)",
+        R"(sample582_(1|2|3|5)\.)",
+        // cat 41
+        R"(sample276\.)",
+        R"(sample28[1-4]\.)",
+        R"(sample447_[1-5]\.)",
+        // cat 42
+        R"(sample350\.)",
+        R"(sample35[2-4]\.)",
+        R"(sample408\.)",
+        R"(sample465\.)",
+        // cat 44
+        R"(sample455\.)",
+        // cat 45
+        R"(sample537_[1-5]\.)",
+
     };
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){

@@ -68,6 +68,8 @@ struct Data {
 struct Point  {
     uint idx;
     std::string sample;
+    uint category;
+    uint subCategory;
     ChemResult chemResult;
     FitResult fitResult;
     double x;
