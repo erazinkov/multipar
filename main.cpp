@@ -527,10 +527,10 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         s.values.push_back({"#", subCategoriesItem.title});
         s.values.push_back({"n", doubleToString(subCategoriesItem.points.size(), 0)});
         auto avgXY{calculateAvgXY(subCategoriesItem.points)};
-        s.values.push_back({"avgX", doubleToString(avgXY.first)});
-        s.values.push_back({"avgY", doubleToString(avgXY.second)});
-        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points))});
-        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points))});
+        s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
+        s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
         statistics.emplace_back(s);
     }
@@ -562,47 +562,6 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         }
     }
 
-
-//    std::map<std::pair<std::string, Color_t>, std::map<std::string, std::string>> subStats;
-//    for (auto &subCategoriesItem : subCategories) {
-//        subStats[{subCategoriesItem.title, subCategoriesItem.color}] = {};
-//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points))});
-//        auto avgXY{calculateAvgXY(subCategoriesItem.points)};
-//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"avgX", doubleToString(avgXY.first)});
-//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"avgY", doubleToString(avgXY.second)});
-//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"r", doubleToString(calculateCorr(subCategoriesItem.points))});
-//        subStats.at({subCategoriesItem.title, subCategoriesItem.color}).insert({"n", doubleToString(subCategoriesItem.points.size(), 0)});
-//    }
-//    if (!subStats.empty()) {
-//        double yRow = 0.85;
-//        double xCol = 0.15;
-//        double colWidth = 0.1;
-//        auto it = subStats.begin();
-//        for (const auto &statsItem : (*it).second) {
-//            TLatex *t = new TLatex(xCol, yRow, statsItem.first.c_str());
-//            t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-//            t->SetTextSize(0.04);
-//            t->SetNDC();
-//            t->Draw();
-//            xCol += colWidth;
-//        }
-//        yRow -= 0.05;
-//        for (const auto& item : subStats) {
-//            double xCol = 0.15;
-//            Color_t color = item.first.second;
-//            std::map<std::string, std::string> stats = item.second;
-//            for (const auto &statsItem : stats) {
-//                TLatex *t = new TLatex(xCol, yRow, statsItem.second.c_str());
-//                t->SetTextColor(color);
-//                t->SetTextAlign(22);   // 2 = center horizontally, 2 = center vertically
-//                t->SetTextSize(0.04);
-//                t->SetNDC();
-//                t->Draw();
-//                xCol += colWidth;
-//            }
-//            yRow -= 0.05;
-//        }
-//    }
 
 
     c_p.get()->Print(psName_p.c_str());
