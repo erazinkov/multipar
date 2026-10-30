@@ -699,60 +699,6 @@ int main()
 
     // exclude
     std::vector<std::string> excludeSamples{
-//        // cat 1
-//        R"(sample14(7|8|9)\.)",
-//        R"(sample15(0|1)\.)",
-//        R"(sample170\.)",
-//        // cat 3
-//        R"(sample31\.)",
-//        R"(sample129\.)",
-//        R"(sample13(1|2|5)\.)",
-//        R"(sample154\.)",
-//        // cat 40_43
-//        R"(sample179\.)",
-//        R"(sample18(0|2|3)\.)",
-//        R"(sample418\.)",
-//        R"(sample530\.)",
-//        R"(sample537_(1|2|4|5)\.)",
-//        R"(sample582_(1|2|3|5)\.)",
-//        // cat 41
-//        R"(sample276\.)",
-//        R"(sample28[1-4]\.)",
-//        R"(sample447_[1-5]\.)",
-//        // cat 42
-//        R"(sample350\.)",
-//        R"(sample35[2-4]\.)",
-//        R"(sample408\.)",
-//        R"(sample465\.)",
-//        // cat 44
-//        R"(sample455\.)",
-//        // cat 45
-//        R"(sample537_[1-5]\.)",
-//        // cat 51
-//        R"(sample1\.)",
-//        R"(sample222\.)",
-//        R"(sample24(7|8|9)\.)",
-//        R"(sample250\.)",
-//        R"(sample268\.)",
-//        R"(sample410\.)",
-//        // cat 52
-//        R"(sample115\.)",
-//        R"(sample115_(2|4|5)\.)",
-//        R"(sample314\.)",
-//        // cat 53
-//        R"(sample5\.)",
-//        R"(sample20[4-7]\.)",
-//        R"(sample37[6-9]\.)",
-//        R"(sample489\.)",
-//        R"(sample532\.)",
-//        R"(sample562_[2-5]\.)",
-//        R"(sample601\.)",
-//        // cat 54
-//        R"(sample201\.)",
-//        R"(sample428\.)",
-//        // cat 6
-//        R"(sample1(1|2|3|5)\.)",
-
         // cat 4
         // cat 40_43
         R"(sample179\.)",
@@ -776,6 +722,44 @@ int main()
         R"(sample537_[1-5]\.)",
 
     };
+
+
+    struct SubCategoryData {
+        std::string title;
+        std::vector<uint> flags;
+        std::vector<Data> data;
+    };
+
+    std::vector<SubCategoryData> subCategoriesData
+    {
+//        {
+//            "4",
+//            {41, 42, 44, 45, 40, 43},
+//            {}
+//        },
+        {
+            "41",
+            {41},
+            {}
+        },
+        {
+            "42",
+            {42},
+            {}
+        },
+        {
+            "44_45",
+            {44, 45},
+            {}
+        },
+        {
+            "40_43",
+            {40, 43},
+            {}
+        }
+    };
+
+
 
     auto isExclude = [](const std::string &sample, std::vector<std::string> &excludeSamples){
         bool exclude{false};
@@ -835,124 +819,117 @@ int main()
 
     auto data_{getData_(fileName, columnElement)};
 
-    // category
-    std::map<std::string, Data> data;
-    uint idx{0};
-    for (const auto& d : data_) {
-        // if (d.subCategory == 41) {
-            data[d.sample] = d;
-            data[d.sample].idx = idx;
-            idx++;
-        // }
-    }
-    // choose grad by idx
-    std::map<std::string, Data> data_grad;
-    for (const auto& [key, value] : data) {
-//        if (value.idx < data.size() / 2) {
-            data_grad[key] = value;
-//        }
-    }
-
-    std::cout << "!" << data_grad.size() << std::endl;
-
-
-//    try {
-//        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
-//        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
-//        std::regex m(R"((sample(?:10[6-9]|17[2-9]|18[0-7])(?:_1)?\.))"); // check
-//        std::regex m{R"(sample\d+\.)"};
-//        std::regex m{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-5][0-9]|6[0-7]))\.)"};
-        std::regex m{R"(sample(175|176_1|17[7-9]|18[0-7]|22[4-9]|23[0-2]|230_1|23[7-9]|24[0-3]|25[2-5]|264|267)\.)"};
-//        auto data{getData(fileName, columnElement, chem, m)};
-//        for (const auto &[key, value] : data_grad) {
-//            std::cout << key << " ";
-//            value.print();
-//            std::cout << std::endl;
-//        }
-
-        std::vector<Point> points_a{getPointsByType(data_grad, ChemResult::Type::A)};
-        std::vector<Point> points_w{getPointsByType(data_grad, ChemResult::Type::W)};
-        for (auto &p : points_w) {
-            p.x  = p.x + points_a.size();
-        }
-
-        std::vector<Point> points;
-        points.insert(points.end(), points_a.cbegin(), points_a.cend());
-        points.insert(points.end(), points_w.cbegin(), points_w.cend());
-
-        for (const auto &p : points) {
-            std::cout << p.sample << " " << p.x << " " << p.y;
-            p.fitResult.print();
-            std::cout << std::endl;
-        }
-
-        FitFunction1 fObj(points, points_a.size());
-        std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 7)};
-        const std::vector<double> parameters = {
-              1.55468e+00,
-              7.55269e-01,
-             -1.22767e+01,
-              1.05060e+02,
-              6.69100e-01,
-              1.17662e+00,
-              0.00000e+00
-        };
-
-        auto setInitialParameters = [&parameters](TF1 *f){
-            for (auto it{parameters.begin()}; it != parameters.end(); it++) {
-                f->SetParameter(std::distance(parameters.begin(), it), *it);
+    for (size_t i{0}; i < subCategoriesData.size(); i++) {
+        for (size_t j{0}; j < data_.size(); ++j) {
+            if (std::find(subCategoriesData.at(i).flags.begin(), subCategoriesData.at(i).flags.end(), data_.at(j).subCategory) != subCategoriesData.at(i).flags.end()) {
+                subCategoriesData.at(i).data.emplace_back(data_.at(j));
             }
-        };
-        setInitialParameters(f.get());
+        }
+    }
 
-//        f.get()->FixParameter(6, 0.0);
+    for (size_t i{0}; i < subCategoriesData.size(); i++) {
+        std::cout << subCategoriesData.at(i).data.size() << std::endl;
+    }
 
-        std::unique_ptr<TGraphErrors> gr{new TGraphErrors(points.size())};
+    std::vector<Point> points_;
 
-
-        for (size_t i{0}; i < points.size(); i++) {
-            gr.get()->SetPoint(i, points.at(i).x, points.at(i).y);
-            gr.get()->SetPointError(i, points.at(i).xErr, points.at(i).yErr);
+    for (size_t ic{0}; ic < subCategoriesData.size(); ic++) {
+        std::map<std::string, Data> data;
+        uint idx{0};
+        for (const auto& d : subCategoriesData.at(ic).data) {
+                data[d.sample] = d;
+                data[d.sample].idx = idx;
+                idx++;
+        }
+        std::map<std::string, Data> data_grad;
+        for (const auto& [key, value] : data) {
+                data_grad[key] = value;
         }
 
-        gr.get()->SetMarkerSize(1.5);
-        gr.get()->SetMarkerStyle(21);
-        gr.get()->SetTitle(";N_{probe};[...A, ...W]");
-
-        f.get()->SetNpx(10 * static_cast<int>(points.size()));
-
-        gr.get()->Fit(f.get(), "R");
-
-        TMarker bM{points_a.back().x + 0.5, TMath::MinElement(gr.get()->GetN(), gr.get()->GetY()) + 5.0, 20};
-        bM.SetMarkerSize(1.5);
-        bM.SetMarkerColor(kGreen);
-        const std::string psName{"output.ps"};
-        std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
-        gPad->SetGrid();
-        c.get()->Print((psName + '[').c_str());
-        gr.get()->Draw("APL");
-
-        bM.DrawClone("SAME");
-        c.get()->Print(psName.c_str());
-        c.get()->Print((psName + ']').c_str());
-        c.get()->Close();
-
-        // std::regex m_a{R"(pulp_rot_berez_7_w\d+_sum|pulp_rot_berez_2_w\d+_sum|pulp_rot_berez_11_w\d+_sum|pulp_rot_berez_7_w\d+p\d+_sum)"};
-//        std::regex m_a{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"};
-        std::regex m_a{R"(sample\d+)"};
-//        std::regex m_a{R"(sample(1(7[6-9]|8[0-9]|9[0-9])|2([0-9][0-9])|3([0-3][0-9]|4[0-4]))\.)"};
+        std::cout << "!" << data_grad.size() << std::endl;
 
 
-        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
-        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
+            std::vector<Point> points_a{getPointsByType(data_grad, ChemResult::Type::A)};
+            std::vector<Point> points_w{getPointsByType(data_grad, ChemResult::Type::W)};
+            for (auto &p : points_w) {
+                p.x  = p.x + points_a.size();
+            }
 
-//        auto data_a{getData(fileName, columnElement, chem, m_a)};
+            std::vector<Point> points;
+            points.insert(points.end(), points_a.cbegin(), points_a.cend());
+            points.insert(points.end(), points_w.cbegin(), points_w.cend());
 
-//        std::vector<Point> points_p_a{getPredicatedPointsByType(data_a, ChemResult::Type::A, f.get())};
-//        std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
+            for (const auto &p : points) {
+                std::cout << p.sample << " " << p.x << " " << p.y;
+                p.fitResult.print();
+                std::cout << std::endl;
+            }
 
-        process(points_p_a, ChemResult::Type::A);
-        process(points_p_w, ChemResult::Type::W);
+            FitFunction1 fObj(points, points_a.size());
+            std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 7)};
+            const std::vector<double> parameters = {
+                  1.55468e+00,
+                  7.55269e-01,
+                 -1.22767e+01,
+                  1.05060e+02,
+                  6.69100e-01,
+                  1.17662e+00,
+                  0.00000e+00
+            };
+
+            auto setInitialParameters = [&parameters](TF1 *f){
+                for (auto it{parameters.begin()}; it != parameters.end(); it++) {
+                    f->SetParameter(std::distance(parameters.begin(), it), *it);
+                }
+            };
+            setInitialParameters(f.get());
+
+    //        f.get()->FixParameter(6, 0.0);
+
+            std::unique_ptr<TGraphErrors> gr{new TGraphErrors(points.size())};
+
+
+            for (size_t i{0}; i < points.size(); i++) {
+                gr.get()->SetPoint(i, points.at(i).x, points.at(i).y);
+                gr.get()->SetPointError(i, points.at(i).xErr, points.at(i).yErr);
+            }
+
+            gr.get()->SetMarkerSize(1.5);
+            gr.get()->SetMarkerStyle(21);
+            gr.get()->SetTitle(";N_{probe};[...A, ...W]");
+
+            f.get()->SetNpx(10 * static_cast<int>(points.size()));
+
+            gr.get()->Fit(f.get(), "R");
+
+            TMarker bM{points_a.back().x + 0.5, TMath::MinElement(gr.get()->GetN(), gr.get()->GetY()) + 5.0, 20};
+            bM.SetMarkerSize(1.5);
+            bM.SetMarkerColor(kGreen);
+            const std::string psName{"output_" + subCategoriesData.at(ic).title + ".ps"};
+            std::unique_ptr<TCanvas> c{new TCanvas("c", "c", 1024, 960)};
+            gPad->SetGrid();
+            c.get()->Print((psName + '[').c_str());
+            gr.get()->Draw("APL");
+
+            bM.DrawClone("SAME");
+            c.get()->Print(psName.c_str());
+            c.get()->Print((psName + ']').c_str());
+            c.get()->Close();
+            std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
+            std::cout << "points_p_a ====== " <<  points_p_a.size() << std::endl;
+            points_.insert(points_.end(), points_p_a.begin(), points_p_a.end());
+    }
+
+    std::cout << points_.size() << std::endl;
+
+//        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
+//        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
+
+
+        process(points_, ChemResult::Type::A);
+//        process(points_p_w, ChemResult::Type::W);
+
+    //!!!
 
 //        std::regex m_r{R"(sample(115|115_\d+))"};
 
