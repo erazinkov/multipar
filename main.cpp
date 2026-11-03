@@ -519,6 +519,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         std::vector<StatisticsValue> values;
     };
 
+
     std::vector<Statistics> statistics;
     for (const auto &subCategoriesItem : subCategories) {
         Statistics s;
@@ -529,6 +530,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         auto avgXY{calculateAvgXY(subCategoriesItem.points)};
         s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
         s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
         s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
         s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
@@ -839,10 +841,13 @@ int main()
     std::map<std::string, Data> data;
     uint idx{0};
     for (const auto& d : data_) {
+            std::cout << idx << " " << data.size() << " " << d.sample << std::endl;
             data[d.sample] = d;
             data[d.sample].idx = idx;
             idx++;
     }
+
+    std::cout << idx << std::endl;
     // choose grad by idx
     std::map<std::string, Data> data_grad;
     for (const auto& [key, value] : data) {
@@ -851,7 +856,6 @@ int main()
 
     std::cout << "!" << data.size() << " " << data_grad.size() << std::endl;
 
-    return 0;
 //    try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
 //        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
