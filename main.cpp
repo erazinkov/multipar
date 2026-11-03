@@ -448,6 +448,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         std::vector<uint> flags;
         Color_t color;
         std::vector<Point> points;
+        double offset;
     };
 
     std::vector<SubCategory> subCategories
@@ -456,38 +457,46 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
             "all",
             {41, 42, 44, 45, 40, 43},
             kBlack,
-            {}
+            {},
+            0.0
         },
         {
             "K12",
             {41},
             kBlue,
-            {}
+            {},
+            0.0
         },
         {
             "T,TC",
             {42},
             kOrange,
-            {}
+            {},
+            0.0
         },
         {
             "K+KC+OC",
             {44, 45},
             kGreen,
-            {}
+            {},
+            0.0
         },
         {
             "other",
             {40, 43},
             kRed,
-            {}
+            {},
+            0.0
         }
     };
 
     for (size_t i{0}; i < subCategories.size(); i++) {
         for (size_t j{0}; j < points_p.size(); ++j) {
             if (std::find(subCategories.at(i).flags.begin(), subCategories.at(i).flags.end(), points_p.at(j).subCategory) != subCategories.at(i).flags.end()) {
-                subCategories.at(i).points.emplace_back(points_p.at(j));
+                Point p_ = points_p.at(j);
+                p_.x = p_.x + subCategories.at(i).offset;
+                subCategories.at(i).points.emplace_back(p_);
+//                subCategories.at(i).points.emplace_back(points_p.at(j));
             }
         }
     }
