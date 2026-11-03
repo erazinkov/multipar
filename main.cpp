@@ -839,23 +839,19 @@ int main()
     std::map<std::string, Data> data;
     uint idx{0};
     for (const auto& d : data_) {
-        // if (d.subCategory == 41) {
             data[d.sample] = d;
             data[d.sample].idx = idx;
             idx++;
-        // }
     }
     // choose grad by idx
     std::map<std::string, Data> data_grad;
     for (const auto& [key, value] : data) {
-//        if (value.idx < data.size() / 2) {
             data_grad[key] = value;
-//        }
     }
 
-    std::cout << "!" << data_grad.size() << std::endl;
+    std::cout << "!" << data.size() << " " << data_grad.size() << std::endl;
 
-
+    return 0;
 //    try {
 //        std::regex m{R"(\bsample([1-9]|[12][0-9]|30)\b)"}; //30
 //        std::regex m{R"((sample(?:[1-4]|9|10|3[7-9]|4[0-9]|5[0-3]|5[8-9]|6[0-9]|72|7[5-9]|8[0-5])\.))"}; // grad
