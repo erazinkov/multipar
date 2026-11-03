@@ -543,6 +543,22 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
 
         statistics.emplace_back(s);
     }
+
+    std::ofstream ofs{"statistics.csv"};
+    if (ofs.is_open()) {
+        for (const auto &statisticsValuesItem : statistics.front().values) {
+            ofs << statisticsValuesItem.title.c_str() << " ";
+        }
+        ofs << std::endl;
+        for (const auto& statisticsItem : statistics) {
+            for (const auto &statisticsValuesItem : statisticsItem.values) {
+                ofs << statisticsValuesItem.value.c_str() << " ";
+            }
+            ofs << std::endl;
+        }
+        ofs.close();
+    }
+
     if (!statistics.empty()) {
         double yRow = 0.85;
         double xCol = 0.15;
