@@ -458,35 +458,35 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
             {41, 42, 44, 45, 40, 43},
             kBlack,
             {},
-            0.0
+            0.03649
         },
         {
             "K12",
             {41},
             kBlue,
             {},
-            0.0
+            0.03248
         },
         {
             "T,TC",
             {42},
             kOrange,
             {},
-            0.0
+            0.04089
         },
         {
             "K+KC+OC",
             {44, 45},
             kGreen,
             {},
-            0.0
+            0.03489
         },
         {
             "other",
             {40, 43},
             kRed,
             {},
-            0.0
+            0.03466
         }
     };
 
@@ -538,6 +538,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         auto avgXY{calculateAvgXY(subCategoriesItem.points)};
         s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
         s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
         s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
         s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
