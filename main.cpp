@@ -437,7 +437,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
                  TMarker m{points_p.at(i).x, points_p.at(i).y, 21};
                  m.SetMarkerSize(1.25);
                  m.SetMarkerColor(item.first.second);
-                 m.DrawClone("SAME");
+//                 m.DrawClone("SAME");
                  item.second.push_back(points_p.at(i));
              }
          }
@@ -448,6 +448,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         std::vector<uint> flags;
         Color_t color;
         std::vector<Point> points;
+        double offset;
     };
 
     std::vector<SubCategory> subCategories
@@ -456,38 +457,45 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
             "all",
             {41, 42, 44, 45, 40, 43},
             kBlack,
-            {}
+            {},
+            0.04915
         },
         {
             "K12",
             {41},
             kBlue,
-            {}
+            {},
+            -0.11063
         },
         {
             "T,TC",
             {42},
             kOrange,
-            {}
+            {},
+            0.21826
         },
         {
             "K+KC+OC",
             {44, 45},
             kGreen,
-            {}
+            {},
+            -0.00842
         },
         {
             "other",
             {40, 43},
             kRed,
-            {}
+            {},
+            -0.02258
         }
     };
 
     for (size_t i{0}; i < subCategories.size(); i++) {
         for (size_t j{0}; j < points_p.size(); ++j) {
             if (std::find(subCategories.at(i).flags.begin(), subCategories.at(i).flags.end(), points_p.at(j).subCategory) != subCategories.at(i).flags.end()) {
-                subCategories.at(i).points.emplace_back(points_p.at(j));
+                Point p_ = points_p.at(j);
+                p_.x = p_.x + subCategories.at(i).offset;
+                subCategories.at(i).points.emplace_back(p_);
             }
         }
     }
@@ -532,10 +540,27 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
         s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
         s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        std::cout << subCategoriesItem.title << " avg " << doubleToString(calculateAvgXY(subCategoriesItem.points).first, 5) << std::endl;
         s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
         statistics.emplace_back(s);
     }
+
+    std::ofstream ofs{"statistics.csv"};
+    if (ofs.is_open()) {
+        for (const auto &statisticsValuesItem : statistics.front().values) {
+            ofs << statisticsValuesItem.title.c_str() << " ";
+        }
+        ofs << std::endl;
+        for (const auto& statisticsItem : statistics) {
+            for (const auto &statisticsValuesItem : statisticsItem.values) {
+                ofs << statisticsValuesItem.value.c_str() << " ";
+            }
+            ofs << std::endl;
+        }
+        ofs.close();
+    }
+
     if (!statistics.empty()) {
         double yRow = 0.85;
         double xCol = 0.15;
@@ -952,7 +977,7 @@ int main()
 //        std::vector<Point> points_p_w{getPredicatedPointsByType(data_a, ChemResult::Type::W, f.get())};
 
         process(points_p_a, ChemResult::Type::A);
-        process(points_p_w, ChemResult::Type::W);
+//        process(points_p_w, ChemResult::Type::W);
 
 //        std::regex m_r{R"(sample(115|115_\d+))"};
 
