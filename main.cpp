@@ -494,7 +494,7 @@ void process(const std::vector<Point> &points, const ChemResult::Type &value) {
         for (size_t j{0}; j < points_p.size(); ++j) {
             if (std::find(subCategories.at(i).flags.begin(), subCategories.at(i).flags.end(), points_p.at(j).subCategory) != subCategories.at(i).flags.end()) {
                 Point p_ = points_p.at(j);
-                p_.x = p_.x + subCategories.at(i).offset;
+//                p_.x = p_.x + subCategories.at(i).offset;
                 subCategories.at(i).points.emplace_back(p_);
 //                subCategories.at(i).points.emplace_back(points_p.at(j));
             }
