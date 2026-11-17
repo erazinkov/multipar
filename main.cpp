@@ -317,8 +317,8 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.95};
-    auto max{(*itMax).y * 1.05};
+    auto min{(*itMin).y * 0.75};
+    auto max{(*itMax).y * 1.25};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
     h2d_p.get()->SetStats(0);
@@ -456,7 +456,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
     };
 
 
-    std::vector<SubCategory> subCategories_iz
+    std::vector<SubCategory> subCategories_zi
     {
 //        {
 //            "all",
@@ -473,9 +473,9 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            0.03248
 //        },
         {
-            "T,TC",
+            "T,TC_zi",
             {42},
-            kOrange,
+            kBrownCyan,
             {},
             0.04089
         },
@@ -486,21 +486,21 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03489
 //        },
-//        {
-//            "other",
-//            {40, 43},
-//            kRed,
-//            {},
-//            0.03466
-//        }
+        {
+            "other_zi",
+            {40, 43},
+            kRed,
+            {},
+            0.03466
+        }
     };
 
-    for (size_t i{0}; i < subCategories_iz.size(); i++) {
+    for (size_t i{0}; i < subCategories_zi.size(); i++) {
         for (size_t j{0}; j < points_p_zi.size(); ++j) {
-        if (std::find(subCategories_iz.at(i).flags.begin(), subCategories_iz.at(i).flags.end(), points_p_zi.at(j).subCategory) != subCategories_iz.at(i).flags.end()) {
+        if (std::find(subCategories_zi.at(i).flags.begin(), subCategories_zi.at(i).flags.end(), points_p_zi.at(j).subCategory) != subCategories_zi.at(i).flags.end()) {
             Point p_ = points_p_zi.at(j);
 //                p_.x = p_.x + subCategories.at(i).offset;
-                subCategories_iz.at(i).points.emplace_back(p_);
+                subCategories_zi.at(i).points.emplace_back(p_);
 //                subCategories.at(i).points.emplace_back(points_p.at(j));
         }
         }
@@ -527,7 +527,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
         {
             "T,TC",
             {42},
-            kOrange,
+            kBrownCyan,
             {},
             0.04089
         },
@@ -538,13 +538,13 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03489
 //        },
-//        {
-//            "other",
-//            {40, 43},
-//            kRed,
-//            {},
-//            0.03466
-//        }
+        {
+            "other",
+            {40, 43},
+            kRed,
+            {},
+            0.03466
+        }
     };
 
     for (size_t i{0}; i < subCategories.size(); i++) {
@@ -575,7 +575,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
     }
 
 
-    for (const auto &subCategoriesItem : subCategories_iz) {
+    for (const auto &subCategoriesItem : subCategories_zi) {
         std::cout << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
 
         for (const auto &pointsItem : subCategoriesItem.points) {
@@ -604,6 +604,22 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 
     std::vector<Statistics> statistics;
     for (const auto &subCategoriesItem : subCategories) {
+        Statistics s;
+        s.title = subCategoriesItem.title;
+        s.color = subCategoriesItem.color;
+        s.values.push_back({"#", subCategoriesItem.title});
+        s.values.push_back({"n", doubleToString(subCategoriesItem.points.size(), 0)});
+        auto avgXY{calculateAvgXY(subCategoriesItem.points)};
+        s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
+        s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
+        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
+
+        statistics.emplace_back(s);
+    }
+
+    for (const auto &subCategoriesItem : subCategories_zi) {
         Statistics s;
         s.title = subCategoriesItem.title;
         s.color = subCategoriesItem.color;
