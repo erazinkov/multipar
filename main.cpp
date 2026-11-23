@@ -292,8 +292,10 @@ void findExcludedPoints(const std::vector<Point> &points, const double limit = 1
     std::cout << std::endl;
 }
 
-void process(const std::vector<Point> &points, const std::vector<Point> &points_zi, const ChemResult::Type &value) {
+void process(const std::vector<Point> &points, const std::vector<Point> &points_zi, const std::vector<Point> &points_zi_excluded, const ChemResult::Type &value) {
 
+    std::vector<Point> points_p_zi_excluded;
+    points_p_zi_excluded.insert(points_p_zi_excluded.end(), points_zi_excluded.cbegin(), points_zi_excluded.cend());
     std::vector<Point> points_p_zi;
     points_p_zi.insert(points_p_zi.end(), points_zi.cbegin(), points_zi.cend());
     std::vector<Point> points_p;
@@ -455,6 +457,57 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
         double offset;
     };
 
+    std::vector<SubCategory> subCategories_zi_excluded
+    {
+//        {
+//            "all",
+//            {41, 42, 44, 45, 40, 43},
+//            kBlack,
+//            {},
+//            0.03649
+//        },
+//        {
+//            "K12",
+//            {41},
+//            kBlue,
+//            {},
+//            0.03248
+//        },
+        {
+            "T,TC_zi_exc_3_6",
+            {42},
+            kBlack,
+            {},
+            0.04089
+        },
+//        {
+//            "K+KC+OC",
+//            {44, 45},
+//            kGreen,
+//            {},
+//            0.03489
+//        },
+        {
+            "other_zi_exc_3_6",
+            {40, 43},
+            kRed,
+            {},
+            0.03466
+        }
+    };
+
+    for (size_t i{0}; i < subCategories_zi_excluded.size(); i++) {
+        for (size_t j{0}; j < points_p_zi_excluded.size(); ++j) {
+        if (std::find(subCategories_zi_excluded.at(i).flags.begin(), subCategories_zi_excluded.at(i).flags.end(), points_p_zi_excluded.at(j).subCategory) != subCategories_zi_excluded.at(i).flags.end()) {
+            Point p_ = points_p_zi_excluded.at(j);
+//                p_.x = p_.x + subCategories.at(i).offset;
+                subCategories_zi_excluded.at(i).points.emplace_back(p_);
+//                subCategories.at(i).points.emplace_back(points_p.at(j));
+        }
+        }
+    }
+
+
 
     std::vector<SubCategory> subCategories_zi
     {
@@ -473,9 +526,9 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            0.03248
 //        },
         {
-            "T,TC_zi",
+            "T,TC_zi_exc_0_5",
             {42},
-            kBrownCyan,
+            kBlack,
             {},
             0.04089
         },
@@ -487,7 +540,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            0.03489
 //        },
         {
-            "other_zi",
+            "other_zi_exc_0_5",
             {40, 43},
             kRed,
             {},
@@ -527,7 +580,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
         {
             "T,TC",
             {42},
-            kBrownCyan,
+            kBlack,
             {},
             0.04089
         },
@@ -569,7 +622,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
     //        l.DrawClone("SAME");
             TMarker m{pointsItem.x, pointsItem.y, 21};
             m.SetMarkerSize(1.5);
-            m.SetMarkerColorAlpha(subCategoriesItem.color, 0.5);
+            m.SetMarkerColorAlpha(subCategoriesItem.color, 0.75);
             m.DrawClone("SAME");
         }
     }
@@ -585,6 +638,22 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
             l.SetTextSize(0.02);
     //        l.DrawClone("SAME");
             TMarker m{pointsItem.x, pointsItem.y, 26};
+            m.SetMarkerSize(1.5);
+            m.SetMarkerColor(subCategoriesItem.color);
+            m.DrawClone("SAME");
+        }
+    }
+
+    for (const auto &subCategoriesItem : subCategories_zi_excluded) {
+        std::cout << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
+
+        for (const auto &pointsItem : subCategoriesItem.points) {
+            TLatex l(pointsItem.x, pointsItem.y + 1.25 * pointsItem.xErr, sampleToLabel(pointsItem.sample).c_str());
+            l.SetTextAngle(90);
+            l.SetTextAlign(12);
+            l.SetTextSize(0.02);
+    //        l.DrawClone("SAME");
+            TMarker m{pointsItem.x, pointsItem.y, 30};
             m.SetMarkerSize(1.5);
             m.SetMarkerColor(subCategoriesItem.color);
             m.DrawClone("SAME");
@@ -620,6 +689,21 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
     }
 
     for (const auto &subCategoriesItem : subCategories_zi) {
+        Statistics s;
+        s.title = subCategoriesItem.title;
+        s.color = subCategoriesItem.color;
+        s.values.push_back({"#", subCategoriesItem.title});
+        s.values.push_back({"n", doubleToString(subCategoriesItem.points.size(), 0)});
+        auto avgXY{calculateAvgXY(subCategoriesItem.points)};
+        s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
+        s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
+        s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
+        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
+
+        statistics.emplace_back(s);
+    }
+    for (const auto &subCategoriesItem : subCategories_zi_excluded) {
         Statistics s;
         s.title = subCategoriesItem.title;
         s.color = subCategoriesItem.color;
@@ -976,7 +1060,7 @@ int main()
 
     };
 
-    const auto fileName_zi{"stroy/OF_data.subcat.ZI.csv"};
+    const auto fileName_zi{"stroy/OF_data.subcat.ZI_excluded_0_5.csv"};
     auto data_zi{getData_(fileName_zi, columnElement)};
     for (size_t i{0}; i < subCategoriesData_zi.size(); i++) {
         for (size_t j{0}; j < data_zi.size(); ++j) {
@@ -986,7 +1070,41 @@ int main()
         }
     }
 
+    std::vector<SubCategoryData> subCategoriesData_zi_excluded
+    {
+        {
+            "41_zi_excluded",
+            {41},
+            {}
+        },
+        {
+            "42_zi_excluded",
+            {42},
+            {}
+        },
+        {
+            "44_45_zi_excluded",
+            {44, 45},
+            {}
+        },
+        {
+            "40_43_zi_excluded",
+            {40, 43},
+            {}
+        }
 
+    };
+
+    const auto fileName_zi_excluded{"stroy/OF_data.subcat.ZI_excluded_3_6.csv"};
+    auto data_zi_excluded{getData_(fileName_zi_excluded, columnElement)};
+    for (size_t i{0}; i < subCategoriesData_zi_excluded.size(); i++) {
+        for (size_t j{0}; j < data_zi_excluded.size(); ++j) {
+            if (std::find(subCategoriesData_zi_excluded.at(i).flags.begin(), subCategoriesData_zi_excluded.at(i).flags.end(), data_zi_excluded.at(j).subCategory) != subCategoriesData_zi_excluded.at(i).flags.end()) {
+                subCategoriesData_zi_excluded.at(i).data.emplace_back(data_zi_excluded.at(j));
+            }
+        }
+    }
+    std::vector<Point> points_zi_excluded;
     std::vector<Point> points_zi;
     std::vector<Point> points_;
 
@@ -1076,6 +1194,16 @@ int main()
             std::cout << "points_p_a ====== " <<  points_p_a.size() << std::endl;
             points_.insert(points_.end(), points_p_a.begin(), points_p_a.end());
 
+            std::map<std::string, Data> data_zi_excluded;
+            uint idx_zi_excluded{0};
+            for (const auto& d : subCategoriesData_zi_excluded.at(ic).data) {
+                    data_zi_excluded[d.sample] = d;
+                    data_zi_excluded[d.sample].idx = idx_zi_excluded;
+                    idx_zi_excluded++;
+            }
+            std::vector<Point> points_p_a_zi_excluded{getPredicatedPointsByType(data_zi_excluded, ChemResult::Type::A, f.get())};
+            points_zi_excluded.insert(points_zi_excluded.end(), points_p_a_zi_excluded.begin(), points_p_a_zi_excluded.end());
+
             std::map<std::string, Data> data_zi;
             uint idx_zi{0};
             for (const auto& d : subCategoriesData_zi.at(ic).data) {
@@ -1089,12 +1217,13 @@ int main()
 
     std::cout << points_.size() << std::endl;
     std::cout << points_zi.size() << std::endl;
+    std::cout << points_zi_excluded.size() << std::endl;
 
 //        std::vector<Point> points_p_a{getPredicatedPointsByType(data, ChemResult::Type::A, f.get())};
 //        std::vector<Point> points_p_w{getPredicatedPointsByType(data, ChemResult::Type::W, f.get())};
 
 
-        process(points_, points_zi, ChemResult::Type::A);
+        process(points_, points_zi, points_zi_excluded, ChemResult::Type::A);
 //        process(points_p_w, ChemResult::Type::W);
 
     //!!!
