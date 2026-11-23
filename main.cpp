@@ -200,6 +200,18 @@ double calculateStdAbsRep(const std::vector<Point>& points) {
     return std::sqrt(sumSquaredDiff / points.size());
 }
 
+//double calculateStdAbsRep(const std::vector<Point>& points) {
+//    if (points.empty()) return 0.0;
+
+//    double sumSquaredDiff = 0.0;
+//    auto avg = calculateAvgXY(points);
+//    for (size_t i = 0; i < points.size() - 1; ++i) {
+//        const double diff = points[i + 1].x - avg.first;
+//        sumSquaredDiff += diff * diff;
+//    }
+//    return std::sqrt(sumSquaredDiff / points.size());
+//}
+
 double calculateStdAbsRep(const std::vector<double>& values) {
     if (values.empty()) return 0.0;
 
@@ -317,8 +329,10 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
                                [](const Point& a, const Point& b) {
                                 return a.y < b.y;
                                });
-    auto min{(*itMin).y * 0.75};
-    auto max{(*itMax).y * 1.25};
+//    auto min{(*itMin).y * 0.75};
+//    auto max{(*itMax).y * 1.25};
+    auto min{19.0 * 0.75};
+    auto max{19.0 * 1.25};
 
     std::unique_ptr<TH2D> h2d_p{new TH2D("h2d_p", "h2d_p", 100, min, max, 100, min, max)};
     h2d_p.get()->SetStats(0);
@@ -465,20 +479,20 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03649
 //        },
-//        {
-//            "K12",
-//            {41},
-//            kBlue,
-//            {},
-//            0.03248
-//        },
         {
-            "T,TC_zi",
-            {42},
-            kBrownCyan,
+            "B7-2",
+            {41},
+            kBlue,
             {},
-            0.04089
+            0.03248
         },
+//        {
+//            "T,TC_zi",
+//            {42},
+//            kBrownCyan,
+//            {},
+//            0.04089
+//        },
 //        {
 //            "K+KC+OC",
 //            {44, 45},
@@ -486,13 +500,13 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03489
 //        },
-        {
-            "other_zi",
-            {40, 43},
-            kRed,
-            {},
-            0.03466
-        }
+//        {
+//            "other_zi",
+//            {40, 43},
+//            kRed,
+//            {},
+//            0.03466
+//        }
     };
 
     for (size_t i{0}; i < subCategories_zi.size(); i++) {
@@ -510,13 +524,13 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 
     std::vector<SubCategory> subCategories
     {
-//        {
-//            "all",
-//            {41, 42, 44, 45, 40, 43},
-//            kBlack,
-//            {},
-//            0.03649
-//        },
+        {
+            "all",
+            {41, 42, 44, 45, 40, 43},
+            kBlack,
+            {},
+            0.03649
+        },
 //        {
 //            "K12",
 //            {41},
@@ -524,13 +538,13 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03248
 //        },
-        {
-            "T,TC",
-            {42},
-            kBrownCyan,
-            {},
-            0.04089
-        },
+//        {
+//            "T,TC",
+//            {42},
+//            kBrownCyan,
+//            {},
+//            0.04089
+//        },
 //        {
 //            "K+KC+OC",
 //            {44, 45},
@@ -538,13 +552,13 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 //            {},
 //            0.03489
 //        },
-        {
-            "other",
-            {40, 43},
-            kRed,
-            {},
-            0.03466
-        }
+//        {
+//            "other",
+//            {40, 43},
+//            kRed,
+//            {},
+//            0.03466
+//        }
     };
 
     for (size_t i{0}; i < subCategories.size(); i++) {
@@ -559,7 +573,7 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
     }
 
     for (const auto &subCategoriesItem : subCategories) {
-        std::cout << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
+        std::cout << "subCategories: " << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
 
         for (const auto &pointsItem : subCategoriesItem.points) {
             TLatex l(pointsItem.x, pointsItem.y + 1.25 * pointsItem.xErr, sampleToLabel(pointsItem.sample).c_str());
@@ -576,14 +590,14 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 
 
     for (const auto &subCategoriesItem : subCategories_zi) {
-        std::cout << subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
+        std::cout << "subCategories_zi: "<< subCategoriesItem.title << " " << subCategoriesItem.points.size() << std::endl;
 
         for (const auto &pointsItem : subCategoriesItem.points) {
             TLatex l(pointsItem.x, pointsItem.y + 1.25 * pointsItem.xErr, sampleToLabel(pointsItem.sample).c_str());
             l.SetTextAngle(90);
             l.SetTextAlign(12);
             l.SetTextSize(0.02);
-    //        l.DrawClone("SAME");
+//            l.DrawClone("SAME");
             TMarker m{pointsItem.x, pointsItem.y, 26};
             m.SetMarkerSize(1.5);
             m.SetMarkerColor(subCategoriesItem.color);
@@ -604,6 +618,9 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
 
     std::vector<Statistics> statistics;
     for (const auto &subCategoriesItem : subCategories) {
+        if (subCategoriesItem.points.empty()) {
+            continue;
+        }
         Statistics s;
         s.title = subCategoriesItem.title;
         s.color = subCategoriesItem.color;
@@ -614,12 +631,16 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
         s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
         s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
         s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
-        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
+//        s.values.push_back({"stdAbsRep", doubleToString(calculateStdAbsRep(subCategoriesItem.points), 5)});
+//        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
-        statistics.emplace_back(s);
+//        statistics.emplace_back(s);
     }
 
     for (const auto &subCategoriesItem : subCategories_zi) {
+        if (subCategoriesItem.points.empty()) {
+            continue;
+        }
         Statistics s;
         s.title = subCategoriesItem.title;
         s.color = subCategoriesItem.color;
@@ -629,26 +650,27 @@ void process(const std::vector<Point> &points, const std::vector<Point> &points_
         s.values.push_back({"avgX", doubleToString(avgXY.first, 5)});
         s.values.push_back({"avgY", doubleToString(avgXY.second, 5)});
         s.values.push_back({"avgY-avgX", doubleToString(avgXY.second - avgXY.first, 5)});
-        s.values.push_back({"stdAbs", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
-        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
+        s.values.push_back({"stdAbsCon", doubleToString(calculateStdAbsCon(subCategoriesItem.points), 5)});
+        s.values.push_back({"stdAbsRep", doubleToString(calculateStdAbsRep(subCategoriesItem.points), 5)});
+//        s.values.push_back({"r", doubleToString(calculateCorr(subCategoriesItem.points), 5)});
 
         statistics.emplace_back(s);
     }
 
-    std::ofstream ofs{"statistics.csv"};
-    if (ofs.is_open()) {
-        for (const auto &statisticsValuesItem : statistics.front().values) {
-            ofs << statisticsValuesItem.title.c_str() << " ";
-        }
-        ofs << std::endl;
-        for (const auto& statisticsItem : statistics) {
-            for (const auto &statisticsValuesItem : statisticsItem.values) {
-                ofs << statisticsValuesItem.value.c_str() << " ";
-            }
-            ofs << std::endl;
-        }
-        ofs.close();
-    }
+//    std::ofstream ofs{"statistics.csv"};
+//    if (ofs.is_open()) {
+//        for (const auto &statisticsValuesItem : statistics.front().values) {
+//            ofs << statisticsValuesItem.title.c_str() << " ";
+//        }
+//        ofs << std::endl;
+//        for (const auto& statisticsItem : statistics) {
+//            for (const auto &statisticsValuesItem : statisticsItem.values) {
+//                ofs << statisticsValuesItem.value.c_str() << " ";
+//            }
+//            ofs << std::endl;
+//        }
+//        ofs.close();
+//    }
 
     if (!statistics.empty()) {
         double yRow = 0.85;
@@ -848,31 +870,31 @@ int main()
 
     std::vector<SubCategoryData> subCategoriesData
     {
+        {
+            "4",
+            {41, 42, 44, 45, 40, 43},
+            {}
+        },
 //        {
-//            "4",
-//            {41, 42, 44, 45, 40, 43},
+//            "41",
+//            {41},
 //            {}
 //        },
-        {
-            "41",
-            {41},
-            {}
-        },
-        {
-            "42",
-            {42},
-            {}
-        },
-        {
-            "44_45",
-            {44, 45},
-            {}
-        },
-        {
-            "40_43",
-            {40, 43},
-            {}
-        }
+//        {
+//            "42",
+//            {42},
+//            {}
+//        },
+//        {
+//            "44_45",
+//            {44, 45},
+//            {}
+//        },
+//        {
+//            "40_43",
+//            {40, 43},
+//            {}
+//        }
     };
 
 
@@ -958,25 +980,25 @@ int main()
             {41},
             {}
         },
-        {
-            "42_zi",
-            {42},
-            {}
-        },
-        {
-            "44_45_zi",
-            {44, 45},
-            {}
-        },
-        {
-            "40_43_zi",
-            {40, 43},
-            {}
-        }
-
+//        {
+//            "42_zi",
+//            {42},
+//            {}
+//        },
+//        {
+//            "44_45_zi",
+//            {44, 45},
+//            {}
+//        },
+//        {
+//            "40_43_zi",
+//            {40, 43},
+//            {}
+//        }
     };
 
-    const auto fileName_zi{"stroy/OF_data.subcat.ZI.csv"};
+//    const auto fileName_zi{"stroy/OF_data.subcat.ZI.csv"};
+    const auto fileName_zi{"stroy/OF_data.Б7-2.csv"};
     auto data_zi{getData_(fileName_zi, columnElement)};
     for (size_t i{0}; i < subCategoriesData_zi.size(); i++) {
         for (size_t j{0}; j < data_zi.size(); ++j) {
@@ -1024,14 +1046,23 @@ int main()
 
             FitFunction1 fObj(points, points_a.size());
             std::unique_ptr<TF1> f{new TF1("f", fObj, points.front().x, points.back().x, 7)};
+//            const std::vector<double> parameters = {
+//                  1.55468e+00,
+//                  7.55269e-01,
+//                 -1.22767e+01,
+//                  1.05060e+02,
+//                  6.69100e-01,
+//                  1.17662e+00,
+//                  0.00000e+00
+//            };
             const std::vector<double> parameters = {
-                  1.55468e+00,
-                  7.55269e-01,
-                 -1.22767e+01,
-                  1.05060e+02,
-                  6.69100e-01,
-                  1.17662e+00,
-                  0.00000e+00
+                     8.60112e-01,
+                     4.25135e-01,
+                    -4.10488e+00,
+                     9.17170e+01,
+                     9.55916e-01,
+                     9.47465e-01,
+                     5.32751e-02,
             };
 
             auto setInitialParameters = [&parameters](TF1 *f){
@@ -1040,6 +1071,10 @@ int main()
                 }
             };
             setInitialParameters(f.get());
+
+            for (size_t ip{0}; ip < parameters.size(); ip++) {
+                f.get()->FixParameter(ip, parameters.at(ip));
+            }
 
     //        f.get()->FixParameter(6, 0.0);
 
@@ -1083,6 +1118,7 @@ int main()
                     data_zi[d.sample].idx = idx_zi;
                     idx_zi++;
             }
+
             std::vector<Point> points_p_a_zi{getPredicatedPointsByType(data_zi, ChemResult::Type::A, f.get())};
             points_zi.insert(points_zi.end(), points_p_a_zi.begin(), points_p_a_zi.end());
     }
